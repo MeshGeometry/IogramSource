@@ -27,11 +27,6 @@ include_directories (${URHO3D_INCLUDE_DIRS})
 # Define target name
 set (TARGET_NAME Core)
 
-add_definitions(-DNOMINMAX)
-
-#define includes
-include_directories("./")
-
 #get rid of resource copying
 set(RESOURCE_DIRS "")
 define_source_files ()
