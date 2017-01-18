@@ -31,15 +31,15 @@ include_directories (${URHO3D_INCLUDE_DIRS})
 set (TARGET_NAME Core)
 
 #c11
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_definitions(-DNOMINMAX)
 
 #define includes
 include_directories("./")
-include_directories(${CMAKE_SOURCE_DIR}/Source/ThirdParty)
-include_directories(${CMAKE_SOURCE_DIR}/Source/ThirdParty/Libigl)
-include_directories(${CMAKE_SOURCE_DIR}/Source/ThirdParty/Eigen)
+#include_directories(${CMAKE_SOURCE_DIR}/Source/ThirdParty)
+#include_directories(${CMAKE_SOURCE_DIR}/Source/ThirdParty/Libigl)
+#include_directories(${CMAKE_SOURCE_DIR}/Source/ThirdParty/Eigen)
 #include_directories("../ThirdParty/ShapeOp/api")
 #include_directories("../ThirdParty/Assimp/include")
 

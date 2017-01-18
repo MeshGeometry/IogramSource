@@ -12,6 +12,11 @@
 #include "IoOutputSlot.h"
 #include "NetworkUtilities.h"
 
+#include <Urho3D/UI/Button.h>
+#include <Urho3D/UI/Text.h>
+#include <Urho3D/Graphics/Texture2D.h>
+#include <Urho3D/Resource/ResourceCache.h>
+
 using namespace Urho3D;
 
 String IoComponentBase::iconTexture = "Textures/DefaultIcon.png";
@@ -41,12 +46,15 @@ IoComponentBase::IoComponentBase(Context* context, int numInputs, int numOutputs
 	Urho3D::SetRandomSeed(GetSubsystem<Time>()->GetSystemTime());
 	float idVal = Urho3D::Random();
 	ID = StringHash(String(idVal)).ToString();
-	float x = Urho3D::Random(100.0f, 500.0f);
-	float y = Urho3D::Random(100.0f, 500.0f);
-	viewData.pos = Vector2(x, y);
-	viewData.size = Vector2(100, 130);
+
 
 }
+
+Urho3D::String IoComponentBase::GetIconTexture()
+{
+	return iconTexture;
+}
+
 
 void IoComponentBase::InputHardSet(int inputIndex, IoDataTree ioDataTree)
 {

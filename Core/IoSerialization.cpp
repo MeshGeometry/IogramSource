@@ -45,8 +45,6 @@ void IoSerialization::SaveGraph(IoGraph const & graph, String path)
 		nodeVal.Set("type", node->GetTypeName());
 		nodeVal.Set("num_inputs", node->GetNumInputs());
 		nodeVal.Set("num_outputs", node->GetNumOutputs());
-		nodeVal.Set("screen_pos", node->viewData.pos.ToString());
-		nodeVal.Set("color", node->viewData.color.ToString());
 		nodeVal.Set("preview", node->IsPreviewEnabled());
 		nodeVal.Set("enabled", node->IsSolveEnabled());
 
@@ -253,8 +251,6 @@ void IoSerialization::LoadGraph(IoGraph & graph, File* source)
 			newComp->ID = ID;
 			newComp->Name = Name;
 			newComp->type = type;
-			newComp->viewData.pos = posVar.GetVector2();
-			newComp->viewData.color = colVar.GetColor();
 
 			(preview) ? newComp->EnablePreview() : newComp->DisablePreview();
 			(enabled) ? newComp->EnableSolve() : newComp->DisableSolve();

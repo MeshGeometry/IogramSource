@@ -17,16 +17,6 @@
 #include "IoInputSlot.h"
 #include "IoOutputSlot.h"
 
-struct IoViewData
-{
-	Urho3D::Vector2 pos;
-	Urho3D::Vector2 size;
-	Urho3D::Color color;
-
-public:
-	IoViewData() { pos = Urho3D::Vector2(0, 0); size = Urho3D::Vector2(150, 225); color = Urho3D::Color::GRAY; };
-};
-
 //////////////////
 // IoComponentBase
 
@@ -48,6 +38,7 @@ public:
 	friend class IoOutputSlot;
 	friend class NodeViewBase;
 	friend class IoSerialization;
+	friend class IoNodeView;
 
 public:
 	virtual int LocalSolve();
@@ -103,6 +94,8 @@ public:
 	int GetNumIncomingLinks(int inputSlotIdx) const;
 	int GetInputSlotIndex(Urho3D::SharedPtr<IoInputSlot> inputSlot) const;
 	int GetOutputSlotIndex(Urho3D::SharedPtr<IoOutputSlot> outputSlot) const;
+	Urho3D::String GetIconTexture();
+
 
 	/// connectivity
 	void ConnectChild(Urho3D::SharedPtr<IoComponentBase> child, int indexIntoChildInput, int indexIntoParentOutput);
@@ -155,8 +148,7 @@ public:
 	Urho3D::String type;
 	static Urho3D::String iconTexture;
 	static Urho3D::String tags;
-	//track view data
-	IoViewData viewData;
+
 
 protected: // protected so derived objects can access
 	Urho3D::Vector<Urho3D::SharedPtr<IoInputSlot> > inputSlots_;
