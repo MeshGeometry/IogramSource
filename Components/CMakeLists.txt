@@ -24,12 +24,6 @@ include (Urho3D-CMake-common)
 find_package (Urho3D REQUIRED)
 include_directories (${URHO3D_INCLUDE_DIRS})
 
-#include third party stuff
-include_directories(${CMAKE_SOURCE_DIR}/Source/ThirdParty)
-include_directories(${CMAKE_SOURCE_DIR}/Source/ThirdParty/Libigl)
-include_directories(${CMAKE_SOURCE_DIR}/Source/ThirdParty/Eigen)
-
-
 # Define target name
 set (TARGET_NAME Components)
 
@@ -39,11 +33,13 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 add_definitions(-DNOMINMAX)
 
 #define includes
-include_directories("${CMAKE_SOURCE_DIR}/Source/ThirdParty/ShapeOp/api")
-include_directories("${CMAKE_SOURCE_DIR}/Source/ThirdParty/Assimp/include")
-include_directories("${CMAKE_SOURCE_DIR}/Source/Core")
-include_directories("${CMAKE_SOURCE_DIR}/Source/Geometry")
-
+include_directories("../ThirdParty")
+include_directories("../ThirdParty/Libigl")
+include_directories("../ThirdParty/Eigen")
+include_directories("../ThirdParty/ShapeOp/api")
+include_directories("../ThirdParty/Assimp/include")
+include_directories("../Core")
+include_directories("../Geometry")
 
 # Define source files
 #define_source_files (RECURSE GROUP)
@@ -54,9 +50,6 @@ set(RESOURCE_DIRS "")
 
 # Setup target with resource copying
 setup_library ()
-
-target_link_libraries(Components Core)
-target_link_libraries(Components Geometry)
 
 #compile flags
 if(UNIX)
