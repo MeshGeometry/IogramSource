@@ -1,3 +1,4 @@
+#include "RegisterCoreComponents.h"
 #include "ComponentRegistration.h"
 
 ///////////////////////////////////////// COMPONENT REGISTRATION ///////////////////////////////////////////////////////
@@ -194,7 +195,7 @@ you must include it here and follow the registration pattern in RegisterComponen
 
 using namespace Urho3D;
 
-void ComponentRegistration::RegisterCoreComponents(Context* context)
+void RegisterCoreComponents(Context* context)
 {
 
 	context->RegisterFactory<Widget_Base>();
@@ -383,62 +384,4 @@ void ComponentRegistration::RegisterCoreComponents(Context* context)
 	RegisterIogramType<Mesh_SplitLongEdges>(context); //Disabled! Crashes on bad meshes like Hexayurt
 
 	RegisterIogramType<Offsets_NgonMeshReader>(context);
-}
-
-template <class T> void ComponentRegistration::RegisterIogramType(Context* context)
-{
-	context->RegisterFactory<T>();
-
-	Variant typeVar = context->GetGlobalVar("IogramTypes");
-	VariantMap typeMap = typeVar.GetVariantMap();
-
-	VariantMap infoMap;
-	infoMap["typeName"] = T::GetTypeNameStatic();
-	infoMap["viewTypeName"] = "NodeViewBase";
-	infoMap["texturePath"] = T::iconTexture;	
-
-	String tagString = T::GetTypeNameStatic().Split('_')[0];
-	tagString.Replace(',', ' '); //get rid of commas
-	Vector<String> parts = tagString.Split(' ');//split in to parts
-	VariantVector globalTags = context->GetGlobalVar("IogramTags").GetVariantVector();
-	String combinedString = "";
-	for (unsigned i = 0; i < parts.Size(); i++)
-	{
-		String tag = parts[i].Trimmed();
-		tag = tag.ToLower();
-
-		if (!globalTags.Contains(tag))
-		{
-			globalTags.Push(tag);
-		}
-
-		combinedString += tag + " ";
-
-	}
-	infoMap["tags"] = combinedString;
-
-	context->SetGlobalVar("IogramTags", globalTags);
-	typeMap[T::GetTypeNameStatic()] = infoMap;
-	context->SetGlobalVar("IogramTypes", typeMap);
-}
-
-template <class T, class V> void ComponentRegistration::RegisterIogramType(Context* context)
-{
-	context->RegisterFactory<T>();
-	context->RegisterFactory<V>();
-
-	Variant typeVar = context->GetGlobalVar("IogramTypes");
-	VariantMap typeMap = typeVar.GetVariantMap();
-
-	VariantMap infoMap;
-	infoMap["typeName"] = T::GetTypeNameStatic();
-	infoMap["viewTypeName"] = V::GetTypeNameStatic();
-	infoMap["texturePath"] = T::iconTexture;
-	typeMap[T::GetTypeNameStatic()] = infoMap;
-	context->SetGlobalVar("IogramTypes", typeMap);
-
-	//register tags
-	T::SetTags(T::tags);
-
-	int size = typeMap.Keys().Size();
 }

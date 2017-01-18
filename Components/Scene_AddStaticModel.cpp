@@ -38,7 +38,7 @@ Scene_AddStaticModel::Scene_AddStaticModel(Urho3D::Context* context) : IoCompone
 	inputSlots_[2]->SetDescription("Pointer to Material");
 	inputSlots_[2]->SetVariantType(VariantType::VAR_STRING);
 	inputSlots_[2]->SetDataAccess(DataAccess::ITEM);
-	inputSlots_[2]->SetDefaultValue("Materials/PBR/BasicWeb.xml");
+	inputSlots_[2]->SetDefaultValue("Materials/BasicWeb.xml");
 	inputSlots_[2]->DefaultSet();
 
 	outputSlots_[0]->SetName("Static Model");
@@ -72,7 +72,7 @@ void Scene_AddStaticModel::SolveInstance(
 	)
 {
 
-	Scene* scene = GetSubsystem<IoGraph>()->scene;
+	Scene* scene = (Scene*)GetGlobalVar("Scene").GetPtr();
 	ResourceCache* cache = GetSubsystem<ResourceCache>();
 
 	if (scene == NULL)
