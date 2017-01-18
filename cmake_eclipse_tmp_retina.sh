@@ -1,0 +1,1 @@
+cmake -B/home/alice/Downloads/geometryapp-retina -H/home/alice/Downloads/geometryapp -DCMAKE_INSTALL_PREFIX="./" -DURHO3D_HOME="/home/alice/Downloads/mesh-Urho3D-build" -DURHO3D_64BIT=1 -G "Eclipse CDT4 - Unix Makefiles"
