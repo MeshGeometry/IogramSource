@@ -17,12 +17,16 @@ void Input_Panel::SolveInstance(
 	outSolveInstance[0] = inSolveInstance[0];
 }
 
+//TODO now that multiline edit is working, rework this component
+
 void Input_Panel::HandleCustomInterface(UIElement* customElement)
 {
 	
 	uiRoot = customElement;
 
-	LineEdit* l = (LineEdit*)customElement->GetChild("PropertyEdit", true);
+	//LineEdit* l = (LineEdit*)customElement->GetChild("PropertyEdit", true);
+	LineEdit* l = customElement->CreateChild<LineEdit>("PropertyEdit");
+	l->SetStyle("LineEdit");
 	if (l)
 	{
 		SubscribeToEvent(l, E_TEXTFINISHED, URHO3D_HANDLER(Input_Panel, HandleLineEditCommit));
@@ -62,6 +66,12 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 			l->SetText(var.ToString());
 		}
 	}
+
+
+	UIElement* controls = customElement->CreateChild<UIElement>("ControlGroup");
+	controls->SetMinHeight(30);
+	controls->SetLayoutMode(LM_HORIZONTAL);
+	controls->SetLayoutSpacing(2);
 }
 
 String Input_Panel::GetNodeStyle()

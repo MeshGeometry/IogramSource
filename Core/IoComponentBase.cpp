@@ -19,7 +19,7 @@
 
 using namespace Urho3D;
 
-String IoComponentBase::iconTexture = "Textures/DefaultIcon.png";
+String IoComponentBase::iconTexture = "Textures/Icons/DefaultIcon.png";
 String IoComponentBase::tags = "All";
 
 IoComponentBase::IoComponentBase(Context* context, int numInputs, int numOutputs) :

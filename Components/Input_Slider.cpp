@@ -47,13 +47,24 @@ String Input_Slider::GetNodeStyle()
 }
 void Input_Slider::HandleCustomInterface(UIElement* customElement)
 {
-	slider = (Slider*)customElement->GetChild("MainSlider", false);
-
+	
 	//get the meta data
 	minRange = GetGenericData("min").GetFloat();
 	maxRange = GetGenericData("max").GetFloat();
 	currentValue = GetGenericData("value").GetFloat();
 
+	customElement->SetMinHeight(50);
+
+	slider = customElement->CreateChild<Slider>("MainSlider", true);
+	slider->SetStyle("ThinSlider");
+	slider->SetMinHeight(20);
+	slider->SetMaxHeight(20);
+	
+	UIElement* controls = customElement->CreateChild<UIElement>("ControlGroup");
+	controls->SetMinHeight(30);
+	controls->SetLayoutMode(LM_HORIZONTAL);
+	controls->SetLayoutSpacing(2);
+	//slider = (Slider*)customElement->GetChild("MainSlider", false);
 
 	if (slider)
 	{
@@ -61,21 +72,29 @@ void Input_Slider::HandleCustomInterface(UIElement* customElement)
 		Variant val;
 		inputSlots_[0]->GetIoDataTreePtr()->Begin();
 		inputSlots_[0]->GetIoDataTreePtr()->GetNextItem(val, DataAccess::ITEM);
-		slider->SetValue(val.GetFloat());
 	}
-	minInput = (LineEdit*)customElement->GetChild("SliderMin", true);
+
+	minInput = controls->CreateChild<LineEdit>("SliderMin");
+	minInput->SetStyleAuto();
+	//minInput = (LineEdit*)customElement->GetChild("SliderMin", true);
 	if (minInput)
 	{
 		SubscribeToEvent(minInput, E_TEXTCHANGED, URHO3D_HANDLER(Input_Slider, HandleLineEdit));
 		minInput->SetText(String(minRange));
 	}
-	maxInput = (LineEdit*)customElement->GetChild("SliderMax", true);
+
+	maxInput = controls->CreateChild<LineEdit>("SliderMax");
+	maxInput->SetStyleAuto();
+	//maxInput = (LineEdit*)customElement->GetChild("SliderMax", true);
 	if (maxInput)
 	{
 		SubscribeToEvent(maxInput, E_TEXTCHANGED, URHO3D_HANDLER(Input_Slider, HandleLineEdit));
 		maxInput->SetText(String(maxRange));
 	}
-	valInput = (LineEdit*)customElement->GetChild("CurrentValue", true);
+
+	valInput = controls->CreateChild<LineEdit>("CurrentValue");
+	valInput->SetStyleAuto();
+	//valInput = (LineEdit*)customElement->GetChild("CurrentValue", true);
 	if (valInput)
 	{
 		SubscribeToEvent(valInput, E_TEXTFINISHED, URHO3D_HANDLER(Input_Slider, HandleLineEdit));
