@@ -43,7 +43,9 @@ String Sets_ExportViewData::GetNodeStyle()
 
 void Sets_ExportViewData::HandleCustomInterface(UIElement* customElement)
 {
-	exportNameEdit = (LineEdit*)customElement->GetChild("PropertyEdit", true);
+	exportNameEdit = customElement->CreateChild<LineEdit>("PropertyEdit");
+	exportNameEdit->SetStyle("LineEdit");
+	exportNameEdit->SetWidth(100);
 	if (exportNameEdit)
 	{
 		SubscribeToEvent(exportNameEdit, E_TEXTFINISHED, URHO3D_HANDLER(Sets_ExportViewData, HandleLineEdit));

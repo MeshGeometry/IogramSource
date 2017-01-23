@@ -49,7 +49,9 @@ String Input_Toggle::GetNodeStyle()
 
 void Input_Toggle::HandleCustomInterface(UIElement* customElement)
 {
-	Button* b = (Button*)customElement->GetChild("BoolToggle_Button", false);
+	Button* b = customElement->CreateChild<Button>("BoolToogle");
+	b->SetStyle("Button");
+	b->SetMinSize(30, 20);
 	if (b)
 	{
 		SubscribeToEvent(b, E_PRESSED, URHO3D_HANDLER(Input_Toggle, HandleButtonPress));

@@ -41,7 +41,9 @@ String Sets_ImportViewData::GetNodeStyle()
 
 void Sets_ImportViewData::HandleCustomInterface(UIElement* customElement)
 {
-	importNameEdit = (LineEdit*)customElement->GetChild("PropertyEdit", true);
+	importNameEdit = customElement->CreateChild<LineEdit>("PropertyEdit");
+	importNameEdit->SetStyle("LineEdit");
+	importNameEdit->SetWidth(100);
 	if (importNameEdit)
 	{
 		SubscribeToEvent(importNameEdit, E_TEXTFINISHED, URHO3D_HANDLER(Sets_ImportViewData, HandleLineEdit));
