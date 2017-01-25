@@ -4,6 +4,7 @@
 #include <Urho3D/UI/UI.h>
 #include <Urho3D/Core/Variant.h>
 #include <Urho3D/UI/Text.h>
+#include <Urho3D/Resource/ResourceCache.h>
 
 #include "IoGraph.h"
 
@@ -91,11 +92,19 @@ void Input_ScreenLineEdit::SolveInstance(
 		useCoords = true;
 	}
 
-	//attache to parent or root
-	UIElement* container = (parent == NULL) ? ui->GetRoot() : parent;
+	//get the active ui region
+	UIElement* root = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
+	if (!root)
+	{
+		SetAllOutputsNull(outSolveInstance);
+	}
+
+	//attach
+	UIElement* container = (parent == NULL) ? root : parent;
 
 	Button* b = (Button*)container->CreateChild<Button>("CustomUI", idx);
-	b->SetStyle("ScreenLineEdit");
+	XMLFile* styleFile = GetSubsystem<ResourceCache>()->GetResource<XMLFile>("UI/IogramDefaultStyle.xml");
+	b->SetStyle("ScreenLineEdit", styleFile);
 
 	if (useCoords)
 	{

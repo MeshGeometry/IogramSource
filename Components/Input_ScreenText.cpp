@@ -118,8 +118,15 @@ void Input_ScreenText::SolveInstance(
 	int idx = inSolveInstance[4].GetInt();
 	UIElement* parent = (UIElement*)inSolveInstance[5].GetPtr();
 
-	//attache to parent or root
-	UIElement* container = (parent == NULL) ? ui->GetRoot() : parent;
+	//get the active ui region
+	UIElement* root = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
+	if (!root)
+	{
+		SetAllOutputsNull(outSolveInstance);
+	}
+
+	//attach
+	UIElement* container = (parent == NULL) ? root : parent;
 
 	Text* textElement = container->CreateChild<Text>("CustomUI", idx);
 

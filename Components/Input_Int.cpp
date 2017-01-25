@@ -3,6 +3,7 @@
 #include "IoGraph.h"
 
 #include <Urho3D/UI/UIEvents.h>
+#include <Urho3D/Resource/ResourceCache.h>
 
 #include <assert.h>
 

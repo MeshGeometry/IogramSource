@@ -35,7 +35,7 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 	textArea_->GetTextElement()->SetFontSize(9);
 
 	//set saved data
-	if (!inputSlots_[0]->HasNoData())
+	if (inputSlots_[0]->GetLinkedOutputSlot())
 	{
 		IoDataTree* dt = inputSlots_[0]->GetIoDataTreePtr();
 		String dtText = dt->ToString(false);
@@ -52,7 +52,7 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 
 void Input_Panel::HandleGraphSolve(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
 {
-	if (inputSlots_[0]->HasNoData())
+	if (!inputSlots_[0]->GetLinkedOutputSlot())
 	{
 		editable_ = true;
 		textArea_->SetEditable(true);

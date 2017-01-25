@@ -36,9 +36,8 @@ public:
 
 	friend class IoInputSlot;
 	friend class IoOutputSlot;
-	friend class NodeViewBase;
 	friend class IoSerialization;
-	friend class IoNodeView;
+	friend class Editor_NodeView;
 
 public:
 	virtual int LocalSolve();

@@ -3,6 +3,7 @@
 
 #include <Urho3D/UI/UI.h>
 #include <Urho3D/UI/Slider.h>
+#include <Urho3D/Resource/ResourceCache.h>
 
 #include "IoGraph.h"
 
@@ -92,17 +93,25 @@ void Input_ScreenContainer::SolveInstance(
 	//get the ui subsystem
 	UI* ui = GetSubsystem<UI>();
 
+
+
+
 	
 	String name = inSolveInstance[0].ToString();
 	Vector3 coords = inSolveInstance[1].GetVector3();
 	Vector3 size = inSolveInstance[2].GetVector3();
 	int options = inSolveInstance[3].GetInt();
 
-	//always add to root
-	UIElement* root = ui->GetRoot();
+	//get the active ui region
+	UIElement* root = (UIElement*) GetGlobalVar("activeUIRegion").GetPtr();
+	if (!root)
+	{
+		SetAllOutputsNull(outSolveInstance);
+	}
 
 	Widget_Container* container = root->CreateChild<Widget_Container>("CustomContainer");
-	container->SetStyle("Widget_Container");
+	XMLFile* styleFile = GetSubsystem<ResourceCache>()->GetResource<XMLFile>("UI/IogramDefaultStyle.xml");
+	container->SetStyle("Widget_Container", styleFile);
 	container->CustomInterface();
 	container->SetPosition(coords.x_, coords.y_);
 	container->SetSize(size.x_, size.y_);

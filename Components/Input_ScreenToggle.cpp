@@ -6,6 +6,7 @@
 #include "ColorDefs.h"
 #include "Widget_Base.h"
 #include <Urho3D/UI/UIEvents.h>
+#include <Urho3D/Resource/ResourceCache.h>
 
 using namespace Urho3D;
 
@@ -98,11 +99,19 @@ void Input_ScreenToggle::SolveInstance(
 	int idx = inSolveInstance[3].GetInt();
 	UIElement* parent = (UIElement*)inSolveInstance[4].GetPtr();
 
-	//attache to parent or root
-	UIElement* container = (parent == NULL) ? ui->GetRoot() : parent;
+	//get the active ui region
+	UIElement* root = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
+	if (!root)
+	{
+		SetAllOutputsNull(outSolveInstance);
+	}
+
+	//attach
+	UIElement* container = (parent == NULL) ? root : parent;
 
 	Widget_Base* b = (Widget_Base*)container->CreateChild<Button>("CustomUI", idx);
-	b->SetStyle("ScreenButton");
+	XMLFile* styleFile = GetSubsystem<ResourceCache>()->GetResource<XMLFile>("UI/IogramDefaultStyle.xml");
+	b->SetStyle("ScreenButton", styleFile);
 
 	if (useCoords)
 	{

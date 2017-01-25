@@ -1,6 +1,7 @@
 #include "Input_ColorSlider.h"
 
 #include <Urho3D/UI/UIEvents.h>
+#include <Urho3D/Resource/ResourceCache.h>
 
 #include "IoGraph.h"
 
@@ -40,7 +41,8 @@ String Input_ColorSlider::GetNodeStyle() {
 void Input_ColorSlider::HandleCustomInterface(UIElement* customElement) {
 
 	mySlider = customElement->CreateChild<Widget_ColorSlider>();
-	mySlider->SetStyle("Widget_ColorSlider");
+	XMLFile* styleFile = GetSubsystem<ResourceCache>()->GetResource<XMLFile>("UI/IogramDefaultStyle.xml");
+	mySlider->SetStyle("Widget_ColorSlider", styleFile);
 	mySlider->CustomInterface();
 
 	Color savedValue = Color(GetGenericData("saved_color").GetColor());

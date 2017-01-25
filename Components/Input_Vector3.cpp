@@ -1,6 +1,7 @@
 #include "Input_Vector3.h"
 
 #include <Urho3D/UI/UIEvents.h>
+#include <Urho3D/Resource/ResourceCache.h>
 
 #include "IoGraph.h"
 
@@ -41,7 +42,8 @@ String Input_Vector3::GetNodeStyle() {
 void Input_Vector3::HandleCustomInterface(UIElement* customElement) {
 
 	mySlider = customElement->CreateChild<Widget_Vector3Slider>();
-	mySlider->SetStyle("Widget_Vector3Slider");
+	XMLFile* styleFile = GetSubsystem<ResourceCache>()->GetResource<XMLFile>("UI/IogramDefaultStyle.xml");
+	mySlider->SetStyle("Widget_Vector3Slider", styleFile);
 	mySlider->CustomInterface();
 
 	Vector3 savedValue = Vector3(

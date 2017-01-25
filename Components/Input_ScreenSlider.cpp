@@ -5,6 +5,7 @@
 
 #include <Urho3D/UI/UIEvents.h>
 #include <Urho3D/UI/UI.h>
+#include <Urho3D/Resource/ResourceCache.h>
 
 #include "IoGraph.h"
 
@@ -109,12 +110,20 @@ void Input_ScreenSlider::SolveInstance(
 	int idx = inSolveInstance[3].GetInt();
 	UIElement* parent = (UIElement*)inSolveInstance[4].GetPtr();
 
-	//attache to parent or root
-	UIElement* container = (parent == NULL) ? ui->GetRoot() : parent;
+	//get the active ui region
+	UIElement* root = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
+	if (!root)
+	{
+		SetAllOutputsNull(outSolveInstance);
+	}
+
+	//attach
+	UIElement* container = (parent == NULL) ? root : parent;
 
 	//create the widget
 	Widget_OptionSlider* optionSlider = container->CreateChild<Widget_OptionSlider>("CustomUI", idx);
-	optionSlider->SetStyle("Widget_OptionSlider");
+	XMLFile* styleFile = GetSubsystem<ResourceCache>()->GetResource<XMLFile>("UI/IogramDefaultStyle.xml");
+	optionSlider->SetStyle("Widget_OptionSlider", styleFile);
 	optionSlider->CustomInterface();
 	optionSlider->SetParams(range.x_, range.y_, range.x_);
 	optionSlider->SetLabel(label);
