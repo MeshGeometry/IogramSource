@@ -51,6 +51,9 @@ set(RESOURCE_DIRS "")
 # Setup target with resource copying
 setup_library ()
 
+target_link_libraries(Components Core)
+target_link_libraries(Components Geometry)
+
 #compile flags
 if(UNIX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
