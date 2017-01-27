@@ -35,17 +35,28 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 	textArea_->GetTextElement()->SetFontSize(9);
 
 	//set saved data
-	if (inputSlots_[0]->GetLinkedOutputSlot())
+	IoDataTree* dt = inputSlots_[0]->GetIoDataTreePtr();
+	if (dt)
 	{
-		IoDataTree* dt = inputSlots_[0]->GetIoDataTreePtr();
 		String dtText = dt->ToString(false);
 
 		if (textArea_.NotNull())
 		{
 			textArea_->SetText(dtText);
-			textArea_->SetEditable(false);
+
+			if (!inputSlots_[0]->GetLinkedOutputSlot())
+			{
+				editable_ = true;
+				textArea_->SetEditable(true);
+			}
+			else
+			{
+				editable_ = false;
+				textArea_->SetEditable(false);
+			}
 		}
 	}
+
 
 	SubscribeToEvent(textArea_, E_TEXTFINISHED, URHO3D_HANDLER(Input_Panel, HandleLineEditCommit));
 }
