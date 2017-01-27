@@ -124,9 +124,14 @@ void Input_ObjectMove::HandleMouseMove(StringHash eventType, VariantMap& eventDa
 	
 
 	Graphics* graphics = GetSubsystem<Graphics>();
-
 	Vector3 camToNode = orgHitPoint - currentCamera->GetNode()->GetWorldPosition();
-	Vector3 newPos = activeViewport->ScreenToWorldPoint(x, y, camToNode.Length());
+
+	//maintain constant distance from camera
+	float angle = camToNode.Angle(currentCamera->GetNode()->GetWorldDirection());
+	float length = camToNode.Length() / Cos(angle);
+
+	//create default cast position
+	Vector3 newPos = activeViewport->ScreenToWorldPoint(x, y, length);
 
 	//remap mouse pos by ui rect
 	UIElement* element = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
@@ -137,16 +142,10 @@ void Input_ObjectMove::HandleMouseMove(StringHash eventType, VariantMap& eventDa
 		float sx = (x - ePos.x_) / (float)eSize.x_;
 		float sy = (y - ePos.y_) / (float)eSize.y_;
 
-		newPos = currentCamera->ScreenToWorldPoint(Vector3(sx, sy, camToNode.Length()));
+		newPos = currentCamera->ScreenToWorldPoint(Vector3(sx, sy, length));
 	}
 
-
-	//URHO3D_LOGINFO("old pos: " + String(currentNode->GetWorldPosition()));
-	//URHO3D_LOGINFO("new pos: " + String(newPos));
-	//URHO3D_LOGINFO("delta: " + String(newPos - currentNode->GetWorldPosition()));
-
-	//Vector3 currPos = currentNode->GetWorldPosition();
-
+	//get constrained vector
 	Vector3 moveVec = newPos - orgHitPoint;
 	moveVec = GetConstrainedVector(moveVec, constraintFlags);
 

@@ -183,7 +183,13 @@ void Input_GeometryEdit::HandleMouseMove(StringHash eventType, VariantMap& event
 
 		Vector3 orgHitPoint = verts[bIndex].GetVector3(); //currentHitResult.position_;
 		Vector3 camToNode = currentHitResult.position_ - currentCamera->GetNode()->GetWorldPosition();
-		Vector3 newPos = activeViewport->ScreenToWorldPoint(x, y, camToNode.Length());
+
+		//maintain constant distance from camera
+		float angle = camToNode.Angle(currentCamera->GetNode()->GetWorldDirection());
+		float length = camToNode.Length() / Cos(angle);
+
+		//create default new pos
+		Vector3 newPos = activeViewport->ScreenToWorldPoint(x, y, length);
 
 		//remap mouse pos by ui rect
 		UIElement* element = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
@@ -194,8 +200,7 @@ void Input_GeometryEdit::HandleMouseMove(StringHash eventType, VariantMap& event
 			IntVector2 eSize = element->GetSize();
 			float sx = (x - ePos.x_) / (float)eSize.x_;
 			float sy = (y - ePos.y_) / (float)eSize.y_;
-
-			newPos = currentCamera->ScreenToWorldPoint(Vector3(sx, sy, camToNode.Length()));
+			newPos = currentCamera->ScreenToWorldPoint(Vector3(sx, sy, length));
 		}
 
 		Vector3 moveVec = newPos - orgHitPoint;
@@ -357,6 +362,9 @@ bool Input_GeometryEdit::DoRaycast()
 Vector3 Input_GeometryEdit::GetConstrainedVector(Vector3 moveVec, int flags)
 {
 	Vector3 projVec(0, 0, 0);
+
+	Viewport* activeViewport = (Viewport*)GetGlobalVar("activeViewport").GetVoidPtr();
+	Camera* currentCamera = (activeViewport) ? activeViewport->GetCamera() : NULL;
 
 	if (flags & 1)
 	{
