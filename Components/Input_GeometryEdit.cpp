@@ -185,6 +185,19 @@ void Input_GeometryEdit::HandleMouseMove(StringHash eventType, VariantMap& event
 		Vector3 camToNode = currentHitResult.position_ - currentCamera->GetNode()->GetWorldPosition();
 		Vector3 newPos = activeViewport->ScreenToWorldPoint(x, y, camToNode.Length());
 
+		//remap mouse pos by ui rect
+		UIElement* element = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
+
+		if (element)
+		{
+			IntVector2 ePos = element->GetScreenPosition();
+			IntVector2 eSize = element->GetSize();
+			float sx = (x - ePos.x_) / (float)eSize.x_;
+			float sy = (y - ePos.y_) / (float)eSize.y_;
+
+			newPos = currentCamera->ScreenToWorldPoint(Vector3(sx, sy, camToNode.Length()));
+		}
+
 		Vector3 moveVec = newPos - orgHitPoint;
 		moveVec = GetConstrainedVector(moveVec, constraintFlags);
 
@@ -293,7 +306,22 @@ bool Input_GeometryEdit::DoRaycast()
 	UI* ui = GetSubsystem<UI>();
 	IntVector2 pos = ui->GetCursorPosition();
 	Graphics* graphics = GetSubsystem<Graphics>();
+	Camera* currentCamera = activeViewport->GetCamera();
+
+	//remap mouse pos by ui rect
+	UIElement* element = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
+
 	Ray cameraRay = activeViewport->GetScreenRay(pos.x_, pos.y_);
+
+	if (element)
+	{
+		IntVector2 ePos = element->GetScreenPosition();
+		IntVector2 eSize = element->GetSize();
+		float x = (pos.x_ - ePos.x_) / (float)eSize.x_;
+		float y = (pos.y_ - ePos.y_) / (float)eSize.y_;
+
+		cameraRay = currentCamera->GetScreenRay(x, y);
+	}
 
 	PODVector<RayQueryResult> results;
 	RayOctreeQuery query(results, cameraRay, RAY_TRIANGLE, 100.0f,
