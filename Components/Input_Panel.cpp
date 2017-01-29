@@ -1,7 +1,7 @@
 #include "Input_Panel.h"
 #include <Urho3D/UI/LineEdit.h>
 #include <Urho3D/UI/UIEvents.h>
-
+#include <Urho3D/Input/InputEvents.h>
 #include <Urho3D/Graphics/Octree.h>
 #include "IoGraph.h"
 
@@ -59,6 +59,31 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 
 
 	SubscribeToEvent(textArea_, E_TEXTFINISHED, URHO3D_HANDLER(Input_Panel, HandleLineEditCommit));
+	SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(Input_Panel, HandleSetText));
+}
+
+void Input_Panel::HandleSetText(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
+{
+	using namespace KeyDown;
+
+	int key = eventData[P_KEY].GetInt();
+	int qual = eventData[P_QUALIFIERS].GetInt();
+	bool repeat = eventData[P_REPEAT].GetInt();
+
+	if (key == KEY_RETURN && qual == QUAL_CTRL && !repeat)
+	{
+		if (textArea_.NotNull())
+		{
+			if (!textArea_->GetText().Empty())
+			{
+
+				VariantMap emptyMap;
+				HandleLineEditCommit("", emptyMap);
+			}
+
+		}
+
+	}
 }
 
 void Input_Panel::HandleGraphSolve(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
