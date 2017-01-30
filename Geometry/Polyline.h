@@ -6,6 +6,7 @@
 #include <Urho3D/Graphics/Model.h>
 
 Urho3D::Variant Polyline_Make(const Urho3D::VariantVector& vertexList);
+//Urho3D::Variant Polyline_Make(const Urho3D::VariantVector& vertexList, const Urho3D::VariantVector& edgeList);
 
 bool Polyline_Verify(const Urho3D::Variant& polyline);
 
