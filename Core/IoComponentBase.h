@@ -95,6 +95,15 @@ public:
 	int GetOutputSlotIndex(Urho3D::SharedPtr<IoOutputSlot> outputSlot) const;
 	Urho3D::String GetIconTexture();
 
+	Urho3D::String GetInputSlotName(int index) const;
+	Urho3D::String GetInputSlotVariableName(int index) const;
+	Urho3D::String GetInputSlotDescription(int index) const;
+	Urho3D::VariantType GetInputSlotVariantType(int index) const;
+
+	Urho3D::String GetOutputSlotName(int index) const;
+	Urho3D::String GetOutputSlotVariableName(int index) const;
+	Urho3D::String GetOutputSlotDescription(int index) const;
+	Urho3D::VariantType GetOutputSlotVariantType(int index) const;
 
 	/// connectivity
 	void ConnectChild(Urho3D::SharedPtr<IoComponentBase> child, int indexIntoChildInput, int indexIntoParentOutput);
