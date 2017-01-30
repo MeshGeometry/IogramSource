@@ -28,7 +28,7 @@ using namespace Urho3D;
 
 String Mesh_ReadTriangleMesh::iconTexture = "Textures/Icons/Mesh_ReadTriangleMesh.png";
 
-Mesh_ReadTriangleMesh::Mesh_ReadTriangleMesh(Context* context) : IoComponentBase(context, 1, 3)
+Mesh_ReadTriangleMesh::Mesh_ReadTriangleMesh(Context* context) : IoComponentBase(context, 2, 3)
 {
 	SetName("ReadTriMesh");
 	SetFullName("Read Triangle Mesh");
@@ -43,6 +43,14 @@ Mesh_ReadTriangleMesh::Mesh_ReadTriangleMesh(Context* context) : IoComponentBase
 	inputSlots_[0]->SetDataAccess(DataAccess::ITEM);
 	inputSlots_[0]->SetDefaultValue("Models/bumpy.off");
 	inputSlots_[0]->DefaultSet();
+
+	inputSlots_[1]->SetName("ConvertToLeftHanded");
+	inputSlots_[1]->SetVariableName("C2LH");
+	inputSlots_[1]->SetDescription("Convert objects to left handed");
+	inputSlots_[1]->SetVariantType(VariantType::VAR_BOOL);
+	inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
+	inputSlots_[1]->SetDefaultValue(Variant(true));
+	inputSlots_[1]->DefaultSet();
 
 	outputSlots_[0]->SetName("Mesh out");
 	outputSlots_[0]->SetVariableName("M");
@@ -71,6 +79,7 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 	String meshFile = inSolveInstance[0].GetString();
 	FileSystem* fs = GetSubsystem<FileSystem>();
 
+	bool convert_to_left_handed = inSolveInstance[1].GetBool();
 
 	//construct a file using resource cache
 	SharedPtr<File> rf = GetSubsystem<ResourceCache>()->GetFile(meshFile);
@@ -92,7 +101,16 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 	Vector<char> vb;
 	vb.Resize(rf->GetSize());
 	rf->Read(&vb[0], size);
-	const aiScene* scene = aiImportFileFromMemory(&vb[0], vb.Size(), aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices, ext.CString());
+
+	unsigned int pFlags;
+	if (convert_to_left_handed) {
+		pFlags = aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_ConvertToLeftHanded;
+	}
+	else {
+		pFlags = aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices;
+	}
+	//const aiScene* scene = aiImportFileFromMemory(&vb[0], vb.Size(), aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices, ext.CString());
+	const aiScene* scene = aiImportFileFromMemory(&vb[0], vb.Size(), pFlags, ext.CString());
 
 	VariantVector meshesOut;
 	VariantVector polylinesOut;
