@@ -295,6 +295,8 @@ int Graphics_MeshRenderer::TriMesh_Render(Urho3D::Variant trimesh,
     sm->SetModel(model);
     //sm->SetMaterial(cloneMat);
     sm->SetMaterial(mat);
+	sm->SetCastShadows(true);
+	sm->SetShadowDistance(100.0f);
     
     model_pointer = Variant(model);
     

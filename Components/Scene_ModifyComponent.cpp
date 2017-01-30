@@ -56,9 +56,15 @@ void Scene_ModifyComponent::SolveInstance(
 	Component* comp = (Component*)inSolveInstance[0].GetPtr();
 	if (comp == NULL)
 	{
-		URHO3D_LOGERROR("Could not cast input as a native Component!");
-		outSolveInstance[0] = Variant();
-		return;
+		
+		comp = (Component*)inSolveInstance[0].GetVoidPtr();
+		if (!comp)
+		{
+			URHO3D_LOGERROR("Could not cast input as a native Component!");
+			outSolveInstance[0] = Variant();
+			return;
+		}
+
 	}
 
 	//iterate over properties and values and try to assign

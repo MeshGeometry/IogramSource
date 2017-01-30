@@ -92,6 +92,7 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 	Vector<char> vb;
 	vb.Resize(rf->GetSize());
 	rf->Read(&vb[0], size);
+
 	const aiScene* scene = aiImportFileFromMemory(&vb[0], vb.Size(), aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices, ext.CString());
 
 	VariantVector meshesOut;
