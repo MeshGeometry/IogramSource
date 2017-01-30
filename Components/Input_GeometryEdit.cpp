@@ -183,7 +183,25 @@ void Input_GeometryEdit::HandleMouseMove(StringHash eventType, VariantMap& event
 
 		Vector3 orgHitPoint = verts[bIndex].GetVector3(); //currentHitResult.position_;
 		Vector3 camToNode = currentHitResult.position_ - currentCamera->GetNode()->GetWorldPosition();
-		Vector3 newPos = activeViewport->ScreenToWorldPoint(x, y, camToNode.Length());
+
+		//maintain constant distance from camera
+		float angle = camToNode.Angle(currentCamera->GetNode()->GetWorldDirection());
+		float length = camToNode.Length() / Cos(angle);
+
+		//create default new pos
+		Vector3 newPos = activeViewport->ScreenToWorldPoint(x, y, length);
+
+		//remap mouse pos by ui rect
+		UIElement* element = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
+
+		if (element)
+		{
+			IntVector2 ePos = element->GetScreenPosition();
+			IntVector2 eSize = element->GetSize();
+			float sx = (x - ePos.x_) / (float)eSize.x_;
+			float sy = (y - ePos.y_) / (float)eSize.y_;
+			newPos = currentCamera->ScreenToWorldPoint(Vector3(sx, sy, length));
+		}
 
 		Vector3 moveVec = newPos - orgHitPoint;
 		moveVec = GetConstrainedVector(moveVec, constraintFlags);
@@ -293,7 +311,22 @@ bool Input_GeometryEdit::DoRaycast()
 	UI* ui = GetSubsystem<UI>();
 	IntVector2 pos = ui->GetCursorPosition();
 	Graphics* graphics = GetSubsystem<Graphics>();
+	Camera* currentCamera = activeViewport->GetCamera();
+
+	//remap mouse pos by ui rect
+	UIElement* element = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
+
 	Ray cameraRay = activeViewport->GetScreenRay(pos.x_, pos.y_);
+
+	if (element)
+	{
+		IntVector2 ePos = element->GetScreenPosition();
+		IntVector2 eSize = element->GetSize();
+		float x = (pos.x_ - ePos.x_) / (float)eSize.x_;
+		float y = (pos.y_ - ePos.y_) / (float)eSize.y_;
+
+		cameraRay = currentCamera->GetScreenRay(x, y);
+	}
 
 	PODVector<RayQueryResult> results;
 	RayOctreeQuery query(results, cameraRay, RAY_TRIANGLE, 100.0f,
@@ -329,6 +362,9 @@ bool Input_GeometryEdit::DoRaycast()
 Vector3 Input_GeometryEdit::GetConstrainedVector(Vector3 moveVec, int flags)
 {
 	Vector3 projVec(0, 0, 0);
+
+	Viewport* activeViewport = (Viewport*)GetGlobalVar("activeViewport").GetVoidPtr();
+	Camera* currentCamera = (activeViewport) ? activeViewport->GetCamera() : NULL;
 
 	if (flags & 1)
 	{

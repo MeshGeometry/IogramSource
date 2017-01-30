@@ -29,5 +29,6 @@ public:
 
 	void HandleLineEditCommit(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 	void HandleGraphSolve(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
+	void HandleSetText(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 
 };

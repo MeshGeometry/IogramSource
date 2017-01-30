@@ -1,7 +1,7 @@
 #include "Input_Panel.h"
 #include <Urho3D/UI/LineEdit.h>
 #include <Urho3D/UI/UIEvents.h>
-
+#include <Urho3D/Input/InputEvents.h>
 #include <Urho3D/Graphics/Octree.h>
 #include "IoGraph.h"
 
@@ -12,16 +12,16 @@ String Input_Panel::iconTexture = "Textures/Icons/Input_Panel.png";
 Input_Panel::Input_Panel(Urho3D::Context* context) :
 	IoComponentBase(context, 1, 1),
 	editable_(true)
-{ 
+{
 	SubscribeToEvent("OnSolveGraph", URHO3D_HANDLER(Input_Panel, HandleGraphSolve));
 }
 
 void Input_Panel::SolveInstance(
 	const Vector<Variant>& inSolveInstance,
 	Vector<Variant>& outSolveInstance
-	)
+)
 {
-	
+
 	outSolveInstance[0] = inSolveInstance[0];
 }
 
@@ -35,19 +35,55 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 	textArea_->GetTextElement()->SetFontSize(9);
 
 	//set saved data
-	if (inputSlots_[0]->GetLinkedOutputSlot())
+	IoDataTree* dt = inputSlots_[0]->GetIoDataTreePtr();
+	if (dt)
 	{
-		IoDataTree* dt = inputSlots_[0]->GetIoDataTreePtr();
 		String dtText = dt->ToString(false);
 
 		if (textArea_.NotNull())
 		{
 			textArea_->SetText(dtText);
-			textArea_->SetEditable(false);
+
+			if (!inputSlots_[0]->GetLinkedOutputSlot())
+			{
+				editable_ = true;
+				textArea_->SetEditable(true);
+			}
+			else
+			{
+				editable_ = false;
+				textArea_->SetEditable(false);
+			}
 		}
 	}
 
+
 	SubscribeToEvent(textArea_, E_TEXTFINISHED, URHO3D_HANDLER(Input_Panel, HandleLineEditCommit));
+	SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(Input_Panel, HandleSetText));
+}
+
+void Input_Panel::HandleSetText(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
+{
+	using namespace KeyDown;
+
+	int key = eventData[P_KEY].GetInt();
+	int qual = eventData[P_QUALIFIERS].GetInt();
+	bool repeat = eventData[P_REPEAT].GetInt();
+
+	if (key == KEY_RETURN && qual == QUAL_CTRL && !repeat)
+	{
+		if (textArea_.NotNull())
+		{
+			if (!textArea_->GetText().Empty())
+			{
+
+				VariantMap emptyMap;
+				HandleLineEditCommit("", emptyMap);
+			}
+
+		}
+
+	}
 }
 
 void Input_Panel::HandleGraphSolve(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
@@ -55,19 +91,27 @@ void Input_Panel::HandleGraphSolve(Urho3D::StringHash eventType, Urho3D::Variant
 	if (!inputSlots_[0]->GetLinkedOutputSlot())
 	{
 		editable_ = true;
-		textArea_->SetEditable(true);
+		if (textArea_.NotNull())
+		{
+			textArea_->SetEditable(true);
+		}
 	}
 	else
 	{
 		//try to set panel content
 		IoDataTree* dt = inputSlots_[0]->GetIoDataTreePtr();
-		String dtText = dt->ToString(false);
 
-		if (textArea_.NotNull())
+		if (dt)
 		{
-			textArea_->SetText(dtText);
-			textArea_->SetEditable(false);
+			String dtText = dt->ToString(false);
+
+			if (textArea_.NotNull())
+			{
+				textArea_->SetText(dtText);
+				textArea_->SetEditable(false);
+			}
 		}
+
 
 		editable_ = false;
 	}

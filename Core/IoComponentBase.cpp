@@ -55,6 +55,69 @@ Urho3D::String IoComponentBase::GetIconTexture()
 	return iconTexture;
 }
 
+Urho3D::String IoComponentBase::GetInputSlotName(int index) const
+{
+	if (!IndexInRange(index, (int)inputSlots_.Size())) {
+		return String("");
+	}
+	return inputSlots_[index]->GetName();
+}
+
+Urho3D::String IoComponentBase::GetInputSlotVariableName(int index) const
+{
+	if (!IndexInRange(index, (int)inputSlots_.Size())) {
+		return String("");
+	}
+	return inputSlots_[index]->GetVariableName();
+}
+
+Urho3D::String IoComponentBase::GetInputSlotDescription(int index) const
+{
+	if (!IndexInRange(index, (int)inputSlots_.Size())) {
+		return String("");
+	}
+	return inputSlots_[index]->GetDescription();
+}
+
+Urho3D::VariantType IoComponentBase::GetInputSlotVariantType(int index) const
+{
+	if (!IndexInRange(index, (int)inputSlots_.Size())) {
+		return VariantType::VAR_NONE;
+	}
+	return inputSlots_[index]->GetVariantType();
+}
+
+Urho3D::String IoComponentBase::GetOutputSlotName(int index) const
+{
+	if (!IndexInRange(index, (int)outputSlots_.Size())) {
+		return String("");
+	}
+	return outputSlots_[index]->GetName();
+}
+
+Urho3D::String IoComponentBase::GetOutputSlotVariableName(int index) const
+{
+	if (!IndexInRange(index, (int)outputSlots_.Size())) {
+		return String("");
+	}
+	return outputSlots_[index]->GetVariableName();
+}
+
+Urho3D::String IoComponentBase::GetOutputSlotDescription(int index) const
+{
+	if (!IndexInRange(index, (int)outputSlots_.Size())) {
+		return String("");
+	}
+	return outputSlots_[index]->GetDescription();
+}
+
+Urho3D::VariantType IoComponentBase::GetOutputSlotVariantType(int index) const
+{
+	if (!IndexInRange(index, (int)outputSlots_.Size())) {
+		return VariantType::VAR_NONE;
+	}
+	return outputSlots_[index]->GetVariantType();
+}
 
 void IoComponentBase::InputHardSet(int inputIndex, IoDataTree ioDataTree)
 {
