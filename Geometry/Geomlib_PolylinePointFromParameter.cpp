@@ -86,3 +86,182 @@ bool Geomlib::PolylinePointFromParameter(
 	// If computation logic is correct, we should never arrive here.
 	return false;
 }
+
+bool Geomlib::PolylineTransformFromParameter(const Urho3D::Variant & polyline, float t, Urho3D::Matrix3x4 & transform)
+{
+	using Urho3D::VariantVector;
+	using Urho3D::Vector3;
+
+	// the components making up the transform
+	Urho3D::Vector3 position;
+	Urho3D::Vector3 tangent;
+	Urho3D::Vector3 normal;
+	Urho3D::Vector3 x_axis;
+
+
+	//////////////////////////////////
+	// Extract and validate input data
+	//////////////////////////////////
+
+	if (!Polyline_Verify(polyline)) {
+		return false;
+	}
+	if (t < 0.0f || t > 1.0f) {
+		return false;
+	}
+
+	const VariantVector vertexList = Polyline_ComputeSequentialVertexList(polyline);
+	if (vertexList.Size() == 0) {
+		return false;
+	}
+	else if (vertexList.Size() == 1) {
+		// degenerate 1-point polyline, no transform defined
+		return false;
+	}
+
+	bool isClosed = Polyline_IsClosed(polyline);
+
+	float totalLength = 0.0f;
+	// loop over each edge [i, i + 1]
+	for (unsigned i = 0; i < vertexList.Size() - 1; ++i) {
+		Vector3 seg = vertexList[i + 1].GetVector3() - vertexList[i].GetVector3();
+		totalLength += seg.Length();
+	}
+
+	if (Urho3D::Equals(totalLength, 0.0f)) {
+		// All points in polyline are identical, or, more likely,
+		// the Variants do not store Vector3's and so return false.
+		return false;
+	}
+
+	float targetDistance = t * totalLength;
+
+	// loop over each edge [i, i + 1]
+	float startLength = 0.0f;
+	for (unsigned i = 0; i < vertexList.Size() - 1; ++i) {
+		Vector3 start = vertexList[i].GetVector3();
+		Vector3 end = vertexList[i + 1].GetVector3();
+		Vector3 seg = end - start;
+		float segLength = seg.Length();
+		float endLength = startLength + segLength;
+
+		// If point lies on this segment....
+		if (endLength >= targetDistance) {
+			//if (Urho3D::Equals(segLength, 0.0f)) {
+			//	point = start; // or end, since in this case start == end
+			//	return true;
+			//}
+			// Here is the actual transform computation
+			float s = (targetDistance - startLength) / segLength;
+			position = start + s * seg;
+			GetVertexNormal(polyline, normal, i);
+			tangent = seg.Normalized();
+			x_axis = normal.CrossProduct(tangent);
+
+			Urho3D::Quaternion quat(tangent, normal, x_axis);
+
+			Urho3D::Matrix3 rotation = quat.RotationMatrix();
+
+			transform.SetRotation(rotation);
+			transform.SetTranslation(position);
+			transform.SetScale(1.0f);
+
+			return true;
+		}
+
+		// Point lies on a later segment. Update and carry on.
+		startLength = endLength;
+	}
+
+	// If computation logic is correct, we should never arrive here.
+	return false;
+
+}
+
+bool Geomlib::GetVertexNormal(const Urho3D::Variant & polyline, Urho3D::Vector3& normal, int vert_id)
+{
+	using Urho3D::Vector3;
+
+	bool isClosed = Polyline_IsClosed(polyline);
+	const Urho3D::VariantVector vertexList = Polyline_ComputeSequentialVertexList(polyline);
+	if (vert_id == 0) {
+		// depends whether closed or not
+		if (isClosed) {
+			// note we want the second last entry of vertexList
+			Vector3 leftHandDir = (vertexList[vertexList.Size() - 2].GetVector3() - vertexList[0].GetVector3()).Normalized();
+			Vector3 rightHandDir = (vertexList[1].GetVector3() - vertexList[0].GetVector3()).Normalized();
+			float angle = leftHandDir.Angle(rightHandDir);
+
+			//rotate the left dir to find the bisector
+			Urho3D::Quaternion rot;
+			Vector3 cross = leftHandDir.CrossProduct(rightHandDir);
+			rot.FromAngleAxis(0.5f * angle, cross);
+			normal = rot.RotationMatrix() * leftHandDir;
+
+			return true;
+		}
+		else {
+			// open polyline
+			// use the first two segments to get the plane, make the normal 90deg to tangent
+			Vector3 leftHandDir = (vertexList[vert_id].GetVector3() - vertexList[vert_id+1].GetVector3()).Normalized();
+			Vector3 rightHandDir = (vertexList[vert_id + 2].GetVector3() - vertexList[vert_id+1].GetVector3()).Normalized();
+
+			//rotate the left dir to find the normal 
+			Urho3D::Quaternion rot;
+			Vector3 cross = leftHandDir.CrossProduct(rightHandDir);
+			rot.FromAngleAxis(3.14159/2, cross);
+			normal = rot.RotationMatrix() * leftHandDir;
+
+			return true;
+		}
+	}
+	else if (vert_id < vertexList.Size() - 2) {
+		// interior vertices, the meat
+		Vector3 leftHandDir = (vertexList[vert_id - 1].GetVector3() - vertexList[vert_id].GetVector3()).Normalized();
+		Vector3 rightHandDir = (vertexList[vert_id + 1].GetVector3() - vertexList[vert_id].GetVector3()).Normalized();
+		float angle = leftHandDir.Angle(rightHandDir);
+
+		//rotate the left dir to find the bisector
+		Urho3D::Quaternion rot;
+		Vector3 cross = leftHandDir.CrossProduct(rightHandDir);
+		rot.FromAngleAxis(0.5f * angle, cross);
+		normal = rot.RotationMatrix() * leftHandDir;
+
+		return true;
+
+	}
+	else if (vert_id == vertexList.Size() - 1) {
+		// TODO, depends whether closed or not
+		if (isClosed) {
+			// just repeat what we did for vertex 0
+			Vector3 leftHandDir = (vertexList[vert_id - 1].GetVector3() - vertexList[vert_id].GetVector3()).Normalized();
+			Vector3 rightHandDir = (vertexList[1].GetVector3() - vertexList[vert_id].GetVector3()).Normalized();
+			float angle = leftHandDir.Angle(rightHandDir);
+
+			//rotate the left dir to find the bisector
+			Urho3D::Quaternion rot;
+			Vector3 cross = leftHandDir.CrossProduct(rightHandDir);
+			rot.FromAngleAxis(0.5f * angle, cross);
+			normal = rot.RotationMatrix() * leftHandDir;
+
+			return true;
+		}
+		else {
+			// open polyline
+			// use the last two segments to get the plane, make the normal 90deg to tangent
+			Vector3 leftHandDir = (vertexList[vert_id-2].GetVector3() - vertexList[vert_id-1].GetVector3()).Normalized();
+			Vector3 rightHandDir = (vertexList[vert_id].GetVector3() - vertexList[vert_id - 1].GetVector3()).Normalized();
+
+			//rotate the left dir to find the normal 
+			Urho3D::Quaternion rot;
+			Vector3 cross = leftHandDir.CrossProduct(rightHandDir);
+			rot.FromAngleAxis(3.14159 / 2, cross);
+			normal = rot.RotationMatrix() * leftHandDir;
+
+			return true;
+		}
+	}
+	// shouldn't get here
+	return false;
+}
+
