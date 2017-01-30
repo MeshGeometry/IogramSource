@@ -16,4 +16,13 @@ namespace Geomlib {
 		float t,
 		Urho3D::Vector3& point
 	);
+
+	bool PolylineTransformFromParameter(
+		const Urho3D::Variant& polyline,
+		float t,
+		Urho3D::Matrix3x4& transform
+		);
+
+	bool GetVertexNormal(const Urho3D::Variant& polyline, Urho3D::Vector3& normal, int vert_id);
+
 }
