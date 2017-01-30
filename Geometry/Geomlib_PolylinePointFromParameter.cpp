@@ -119,6 +119,7 @@ bool Geomlib::PolylineTransformFromParameter(const Urho3D::Variant & polyline, f
 		return false;
 	}
 
+
 	bool isClosed = Polyline_IsClosed(polyline);
 
 	float totalLength = 0.0f;
@@ -154,14 +155,27 @@ bool Geomlib::PolylineTransformFromParameter(const Urho3D::Variant & polyline, f
 			// Here is the actual transform computation
 			float s = (targetDistance - startLength) / segLength;
 			position = start + s * seg;
-			GetVertexNormal(polyline, normal, i);
+
+			// if it is just a line, use the "Look at" idea
+			if (vertexList.Size() == 2) {
+				Vector3 targetPt = vertexList[1].GetVector3();
+				Vector3 startPt = vertexList[0].GetVector3();
+				Vector3 up = Vector3::UP;
+				Urho3D::Quaternion rot;
+				rot.FromLookRotation(targetPt - startPt, up);
+				transform.SetRotation(rot.RotationMatrix());
+				transform.SetTranslation(position);
+				transform.SetScale(1.0f);
+				return true;
+			}
+			else {
+				GetVertexNormal(polyline, normal, i);
+			}
+
 			tangent = seg.Normalized();
 			x_axis = normal.CrossProduct(tangent);
 
-			float test = tangent.DotProduct(normal);
-
 			Urho3D::Quaternion quat(tangent, normal, x_axis);
-
 			Urho3D::Matrix3 rotation = quat.RotationMatrix();
 
 			transform.SetRotation(rotation);
@@ -186,20 +200,14 @@ bool Geomlib::GetVertexNormal(const Urho3D::Variant & polyline, Urho3D::Vector3&
 
 	bool isClosed = Polyline_IsClosed(polyline);
 	const Urho3D::VariantVector vertexList = Polyline_ComputeSequentialVertexList(polyline);
+
 	if (vert_id == 0) {
 		// depends whether closed or not
 		if (isClosed) {
 			// note we want the second last entry of vertexList
 			Vector3 leftHandDir = (vertexList[vertexList.Size() - 2].GetVector3() - vertexList[0].GetVector3()).Normalized();
 			Vector3 rightHandDir = (vertexList[1].GetVector3() - vertexList[0].GetVector3()).Normalized();
-			float angle = leftHandDir.Angle(rightHandDir);
-
-			//rotate the left dir to find the bisector
-			Urho3D::Quaternion rot;
-			Vector3 cross = leftHandDir.CrossProduct(rightHandDir);
-			//rot.FromAngleAxis(0.5f * angle, cross);
-			rot.FromAngleAxis(90, cross);
-			normal = rot.RotationMatrix() * rightHandDir;
+			normal = leftHandDir.CrossProduct(rightHandDir);
 
 			return true;
 		}
@@ -208,13 +216,8 @@ bool Geomlib::GetVertexNormal(const Urho3D::Variant & polyline, Urho3D::Vector3&
 			// use the first two segments to get the plane, make the normal 90deg to tangent
 			Vector3 leftHandDir = (vertexList[vert_id].GetVector3() - vertexList[vert_id+1].GetVector3()).Normalized();
 			Vector3 rightHandDir = (vertexList[vert_id + 2].GetVector3() - vertexList[vert_id+1].GetVector3()).Normalized();
-
-			//rotate the left dir to find the normal 
-			Urho3D::Quaternion rot;
-			Vector3 cross = leftHandDir.CrossProduct(rightHandDir);
-			rot.FromAngleAxis(90, cross);
-			normal = rot.RotationMatrix() * rightHandDir;
-
+			normal = leftHandDir.CrossProduct(rightHandDir);
+			
 			return true;
 		}
 	}
@@ -223,15 +226,8 @@ bool Geomlib::GetVertexNormal(const Urho3D::Variant & polyline, Urho3D::Vector3&
 		Vector3 leftHandDir = (vertexList[vert_id - 1].GetVector3() - vertexList[vert_id].GetVector3()).Normalized();
 		Vector3 rightHandDir = (vertexList[vert_id + 1].GetVector3() - vertexList[vert_id].GetVector3()).Normalized();
 		float angle = leftHandDir.Angle(rightHandDir);
-
-		//rotate the left dir to find the bisector
-		Urho3D::Quaternion rot;
-//		Vector3 cross = leftHandDir.CrossProduct(rightHandDir);
-		Vector3 cross = rightHandDir.CrossProduct(leftHandDir);
-		//rot.FromAngleAxis(0.5f * angle, cross);
-		rot.FromAngleAxis(90, cross);
-		normal = rot.RotationMatrix() * rightHandDir;
-
+		normal = rightHandDir.CrossProduct(leftHandDir);
+		
 		return true;
 
 	}
