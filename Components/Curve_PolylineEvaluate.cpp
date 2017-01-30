@@ -10,7 +10,7 @@ using namespace Urho3D;
 String Curve_PolylineEvaluate::iconTexture = "Textures/Icons/Curve_EvaluatePolyline.png";
 
 Curve_PolylineEvaluate::Curve_PolylineEvaluate(Context* context) :
-	IoComponentBase(context, 2, 1)
+	IoComponentBase(context, 2, 2)
 {
 	SetName("EvaluatePolyline");
 	SetFullName("Evaluate Polyline");
@@ -37,6 +37,12 @@ Curve_PolylineEvaluate::Curve_PolylineEvaluate(Context* context) :
 	outputSlots_[0]->SetDescription("Point on polyline corresponding to parameter");
 	outputSlots_[0]->SetVariantType(VariantType::VAR_VECTOR3);
 	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
+
+	outputSlots_[1]->SetName("Transform");
+	outputSlots_[1]->SetVariableName("T");
+	outputSlots_[1]->SetDescription("Transform on polyline corresponding to parameter");
+	outputSlots_[1]->SetVariantType(VariantType::VAR_MATRIX3X4);
+	outputSlots_[1]->SetDataAccess(DataAccess::ITEM);
 }
 
 void Curve_PolylineEvaluate::SolveInstance(
@@ -74,10 +80,16 @@ void Curve_PolylineEvaluate::SolveInstance(
 	// COMPONENT'S WORK
 
 	Vector3 point;
+	Urho3D::Matrix3x4 transform;
 	bool success = Geomlib::PolylinePointFromParameter(polyline, t, point);
-	if (!success) {
+	bool success_transform = Geomlib::PolylineTransformFromParameter(polyline, t, transform);
+
+
+
+	if (!success || !success_transform) {
 		URHO3D_LOGWARNING("EvaluatePolyline operation failed.");
 		outSolveInstance[0] = Variant();
+		outSolveInstance[1] = Variant();
 		return;
 	}
 
@@ -85,4 +97,5 @@ void Curve_PolylineEvaluate::SolveInstance(
 	// ASSIGN OUTPUTS
 
 	outSolveInstance[0] = Variant(point);
+	outSolveInstance[1] = Variant(transform);
 }

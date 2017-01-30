@@ -12,6 +12,7 @@
 #include "ConversionUtilities.h"
 #include "Polyline.h"
 #include "TriMesh.h"
+#include "Geomlib_ConstructTransform.h"
 
 using namespace Urho3D;
 
@@ -27,16 +28,6 @@ using namespace Urho3D;
 #include <assimp/postprocess.h>
 
 namespace {
-
-enum class CoordPermutation {
-	xyz_2_xyz = 0,
-	xyz_2_xzy,
-	xyz_2_yzx,
-	xyz_2_yxz,
-	xyz_2_zxy,
-	xyz_2_zyx
-};
-
 }
 
 String Mesh_ReadTriangleMesh::iconTexture = "Textures/Icons/Mesh_ReadTriangleMesh.png";
@@ -57,20 +48,20 @@ Mesh_ReadTriangleMesh::Mesh_ReadTriangleMesh(Context* context) : IoComponentBase
 	inputSlots_[0]->SetDefaultValue("Models/bumpy.off");
 	inputSlots_[0]->DefaultSet();
 
-	inputSlots_[1]->SetName("CoordPermutation");
-	inputSlots_[1]->SetVariableName("Perm");
-	inputSlots_[1]->SetDescription("Permute coords XYZ according to permutation code 0-5");
-	inputSlots_[1]->SetVariantType(VariantType::VAR_INT);
+	inputSlots_[1]->SetName("Force Y Up");
+	inputSlots_[1]->SetVariableName("Y_Up");
+	inputSlots_[1]->SetDescription("Force y-axis to vertical/up");
+	inputSlots_[1]->SetVariantType(VariantType::VAR_BOOL);
 	inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
-	inputSlots_[1]->SetDefaultValue(1);
+	inputSlots_[1]->SetDefaultValue(true);
 	inputSlots_[1]->DefaultSet();
 
-	inputSlots_[2]->SetName("ConvertToLeftHanded");
-	inputSlots_[2]->SetVariableName("C2LH");
-	inputSlots_[2]->SetDescription("Convert objects to left handed");
-	inputSlots_[2]->SetVariantType(VariantType::VAR_BOOL);
+	inputSlots_[2]->SetName("Transform");
+	inputSlots_[2]->SetVariableName("T");
+	inputSlots_[2]->SetDescription("Apply transform to imported geometry");
+	inputSlots_[2]->SetVariantType(VariantType::VAR_MATRIX3X4);
 	inputSlots_[2]->SetDataAccess(DataAccess::ITEM);
-	inputSlots_[2]->SetDefaultValue(Variant(false));
+	inputSlots_[2]->SetDefaultValue(Matrix3x4::IDENTITY);
 	inputSlots_[2]->DefaultSet();
 
 	outputSlots_[0]->SetName("Mesh out");
@@ -97,15 +88,20 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 	Vector<Variant>& outSolveInstance
 )
 {
+	// WARNING: Do not auto validate inputs (i.e., IsAllInputValid)
+	// as we want to allow multiple type of inputs at the Transform slot
+
 	String meshFile = inSolveInstance[0].GetString();
 	FileSystem* fs = GetSubsystem<FileSystem>();
 
-	CoordPermutation perm = CoordPermutation::xyz_2_xyz;
-	int perm_code = inSolveInstance[1].GetInt();
-	if (perm_code >= 0 && perm_code <= 5) {
-		perm = static_cast<CoordPermutation>(perm_code);
+	bool force_y_up = inSolveInstance[1].GetBool();
+	Matrix3x4 transform = Matrix3x4::IDENTITY;
+	if (inSolveInstance[2].GetType() == VariantType::VAR_MATRIX3X4) {
+		transform = inSolveInstance[2].GetMatrix3x4();
 	}
-	bool convert_to_left_handed = inSolveInstance[2].GetBool();
+	else {
+		transform = Geomlib::ConstructTransform(inSolveInstance[2]);
+	}
 
 	//construct a file using resource cache
 	SharedPtr<File> rf = GetSubsystem<ResourceCache>()->GetFile(meshFile);
@@ -129,13 +125,8 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 	rf->Read(&vb[0], size);
 
 
-	unsigned int pFlags;
-	if (convert_to_left_handed) {
-		pFlags = aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_MakeLeftHanded;
-	}
-	else {
-		pFlags = aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices;
-	}
+	unsigned int pFlags = aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices;
+
 	//const aiScene* scene = aiImportFileFromMemory(&vb[0], vb.Size(), aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices, ext.CString());
 	const aiScene* scene = aiImportFileFromMemory(&vb[0], vb.Size(), pFlags, ext.CString());
 
@@ -156,7 +147,7 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 	{
 		VariantVector vertexList;
 		VariantVector faceList;
-		
+
 		aiMesh* mesh = scene->mMeshes[i];
 
 		//get verts
@@ -164,31 +155,15 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 		{
 			Vector3 currVert;
 
-			switch (perm) {
-			case CoordPermutation::xyz_2_xyz:
-				currVert = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-				break;
-			case CoordPermutation::xyz_2_xzy:
-				currVert = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].z, -mesh->mVertices[i].y);
-				break;
-			case CoordPermutation::xyz_2_yzx:
-				currVert = Vector3(mesh->mVertices[i].y, mesh->mVertices[i].z, mesh->mVertices[i].x);
-				break;
-			case CoordPermutation::xyz_2_yxz:
-				currVert = Vector3(mesh->mVertices[i].y, mesh->mVertices[i].x, mesh->mVertices[i].z);
-				break;
-			case CoordPermutation::xyz_2_zxy:
-				currVert = Vector3(mesh->mVertices[i].z, mesh->mVertices[i].x, mesh->mVertices[i].y);
-				break;
-			case CoordPermutation::xyz_2_zyx:
-				currVert = Vector3(mesh->mVertices[i].z, mesh->mVertices[i].y, mesh->mVertices[i].x);
-				break;
-			default:
-				currVert = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-				break;
+			if (force_y_up) {
+				currVert = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].z, -1 * mesh->mVertices[i].y);
 			}
-			vertexList.Push(currVert);
+			else {
+				currVert = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+			}
+			vertexList.Push(transform * currVert);
 		}
+
 		std::cout << "vertexList.Size()=" << vertexList.Size() << "\n";
 
 		int numVertices = mesh->mNumVertices;
@@ -208,7 +183,7 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 		if (mesh->mPrimitiveTypes & aiPrimitiveType::aiPrimitiveType_TRIANGLE) {
 			std::cout << "found aiPrimitiveType_TRIANGLE!\n";
 		}
-		
+
 		if (face_size_this_pass == 3) {
 			// TRI_MESH
 			std::cout << "mesh i=" << i << " is a TRI_MESH\n";
@@ -266,12 +241,17 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 		else if (face_size_this_pass == 2) {
 			// POLYLINE
 			std::cout << "mesh i=" << i << " is a POLYLINE\n";
-			/*
+
+			std::cout << "printing indices from mesh->mFaces[i].mIndices[0,1] etc." << std::endl;
 			for (int i = 0; i < mesh->mNumFaces; ++i) {
-				assert(mesh->mFaces[i].mNumIndices == 2);
+				if (mesh->mFaces[i].mNumIndices != 2) {
+					continue;
+				}
+				//assert(mesh->mFaces[i].mNumIndices == 2);
 
 				int i0 = mesh->mFaces[i].mIndices[0];
 				int i1 = mesh->mFaces[i].mIndices[1];
+				std::cout << "[i0, i1] = " << i0 << ", " << i1 << std::endl;
 
 				Vector3 aa = vertexList[i0].GetVector3();
 				Vector3 bb = vertexList[i1].GetVector3();
@@ -279,9 +259,8 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 				seg.Push(Variant(aa));
 				seg.Push(Variant(bb));
 				Variant pol = Polyline_Make(seg);
-				polylinesOut.Push(pol);
 			}
-			*/
+
 			Variant outPolyline = Polyline_Make(vertexList);
 			polylinesOut.Push(outPolyline);
 		}
