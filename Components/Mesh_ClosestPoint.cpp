@@ -7,6 +7,7 @@
 
 #include "ConversionUtilities.h"
 #include "Geomlib_TriMeshClosestPoint.h"
+#include "TriMesh.h"
 
 using namespace Urho3D;
 
@@ -69,8 +70,8 @@ void Mesh_ClosestPoint::SolveInstance(
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	bool success = false;
 
-	if (meshMap["TriMesh_verified"].GetBool()) {
-		bool success = Geomlib::TriMeshClosestPoint(inMesh, q, index, p);
+	if (TriMesh_Verify(inMesh)) {
+		success = Geomlib::TriMeshClosestPoint(inMesh, q, index, p);
 	}
 	///////////////////////////////////////////////////////////////////////////////////////////////
 

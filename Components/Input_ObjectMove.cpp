@@ -4,6 +4,7 @@
 #include <Urho3D/Graphics/Renderer.h>
 #include <Urho3D/Graphics/Graphics.h>
 #include <Urho3D/UI/UI.h>
+#include <Urho3D/UI/UIElement.h>
 #include <Urho3D/Input/Input.h>
 #include "IoGraph.h"
 
@@ -123,16 +124,28 @@ void Input_ObjectMove::HandleMouseMove(StringHash eventType, VariantMap& eventDa
 	
 
 	Graphics* graphics = GetSubsystem<Graphics>();
-
 	Vector3 camToNode = orgHitPoint - currentCamera->GetNode()->GetWorldPosition();
-	Vector3 newPos = activeViewport->ScreenToWorldPoint(x, y, camToNode.Length());
 
-	//URHO3D_LOGINFO("old pos: " + String(currentNode->GetWorldPosition()));
-	//URHO3D_LOGINFO("new pos: " + String(newPos));
-	//URHO3D_LOGINFO("delta: " + String(newPos - currentNode->GetWorldPosition()));
+	//maintain constant distance from camera
+	float angle = camToNode.Angle(currentCamera->GetNode()->GetWorldDirection());
+	float length = camToNode.Length() / Cos(angle);
 
-	//Vector3 currPos = currentNode->GetWorldPosition();
+	//create default cast position
+	Vector3 newPos = activeViewport->ScreenToWorldPoint(x, y, length);
 
+	//remap mouse pos by ui rect
+	UIElement* element = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
+	if (element)
+	{
+		IntVector2 ePos = element->GetScreenPosition();
+		IntVector2 eSize = element->GetSize();
+		float sx = (x - ePos.x_) / (float)eSize.x_;
+		float sy = (y - ePos.y_) / (float)eSize.y_;
+
+		newPos = currentCamera->ScreenToWorldPoint(Vector3(sx, sy, length));
+	}
+
+	//get constrained vector
 	Vector3 moveVec = newPos - orgHitPoint;
 	moveVec = GetConstrainedVector(moveVec, constraintFlags);
 
@@ -215,7 +228,23 @@ bool Input_ObjectMove::DoRaycast()
 	IntVector2 pos = ui->GetCursorPosition();
 	Graphics* graphics = GetSubsystem<Graphics>();
 	currentCamera = activeViewport->GetCamera();
-	Ray cameraRay = activeViewport->GetScreenRay(pos.x_ , pos.y_);
+
+	//remap mouse pos by ui rect
+	UIElement* element = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
+
+	Ray cameraRay = activeViewport->GetScreenRay(pos.x_, pos.y_);
+	
+	if (element)
+	{
+		IntVector2 ePos = element->GetScreenPosition();
+		IntVector2 eSize = element->GetSize();
+		float x = (pos.x_ - ePos.x_) / (float)eSize.x_;
+		float y = (pos.y_ - ePos.y_) / (float)eSize.y_;
+
+		cameraRay = currentCamera->GetScreenRay(x, y);
+	}
+
+
 
 	PODVector<RayQueryResult> results;
 	RayOctreeQuery query(results, cameraRay, RAY_TRIANGLE, 1000.0f,

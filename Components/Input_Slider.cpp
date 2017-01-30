@@ -57,8 +57,9 @@ void Input_Slider::HandleCustomInterface(UIElement* customElement)
 
 	slider = customElement->CreateChild<Slider>("MainSlider", true);
 	slider->SetStyle("ThinSlider");
-	slider->SetMinHeight(20);
-	slider->SetMaxHeight(20);
+	//slider->SetMinHeight(20);
+	slider->SetSize(customElement->GetSize().x_, 12);
+	//slider->SetMaxHeight(30);
 	
 	UIElement* controls = customElement->CreateChild<UIElement>("ControlGroup");
 	controls->SetMinHeight(30);
