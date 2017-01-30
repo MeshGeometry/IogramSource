@@ -26,9 +26,22 @@ using namespace Urho3D;
 #include <assimp/Exporter.hpp>
 #include <assimp/postprocess.h>
 
+namespace {
+
+enum class CoordPermutation {
+	xyz_2_xyz = 0,
+	xyz_2_xzy,
+	xyz_2_yzx,
+	xyz_2_yxz,
+	xyz_2_zxy,
+	xyz_2_zyx
+};
+
+}
+
 String Mesh_ReadTriangleMesh::iconTexture = "Textures/Icons/Mesh_ReadTriangleMesh.png";
 
-Mesh_ReadTriangleMesh::Mesh_ReadTriangleMesh(Context* context) : IoComponentBase(context, 2, 3)
+Mesh_ReadTriangleMesh::Mesh_ReadTriangleMesh(Context* context) : IoComponentBase(context, 3, 3)
 {
 	SetName("ReadTriMesh");
 	SetFullName("Read Triangle Mesh");
@@ -44,13 +57,21 @@ Mesh_ReadTriangleMesh::Mesh_ReadTriangleMesh(Context* context) : IoComponentBase
 	inputSlots_[0]->SetDefaultValue("Models/bumpy.off");
 	inputSlots_[0]->DefaultSet();
 
-	inputSlots_[1]->SetName("ConvertToLeftHanded");
-	inputSlots_[1]->SetVariableName("C2LH");
-	inputSlots_[1]->SetDescription("Convert objects to left handed");
-	inputSlots_[1]->SetVariantType(VariantType::VAR_BOOL);
+	inputSlots_[1]->SetName("CoordPermutation");
+	inputSlots_[1]->SetVariableName("Perm");
+	inputSlots_[1]->SetDescription("Permute coords XYZ according to permutation code 0-5");
+	inputSlots_[1]->SetVariantType(VariantType::VAR_INT);
 	inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
-	inputSlots_[1]->SetDefaultValue(Variant(true));
+	inputSlots_[1]->SetDefaultValue(1);
 	inputSlots_[1]->DefaultSet();
+
+	inputSlots_[2]->SetName("ConvertToLeftHanded");
+	inputSlots_[2]->SetVariableName("C2LH");
+	inputSlots_[2]->SetDescription("Convert objects to left handed");
+	inputSlots_[2]->SetVariantType(VariantType::VAR_BOOL);
+	inputSlots_[2]->SetDataAccess(DataAccess::ITEM);
+	inputSlots_[2]->SetDefaultValue(Variant(false));
+	inputSlots_[2]->DefaultSet();
 
 	outputSlots_[0]->SetName("Mesh out");
 	outputSlots_[0]->SetVariableName("M");
@@ -79,7 +100,12 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 	String meshFile = inSolveInstance[0].GetString();
 	FileSystem* fs = GetSubsystem<FileSystem>();
 
-	bool convert_to_left_handed = inSolveInstance[1].GetBool();
+	CoordPermutation perm = CoordPermutation::xyz_2_xyz;
+	int perm_code = inSolveInstance[1].GetInt();
+	if (perm_code >= 0 && perm_code <= 5) {
+		perm = static_cast<CoordPermutation>(perm_code);
+	}
+	bool convert_to_left_handed = inSolveInstance[2].GetBool();
 
 	//construct a file using resource cache
 	SharedPtr<File> rf = GetSubsystem<ResourceCache>()->GetFile(meshFile);
@@ -134,7 +160,31 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 		//get verts
 		for (int i = 0; i < mesh->mNumVertices; i++)
 		{
-			Vector3 currVert(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+			Vector3 currVert;
+
+			switch (perm) {
+			case CoordPermutation::xyz_2_xyz:
+				currVert = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+				break;
+			case CoordPermutation::xyz_2_xzy:
+				currVert = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].z, mesh->mVertices[i].y);
+				break;
+			case CoordPermutation::xyz_2_yzx:
+				currVert = Vector3(mesh->mVertices[i].y, mesh->mVertices[i].z, mesh->mVertices[i].x);
+				break;
+			case CoordPermutation::xyz_2_yxz:
+				currVert = Vector3(mesh->mVertices[i].y, mesh->mVertices[i].x, mesh->mVertices[i].z);
+				break;
+			case CoordPermutation::xyz_2_zxy:
+				currVert = Vector3(mesh->mVertices[i].z, mesh->mVertices[i].x, mesh->mVertices[i].y);
+				break;
+			case CoordPermutation::xyz_2_zyx:
+				currVert = Vector3(mesh->mVertices[i].z, mesh->mVertices[i].y, mesh->mVertices[i].x);
+				break;
+			default:
+				currVert = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+				break;
+			}
 			vertexList.Push(currVert);
 		}
 		std::cout << "vertexList.Size()=" << vertexList.Size() << "\n";
