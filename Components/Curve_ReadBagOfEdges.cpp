@@ -126,7 +126,9 @@ void Curve_ReadBagOfEdges::SolveInstance(
 	vb.Resize(rf->GetSize());
 	rf->Read(&vb[0], size);
 
-	unsigned int pFlags = aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices;
+	//unsigned int pFlags = 0;
+	unsigned int pFlags = aiProcess_SortByPType | aiProcess_PreTransformVertices | aiProcess_FindDegenerates;
+	//unsigned int pFlags = aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices;
 	//const aiScene* scene = aiImportFileFromMemory(&vb[0], vb.Size(), aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices, ext.CString());
 	const aiScene* scene = aiImportFileFromMemory(&vb[0], vb.Size(), pFlags, ext.CString());
 
@@ -162,6 +164,7 @@ void Curve_ReadBagOfEdges::SolveInstance(
 		int numVertices = mesh->mNumVertices;
 
 		int face_size_this_pass = 0;
+		/*
 		if (mesh->mNumFaces > 0) {
 			face_size_this_pass = mesh->mFaces[0].mNumIndices;
 		}
@@ -173,7 +176,7 @@ void Curve_ReadBagOfEdges::SolveInstance(
 			continue;
 		}
 		std::cout << "face_size_this_pass == 2" << std::endl;
-
+		*/
 		// Towards more flexible input
 		/*
 		if (mesh->mPrimitiveTypes & aiPrimitiveType::aiPrimitiveType_POLYGON) {
@@ -189,9 +192,11 @@ void Curve_ReadBagOfEdges::SolveInstance(
 
 		std::cout << "printing indices from mesh->mFaces[i].mIndices[0,1] etc." << std::endl;
 		int edge_count = 0;
+
 		std::vector<int> edge_indices;
 		for (int i = 0; i < mesh->mNumFaces; ++i) {
 			if (mesh->mFaces[i].mNumIndices != 2) {
+				std::cout << "Curve_ReadBagOfEdges --- found face of size != 2" << std::endl;
 				continue;
 			}
 			++edge_count;
@@ -210,6 +215,16 @@ void Curve_ReadBagOfEdges::SolveInstance(
 			seg.Push(Variant(bb));
 			Variant pol = Polyline_Make(seg);
 			polylinesOut.Push(pol);
+		}
+	}
+
+	for (int i = 0; i < polylinesOut.Size(); ++i) {
+		std::cout << "polylinesOut[i]" << std::endl;
+
+		VariantVector verts = Polyline_ComputeSequentialVertexList(polylinesOut[i]);
+		for (int j = 0; j < verts.Size(); ++j) {
+			Vector3 v = verts[j].GetVector3();
+			std::cout << "vert j=" << j << ": (" << v.x_ << "," << v.y_ << "," << v.z_ << ")" << std::endl;
 		}
 	}
 
