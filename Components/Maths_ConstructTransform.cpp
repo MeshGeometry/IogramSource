@@ -76,7 +76,7 @@ void Maths_ConstructTransform::SolveInstance(
 	// NOTE: Quaternion can also be constructed from float and Matrix3,
 	// which can be stored directly in a Variant (other Quaternion construction
 	// methods would require a convention to store in a Variant)
-	if (inSolveInstance[2].GetType() != VariantType::VAR_QUATERNION) {
+	if (inSolveInstance[2].GetType() != VariantType::VAR_QUATERNION && inSolveInstance[2].GetType() != VariantType::VAR_VECTOR3) {
 		URHO3D_LOGINFO("R must be a valid Quaternion.");
 		outSolveInstance[0] = Variant();
 		return;
@@ -87,6 +87,14 @@ void Maths_ConstructTransform::SolveInstance(
 
 	Vector3 pos = inSolveInstance[0].GetVector3();
 	Quaternion rot = inSolveInstance[2].GetQuaternion();
+
+	if (inSolveInstance[2].GetType() == VariantType::VAR_VECTOR3)
+	{
+		Vector3 euler = inSolveInstance[2].GetVector3();
+		rot.FromEulerAngles(euler.x_, euler.y_, euler.z_);
+	}
+
+
     
    	Vector3 scale = Vector3::ONE;
     if (inSolveInstance[1].GetType() == VariantType::VAR_VECTOR3)
