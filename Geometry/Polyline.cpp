@@ -57,6 +57,36 @@ Urho3D::Variant Polyline_Make(const Urho3D::VariantVector& vertexList)
 	return Variant(var_map);
 }
 
+Urho3D::Variant Polyline_Make(const Urho3D::VariantVector& vertexList, const Urho3D::VariantVector& edgeList)
+{
+	Variant earlyRet;
+	if (vertexList.Size() == 0) {
+		std::cout << "ERROR: Polyline_Make --- vertexList.Size() == 0" << std::endl;
+		return earlyRet;
+	}
+	for (unsigned i = 0; i < vertexList.Size(); ++i) {
+		if (vertexList[i].GetType() != VariantType::VAR_VECTOR3) {
+			std::cout << "ERROR: Polyline_Make --- vertexList[i].GetType() != VAR_VECTOR3, i=" << i << std::endl;
+			return earlyRet;
+		}
+	}
+
+	if (edgeList.Size() == 0) {
+		std::cout << "ERROR: Polyline_Make --- faceList.Size() == 0" << std::endl;
+		return earlyRet;
+	}
+	for (unsigned i = 0; i < edgeList.Size(); ++i) {
+		if (edgeList[i].GetType() != VariantType::VAR_INT) {
+			std::cout << "ERROR: Polyline_Make --- faceList[i].GetType() != VAR_INT, i=" << i << std::endl;
+			return earlyRet;
+		}
+	}
+	int numVertices = (int)vertexList.Size();
+	for (int i = 0; i < (int)edgeList.Size(); ++i) {
+		//
+	}
+}
+
 bool Polyline_Verify(const Urho3D::Variant& polyline)
 {
 	if (polyline.GetType() != VariantType::VAR_VARIANTMAP) return false;
