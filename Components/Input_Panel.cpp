@@ -25,15 +25,8 @@ void Input_Panel::SolveInstance(
 	outSolveInstance[0] = inSolveInstance[0];
 }
 
-//TODO now that multiline edit is working, rework this component
-
-void Input_Panel::HandleCustomInterface(UIElement* customElement)
+void Input_Panel::SetDataTree()
 {
-	textArea_ = customElement->CreateChild<MultiLineEdit>("TextArea");
-	textArea_->SetStyleAuto();
-	textArea_->SetHeight(100);
-	textArea_->GetTextElement()->SetFontSize(9);
-
 	//set saved data
 	IoDataTree* dt = inputSlots_[0]->GetIoDataTreePtr();
 	if (dt)
@@ -57,6 +50,37 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 		}
 	}
 
+}
+
+void Input_Panel::SetDataTreeContent()
+{
+	//set saved data
+	IoDataTree* dt = inputSlots_[0]->GetIoDataTreePtr();
+	if (dt && textArea_.NotNull())
+	{
+		Vector<String> contents = dt->GetContent();
+		String flatContent = "";
+		for (int i = 0; i < contents.Size(); i++)
+		{
+			flatContent += contents[i];
+			flatContent += "\n";
+		}
+
+		textArea_->SetText(flatContent);
+	}
+}
+
+void Input_Panel::HandleCustomInterface(UIElement* customElement)
+{
+	textArea_ = customElement->CreateChild<MultiLineEdit>("TextArea");
+	textArea_->SetStyleAuto();
+	textArea_->SetHeight(100);
+	textArea_->GetTextElement()->SetFontSize(9);
+
+	if (inputSlots_[0]->GetLinkedOutputSlot().NotNull())
+		SetDataTree();
+	else
+		SetDataTreeContent();
 
 	SubscribeToEvent(textArea_, E_TEXTFINISHED, URHO3D_HANDLER(Input_Panel, HandleLineEditCommit));
 	SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(Input_Panel, HandleSetText));
@@ -94,25 +118,12 @@ void Input_Panel::HandleGraphSolve(Urho3D::StringHash eventType, Urho3D::Variant
 		if (textArea_.NotNull())
 		{
 			textArea_->SetEditable(true);
+			SetDataTreeContent();
 		}
 	}
 	else
 	{
-		//try to set panel content
-		IoDataTree* dt = inputSlots_[0]->GetIoDataTreePtr();
-
-		if (dt)
-		{
-			String dtText = dt->ToString(false);
-
-			if (textArea_.NotNull())
-			{
-				textArea_->SetText(dtText);
-				textArea_->SetEditable(false);
-			}
-		}
-
-
+		SetDataTree();
 		editable_ = false;
 	}
 }
