@@ -195,7 +195,7 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Widget_ColorSlider.h"
 #include "CurveRenderer.h"
 
-#include "ShapeOp_OrientationConstraint.h"
+#include "ShapeOp_TestComponent.h"
 
 using namespace Urho3D;
 
@@ -391,5 +391,5 @@ void RegisterCoreComponents(Context* context)
 
 	RegisterIogramType<Offsets_NgonMeshReader>(context);
 
-	RegisterIogramType<ShapeOp_OrientationConstraint>(context);
+	RegisterIogramType<ShapeOp_TestComponent>(context);
 }

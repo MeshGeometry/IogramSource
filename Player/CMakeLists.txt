@@ -34,11 +34,13 @@ set(RESOURCE_DIRS "")
 setup_main_executable ()
 
 add_definitions(-DNOMINMAX)
+#add_definitions(-DSHAPEOP_HEADER_ONLY)
 
 #link the libs
 include_directories("../Core")
 include_directories("../Geometry")
 include_directories("../Components")
+#include_directories("../ThirdParty/ShapeOp/src")
 
 target_link_libraries(IogramPlayer Components)
 target_link_libraries(IogramPlayer Core)
