@@ -37,6 +37,7 @@ include_directories("../ThirdParty")
 include_directories("../ThirdParty/Libigl")
 include_directories("../ThirdParty/Eigen")
 include_directories("../ThirdParty/ShapeOp/api")
+include_directories("../ThirdParty/ShapeOp/src")
 include_directories("../ThirdParty/Assimp/include")
 include_directories("../Core")
 include_directories("../Geometry")
@@ -53,6 +54,7 @@ setup_library ()
 
 target_link_libraries(Components Core)
 target_link_libraries(Components Geometry)
+target_link_libraries(Components ShapeOp)
 
 #compile flags
 if(UNIX)
