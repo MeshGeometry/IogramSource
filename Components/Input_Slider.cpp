@@ -53,7 +53,7 @@ void Input_Slider::HandleCustomInterface(UIElement* customElement)
 	maxRange = GetGenericData("max").GetFloat();
 	currentValue = GetGenericData("value").GetFloat();
 
-	customElement->SetMinHeight(50);
+	customElement->SetMinSize(150, 60);
 
 	slider = customElement->CreateChild<Slider>("MainSlider", true);
 	slider->SetStyle("ThinSlider");

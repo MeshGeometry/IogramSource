@@ -46,6 +46,8 @@ void Input_Vector3::HandleCustomInterface(UIElement* customElement) {
 	mySlider->SetStyle("Widget_Vector3Slider", styleFile);
 	mySlider->CustomInterface();
 
+	customElement->SetMinSize(150, 120);
+
 	Vector3 savedValue = Vector3(
 		GetGenericData("X").GetFloat(),
 		GetGenericData("Y").GetFloat(),

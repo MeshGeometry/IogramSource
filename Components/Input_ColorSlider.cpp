@@ -45,6 +45,8 @@ void Input_ColorSlider::HandleCustomInterface(UIElement* customElement) {
 	mySlider->SetStyle("Widget_ColorSlider", styleFile);
 	mySlider->CustomInterface();
 
+	customElement->SetMinSize(280, 120);
+
 	Color savedValue = Color(GetGenericData("saved_color").GetColor());
 
 
