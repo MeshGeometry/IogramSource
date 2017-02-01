@@ -153,6 +153,8 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Curve_PolylineLoft.h"
 #include "Curve_Polygon.h"
 #include "Curve_PolylineEvaluate.h"
+#include "Curve_SketchPlane.h"
+#include "Curve_Rebuild.h"
 #include "Curve_ReadBagOfEdges.h"
 #include "Mesh_SubdivideMesh.h"
 #include "Input_SliderListener.h"
@@ -354,6 +356,8 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Curve_PolylineLoft>(context);
 	RegisterIogramType<Curve_PolylineEvaluate>(context);
 	RegisterIogramType<Curve_Polygon>(context);
+	RegisterIogramType<Curve_SketchPlane>(context);
+	RegisterIogramType<Curve_Rebuild>(context);
 	RegisterIogramType<Curve_ReadBagOfEdges>(context);
 	RegisterIogramType<Mesh_SubdivideMesh>(context);
 	RegisterIogramType<Input_SliderListener>(context);

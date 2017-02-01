@@ -215,6 +215,14 @@ Urho3D::Vector<Urho3D::Vector3> Polyline_ComputePointCloud(const Urho3D::Variant
 	return point_cloud;
 }
 
+Urho3D::Variant Polyline_Rebuild(const Urho3D::Variant& polyline, int numTargetPoints)
+{
+	bool ver = Polyline_Verify(polyline);
+	if (!ver) {
+		return Variant();
+	}
+}
+
 Urho3D::Variant Polyline_ApplyTransform(
 	const Urho3D::Variant& polyline,
 	const Urho3D::Matrix3x4& T
