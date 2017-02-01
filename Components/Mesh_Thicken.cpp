@@ -58,6 +58,7 @@ void Mesh_Thicken::SolveInstance(
 
 	if (!IsAllInputValid(inSolveInstance)) {
 		SetAllOutputsNull(outSolveInstance);
+		return;
 	}
 
 	// Still need to verify input slot 0

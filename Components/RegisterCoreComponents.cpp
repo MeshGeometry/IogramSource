@@ -195,6 +195,8 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Widget_ColorSlider.h"
 #include "CurveRenderer.h"
 
+#include "ShapeOp_OrientationConstraint.h"
+
 using namespace Urho3D;
 
 void RegisterCoreComponents(Context* context)
@@ -388,4 +390,6 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Mesh_SplitLongEdges>(context); //Disabled! Crashes on bad meshes like Hexayurt
 
 	RegisterIogramType<Offsets_NgonMeshReader>(context);
+
+	RegisterIogramType<ShapeOp_OrientationConstraint>(context);
 }
