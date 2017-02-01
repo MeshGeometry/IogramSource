@@ -147,6 +147,10 @@ public:
 	virtual void HandleCustomInterface(Urho3D::UIElement* customElement);
 	bool SetGenericData(Urho3D::String key, Urho3D::Variant data);
 	Urho3D::Variant GetGenericData(Urho3D::String key);
+	Urho3D::String GetUniqueViewName() const { return uniqueViewID_; };
+	void SetUniqueViewName(Urho3D::String viewName) { uniqueViewID_ = viewName; };
+	Urho3D::IntVector2 GetCoordinates() const { return coordinates_; };
+	void SetCoordinates(Urho3D::IntVector2 newCoords) { coordinates_ = newCoords; };
 
 public:
 	/* early metadata */
@@ -202,6 +206,9 @@ protected: // protected so derived objects can access
 	IoComponentGroup group_ = IoComponentGroup::NONE;
 	Urho3D::String subgroup_ = "";
 	Urho3D::Vector<Urho3D::String> tags_;
+
+	Urho3D::String uniqueViewID_;
+	Urho3D::IntVector2 coordinates_;
 
 	Urho3D::HashMap<Urho3D::String, Urho3D::Pair<Urho3D::String, Urho3D::Variant>> metaData_;
 };

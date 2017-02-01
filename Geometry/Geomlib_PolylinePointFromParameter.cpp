@@ -163,10 +163,8 @@ bool Geomlib::PolylineTransformFromParameter(const Urho3D::Variant & polyline, f
 				Vector3 up = Vector3::UP;
 				Urho3D::Quaternion rot;
 				rot.FromLookRotation(targetPt - startPt, up);
-				transform.SetRotation(rot.RotationMatrix());
-				transform.SetTranslation(position);
-				transform.SetScale(1.0f);
-				return true;
+				Urho3D::Matrix3x4 xform(position, rot, Vector3::ONE);
+				transform = xform;
 			}
 			else {
 				GetVertexNormal(polyline, normal, i);
@@ -175,12 +173,17 @@ bool Geomlib::PolylineTransformFromParameter(const Urho3D::Variant & polyline, f
 			tangent = seg.Normalized();
 			x_axis = normal.CrossProduct(tangent);
 
-			Urho3D::Quaternion quat(tangent, normal, x_axis);
-			Urho3D::Matrix3 rotation = quat.RotationMatrix();
+			
+			Urho3D::Quaternion rot;
+			rot.FromLookRotation(tangent, normal);
+			//Urho3D::Quaternion quat(tangent, normal, x_axis);
+			//Urho3D::Matrix3 rotation = quat.RotationMatrix();
 
-			transform.SetRotation(rotation);
+			//Urho3D::Matrix3x4 xform(position, rot, Vector3::ONE);
+			//transform = xform;
+			transform.SetRotation(rot.RotationMatrix());
 			transform.SetTranslation(position);
-			transform.SetScale(1.0f);
+			//transform.SetScale(1.0f);
 
 			return true;
 		}

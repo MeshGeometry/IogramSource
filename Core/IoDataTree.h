@@ -95,6 +95,7 @@ public:
 	int GetNumBranches() const { return branches_.Keys().Size(); };
 	Urho3D::Vector<int> GetCurrentBranch() const;
 	Urho3D::String ToString(bool truncate=false) const;
+	Urho3D::Vector<Urho3D::String> GetContent();
 	bool branchOverflow() const { return branchOverflow_; };
 	bool itemOverflow() const { return itemOverflow_; };
 	bool IsEmptyTree() const { return branches_.Size() == 0; }

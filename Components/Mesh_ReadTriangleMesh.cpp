@@ -124,9 +124,12 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 	vb.Resize(rf->GetSize());
 	rf->Read(&vb[0], size);
 
+
 	unsigned int pFlags = aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices;
+
 	//const aiScene* scene = aiImportFileFromMemory(&vb[0], vb.Size(), aiProcess_SortByPType | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices, ext.CString());
 	const aiScene* scene = aiImportFileFromMemory(&vb[0], vb.Size(), pFlags, ext.CString());
+
 
 	VariantVector meshesOut;
 	VariantVector polylinesOut;
@@ -144,13 +147,14 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 	{
 		VariantVector vertexList;
 		VariantVector faceList;
-		
+
 		aiMesh* mesh = scene->mMeshes[i];
 
 		//get verts
 		for (int i = 0; i < mesh->mNumVertices; i++)
 		{
 			Vector3 currVert;
+
 			if (force_y_up) {
 				currVert = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].z, -1 * mesh->mVertices[i].y);
 			}
@@ -159,6 +163,7 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 			}
 			vertexList.Push(transform * currVert);
 		}
+
 		std::cout << "vertexList.Size()=" << vertexList.Size() << "\n";
 
 		int numVertices = mesh->mNumVertices;
@@ -178,7 +183,7 @@ void Mesh_ReadTriangleMesh::SolveInstance(
 		if (mesh->mPrimitiveTypes & aiPrimitiveType::aiPrimitiveType_TRIANGLE) {
 			std::cout << "found aiPrimitiveType_TRIANGLE!\n";
 		}
-		
+
 		if (face_size_this_pass == 3) {
 			// TRI_MESH
 			std::cout << "mesh i=" << i << " is a TRI_MESH\n";

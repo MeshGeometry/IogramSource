@@ -30,41 +30,35 @@ define_source_files()
 #get rid of resource copying
 set(RESOURCE_DIRS "")
 
-
 # Setup target with resource copying
 setup_main_executable ()
-#c11
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_definitions(-DNOMINMAX)
 
 #link the libs
-include_directories("${CMAKE_SOURCE_DIR}/Source/Core")
-include_directories("${CMAKE_SOURCE_DIR}/Source/Geometry")
-include_directories("${CMAKE_SOURCE_DIR}/Source/Components")
-include_directories("${CMAKE_SOURCE_DIR}/Source/EditorLib")
-include_directories("${CMAKE_SOURCE_DIR}/Source/Player")
+include_directories("../Core")
+include_directories("../Geometry")
+include_directories("../Components")
 
 target_link_libraries(IogramPlayer Components)
 target_link_libraries(IogramPlayer Core)
 target_link_libraries(IogramPlayer Geometry)
-target_link_libraries(IogramPlayer EditorLib)
 #target_link_libraries(IogramPlayer ShapeOp)
 target_link_libraries(IogramPlayer Assimp)
 
 
-#compile flags
-if(UNIX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
-endif()
+# #compile flags
+# if(UNIX)
+#     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
+# endif()
 
 
-if(WIN32)
-    install(TARGETS IogramPlayer DESTINATION ${CMAKE_SOURCE_DIR}/bin/Runtime/win)
-elseif(EMSCRIPTEN)
-    install(TARGETS IogramPlayer DESTINATION ${CMAKE_SOURCE_DIR}/bin/Runtime/webgl)
-elseif(APPLE)
-    install(TARGETS IogramPlayer DESTINATION ${CMAKE_SOURCE_DIR}/bin/Runtime/osx)
-elseif(UNIX)
-    install(TARGETS IogramPlayer DESTINATION ${CMAKE_SOURCE_DIR}/bin/Runtime/linux)
-endif()
+# if(WIN32)
+#     install(TARGETS IogramPlayer DESTINATION ${CMAKE_SOURCE_DIR}/bin/Runtime/win)
+# elseif(EMSCRIPTEN)
+#     install(TARGETS IogramPlayer DESTINATION ${CMAKE_SOURCE_DIR}/bin/Runtime/webgl)
+# elseif(APPLE)
+#     install(TARGETS IogramPlayer DESTINATION ${CMAKE_SOURCE_DIR}/bin/Runtime/osx)
+# elseif(UNIX)
+#     install(TARGETS IogramPlayer DESTINATION ${CMAKE_SOURCE_DIR}/bin/Runtime/linux)
+# endif()

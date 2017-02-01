@@ -288,6 +288,38 @@ String IoDataTree::ToString(bool truncate) const
 	return out;
 }
 
+Urho3D::Vector<Urho3D::String> IoDataTree::GetContent()
+{
+	HashMap<String, IoBranch*>::ConstIterator itr = branches_.Begin();
+	Vector<String> contents;
+	int branchCounter = 0;
+	for (; itr != branches_.End(); itr++)
+	{		
+		String path = itr->first_;
+		String itemCount = String(itr->second_->data.Size());
+		int numItems = itr->second_->data.Size();
+
+		for (int i = 0; i < numItems; i++)
+		{
+			Variant var = itr->second_->data[i];
+			if (var.GetType() == VAR_NONE)
+			{
+
+			}
+			else
+			{
+				String strVal = var.ToString();
+				contents.Push(strVal);
+			}
+
+		}
+
+		branchCounter++;
+	}
+
+	return contents;
+}
+
 // Returns a list of the immediate descendant branches growing out of the path stored in path.
 // These are branches that are already present in the tree.
 Vector<Vector<int> > IoDataTree::FindChildPaths(Vector<int> path) const

@@ -3,21 +3,27 @@
 #include "OrbitCamera.h"
 #include "IoGraph.h"
 #include "IoSerialization.h"
-#include "IoComponentManager.h"
 #include "ComponentRegistration.h"
+#include "RegisterCoreComponents.h"
 #include "PersistentData.h"
 #include "PluginAPI.h"
 
+#include <Urho3D/ThirdParty/SDL/SDL.h>
+#include <Urho3D/Engine/DebugHud.h>
+#include <Urho3D/Core/Timer.h>
+#include <Urho3D/Graphics/GraphicsImpl.h>
 #include <Urho3D/IO/PackageFile.h>
 #include <Urho3D/AngelScript/Script.h>
 #include <Urho3D/Engine/Application.h>
 #include <Urho3D/Graphics/Camera.h>
 #include <Urho3D/Engine/Console.h>
 #include <Urho3D/UI/Cursor.h>
+#include <Urho3D/UI/Font.h>
 #include <Urho3D/Engine/DebugHud.h>
 #include <Urho3D/Engine/Engine.h>
 #include <Urho3D/Engine/EngineDefs.h>
 #include <Urho3D/IO/FileSystem.h>
+#include <Urho3D/IO/File.h>
 #include <Urho3D/Graphics/Graphics.h>
 #include <Urho3D/Input/Input.h>
 #include <Urho3D/Input/InputEvents.h>
@@ -38,6 +44,13 @@
 #include <Urho3D/Graphics/Octree.h>
 #include <Urho3D/Graphics/Model.h>
 #include <Urho3D/Graphics/StaticModel.h>
+#include "Urho3D/UI/Text.h"
+#include <Urho3D/UI/ScrollView.h>
+#include <Urho3D/UI/Slider.h>
+#include <Urho3D/IO/Log.h>
+#include <Urho3D/UI/Window.h>
+#include <Urho3D/UI/View3D.h>
+#include <Urho3D/UI/UIEvents.h>
 
 using namespace Urho3D;
 
@@ -83,12 +96,13 @@ void IogramPlayer::Start()
 	PersistentData* pd = GetSubsystem<PersistentData>();
 	pd->RegisterAppData("MyOrganization", "MyFirstApp");
 
-	ComponentRegistration::RegisterCoreComponents(GetContext());
+	//register core components
+	RegisterCoreComponents(context_);
 
 	//load plugins
-#ifndef EMSCRIPTEN
-	LoadPlugins();
-#endif
+//#ifndef EMSCRIPTEN
+//	LoadPlugins();
+//#endif
 
 	GetSubsystem<Input>()->SetMouseVisible(true);
 	CreateScene();
@@ -225,18 +239,21 @@ void IogramPlayer::CreateScene()
 	//push the scene to graph system
 	GetSubsystem<IoGraph>()->scene = scene_;
 	context_->SetGlobalVar("Scene", scene_);
-	
+
 	//calculate the best fit ui scale
 	SetUIScale();
-  
-	
+
+
 	//initialize the ui style sheet
 	UI* ui = GetSubsystem<UI>();
 	XMLFile* style = cache->GetResource<XMLFile>("UI/IogramDefaultStyle.xml");
-	
+
 	ui->GetRoot()->SetDefaultStyle(style);
 	ui->SetUseSystemClipboard(true);
 	ui->SetUseScreenKeyboard(true);
+
+	//register root as active ui region
+	SetGlobalVar("activeUIRegion", ui->GetRoot());
 
 	//Graphics* g = GetSubsystem<Graphics>();
 	Graphics* g = GetSubsystem<Graphics>();
@@ -300,8 +317,13 @@ void IogramPlayer::SetupViewport()
 
 
 	render_path->Load(cache->GetResource<XMLFile>("RenderPaths/ForwardDepth.xml"));
-	//render_path->Append(cache->GetResource<XMLFile>("PostProcess/FXAA3.xml"));
-	//render_path->Append(cache->GetResource<XMLFile>("PostProcess/ColorCorrection.xml"));
+
+#ifndef EMSCRIPTEN
+	render_path->Append(cache->GetResource<XMLFile>("PostProcess/FXAA3.xml"));
+	render_path->Append(cache->GetResource<XMLFile>("PostProcess/ColorCorrection.xml"));
+	render_path->Append(cache->GetResource<XMLFile>("PostProcess/Vibrance.xml"));
+#endif
+
 
 	viewport->SetRenderPath(render_path);
 
@@ -316,8 +338,8 @@ void IogramPlayer::SetupViewport()
 void IogramPlayer::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
 	//adjust ui scale if necessary
-	SetUIScale();	
-	
+	SetUIScale();
+
 	Input* input = GetSubsystem<Input>();
 	if (input->GetKeyPress('g'))
 	{
