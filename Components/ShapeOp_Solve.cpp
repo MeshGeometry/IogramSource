@@ -9,6 +9,7 @@
 #include <Urho3D/Container/Str.h>
 
 #include "ShapeOp_API.h"
+#include "ShapeOp_IogramWrapper.h"
 
 #include "TriMesh.h"
 
@@ -16,7 +17,7 @@ using namespace Urho3D;
 
 String ShapeOp_Solve::iconTexture = "Textures/Icons/DefaultIcon.png";
 
-ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 1, 1)
+ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 2, 1)
 {
 	SetName("ShapeOpSolve");
 	SetFullName("ShapeOp Solve");
@@ -30,6 +31,12 @@ ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 1, 1)
 	inputSlots_[0]->SetVariantType(VariantType::VAR_VARIANTMAP);
 	inputSlots_[0]->SetDataAccess(DataAccess::ITEM);
 
+	inputSlots_[1]->SetName("Constraint List");
+	inputSlots_[1]->SetVariableName("CL");
+	inputSlots_[1]->SetDescription("Constraint List");
+	inputSlots_[1]->SetVariantType(VariantType::VAR_VARIANTMAP);
+	inputSlots_[1]->SetDataAccess(DataAccess::LIST);
+
 	outputSlots_[0]->SetName("Mesh output");
 	outputSlots_[0]->SetVariableName("M");
 	outputSlots_[0]->SetDescription("Mesh output");
@@ -42,5 +49,21 @@ void ShapeOp_Solve::SolveInstance(
 	Vector<Variant>& outSolveInstance
 )
 {
-	//
+	Variant mesh_in = inSolveInstance[0];
+	if (!TriMesh_Verify(mesh_in)) {
+		URHO3D_LOGWARNING("ShapeOp_Solve --- M must be a TriMesh");
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
+
+	VariantVector constraint_list = inSolveInstance[1].GetVariantVector();
+	for (unsigned i = 0; i < constraint_list.Size(); ++i) {
+		if (!ShapeOpConstraint_Verify(constraint_list[i])) {
+			URHO3D_LOGWARNING("ShapeOp_Solve --- constraint_list failed verification at index " + i);
+			SetAllOutputsNull(outSolveInstance);
+			return;
+		}
+	}
+
+	URHO3D_LOGINFO("ShapeOp_Solve all constraints verified");
 }
