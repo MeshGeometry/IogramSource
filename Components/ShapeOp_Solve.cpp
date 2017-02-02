@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+#include <iostream>
+
 #include <Urho3D/Core/Context.h>
 #include <Urho3D/Core/Object.h>
 #include <Urho3D/Core/Variant.h>
@@ -75,8 +77,12 @@ void ShapeOp_Solve::SolveInstance(
 	int nb_points = (int)(pts_in.size() / 3);
 	shapeop_setPoints(op, pts_in.data(), nb_points);
 
-	std::vector<double> pts_out(pts_in.size());
-	shapeop_getPoints(op, pts_out.data(), nb_points);
+	// all ids are captured here so their data won't go out of scope after added to the solver
+	std::vector<std::vector<int> > all_ids;
+	for (unsigned i = 0; i < constraint_list.Size(); ++i) {
+		std::vector<int> ids = ShapeOpConstraint_ids(constraint_list[i]);
+		all_ids.push_back(ids);
+	}
 
 	for (unsigned i = 0; i < constraint_list.Size(); ++i) {
 		Variant constraint = constraint_list[i];
@@ -86,10 +92,20 @@ void ShapeOp_Solve::SolveInstance(
 		shapeop_addConstraint(
 			op,
 			ShapeOpConstraint_constraintType(constraint).CString(),
-			ids.data(),
+			all_ids[i].data(),
 			ShapeOpConstraint_nb_ids(constraint),
 			ShapeOpConstraint_weight(constraint)
 		);
+	}
+
+	shapeop_init(op);
+
+	shapeop_solve(op, 100);
+
+	std::vector<double> pts_out(pts_in.size());
+	shapeop_getPoints(op, pts_out.data(), nb_points);
+	for (int i = 0; i < pts_out.size(); ++i) {
+		std::cout << pts_out[i] << " ";
 	}
 
 	shapeop_delete(op);
