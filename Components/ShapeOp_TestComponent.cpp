@@ -22,8 +22,8 @@ String ShapeOp_TestComponent::iconTexture = "Textures/Icons/DefaultIcon.png";
 
 ShapeOp_TestComponent::ShapeOp_TestComponent(Context* context) : IoComponentBase(context, 1, 1)
 {
-	SetName("OrientationConstraint");
-	SetFullName("ShapeOp Orientation Constraint");
+	SetName("ShapeOpTest");
+	SetFullName("ShapeOp Test Component");
 	SetDescription("...");
 	SetGroup(IoComponentGroup::MESH);
 	SetSubgroup("Operators");
