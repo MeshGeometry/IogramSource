@@ -2,6 +2,8 @@
 
 #include <Urho3D/IO/Log.h>
 
+#include "TriMesh.h"
+
 namespace {
 
 bool IsValidShapeOpConstraintType(const Urho3D::String& constraint_type)
@@ -194,4 +196,78 @@ bool ShapeOpConstraint_Verify(const Urho3D::Variant& constraint)
 	if (var_type.GetString() != "ShapeOpConstraint") return false;
 
 	return true;
+}
+
+Urho3D::String ShapeOpConstraint_constraintType(const Urho3D::Variant& constraint)
+{
+	bool ver = ShapeOpConstraint_Verify(constraint);
+	if (!ver) return Urho3D::String("");
+
+	Urho3D::VariantMap var_map = constraint.GetVariantMap();
+	return var_map["constraintType"].GetString();
+}
+
+std::vector<int> ShapeOpConstraint_ids(const Urho3D::Variant& constraint)
+{
+	bool ver = ShapeOpConstraint_Verify(constraint);
+	if (!ver) return std::vector<int>();
+
+	Urho3D::VariantMap var_map = constraint.GetVariantMap();
+
+	Urho3D::VariantVector id_list = var_map["ids"].GetVariantVector();
+	std::vector<int> ids;
+	for (unsigned i = 0; i < id_list.Size(); ++i) {
+		ids.push_back(id_list[i].GetInt());
+	}
+	return ids;
+}
+
+int ShapeOpConstraint_nb_ids(const Urho3D::Variant& constraint)
+{
+	bool ver = ShapeOpConstraint_Verify(constraint);
+	if (!ver) return 0;
+
+	Urho3D::VariantMap var_map = constraint.GetVariantMap();
+	return var_map["nb_ids"].GetInt();
+}
+
+double ShapeOpConstraint_weight(const Urho3D::Variant& constraint)
+{
+	bool ver = ShapeOpConstraint_Verify(constraint);
+	if (!ver) return 0.0;
+
+	Urho3D::VariantMap var_map = constraint.GetVariantMap();
+	return (double)(var_map["weight"].GetFloat());
+}
+
+std::vector<double> ShapeOp_TriMeshToPoints(const Urho3D::Variant& tri_mesh)
+{
+	if (!TriMesh_Verify(tri_mesh)) {
+		return std::vector<double>();
+	}
+
+	std::vector<double> pts;
+	Urho3D::VariantVector vertex_list = TriMesh_GetVertexList(tri_mesh);
+	for (unsigned i = 0; i < vertex_list.Size(); ++i) {
+		Urho3D::Vector3 v = vertex_list[i].GetVector3();
+		pts.push_back((double)v.x_);
+		pts.push_back((double)v.y_);
+		pts.push_back((double)v.z_);
+	}
+	return pts;
+}
+
+Urho3D::VariantVector ShapeOp_PointsToVertexList(const std::vector<double>& pts)
+{
+	if (pts.size() <= 0 || pts.size() % 3 != 0) {
+		return Urho3D::VariantVector();
+	}
+
+	Urho3D::VariantVector vertex_list;
+	for (int i = 0; i < pts.size(); i += 3) {
+		Urho3D::Vector3 v((float)pts[i], (float)pts[i + 1], (float)pts[i + 2]);
+		vertex_list.Push(v);
+	}
+
+	return vertex_list;
 }

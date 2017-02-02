@@ -55,6 +55,8 @@ void ShapeOp_Solve::SolveInstance(
 		SetAllOutputsNull(outSolveInstance);
 		return;
 	}
+	VariantVector vertex_list = TriMesh_GetVertexList(mesh_in);
+	VariantVector face_list = TriMesh_GetFaceList(mesh_in);
 
 	VariantVector constraint_list = inSolveInstance[1].GetVariantVector();
 	for (unsigned i = 0; i < constraint_list.Size(); ++i) {
@@ -66,4 +68,35 @@ void ShapeOp_Solve::SolveInstance(
 	}
 
 	URHO3D_LOGINFO("ShapeOp_Solve all constraints verified");
+
+	ShapeOpSolver* op = shapeop_create();
+
+	std::vector<double> pts_in = ShapeOp_TriMeshToPoints(mesh_in);
+	int nb_points = (int)(pts_in.size() / 3);
+	shapeop_setPoints(op, pts_in.data(), nb_points);
+
+	std::vector<double> pts_out(pts_in.size());
+	shapeop_getPoints(op, pts_out.data(), nb_points);
+
+	for (unsigned i = 0; i < constraint_list.Size(); ++i) {
+		Variant constraint = constraint_list[i];
+
+		std::vector<int> ids = ShapeOpConstraint_ids(constraint);
+
+		shapeop_addConstraint(
+			op,
+			ShapeOpConstraint_constraintType(constraint).CString(),
+			ids.data(),
+			ShapeOpConstraint_nb_ids(constraint),
+			ShapeOpConstraint_weight(constraint)
+		);
+	}
+
+	shapeop_delete(op);
+
+	VariantVector new_vertex_list = ShapeOp_PointsToVertexList(pts_out);
+
+	Variant mesh_out = TriMesh_Make(new_vertex_list, face_list);
+
+	outSolveInstance[0] = mesh_out;
 }
