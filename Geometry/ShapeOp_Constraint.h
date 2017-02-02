@@ -12,7 +12,7 @@
 #ifndef CONSTRAINT_H
 #define CONSTRAINT_H
 ///////////////////////////////////////////////////////////////////////////////
-#include "Types.h"
+#include "ShapeOp_Types.h"
 #include <memory>
 #include <cmath>
 

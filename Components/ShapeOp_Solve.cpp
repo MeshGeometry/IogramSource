@@ -8,7 +8,7 @@
 #include <Urho3D/Container/Vector.h>
 #include <Urho3D/Container/Str.h>
 
-#include "API.h"
+#include "ShapeOp_API.h"
 
 #include "TriMesh.h"
 

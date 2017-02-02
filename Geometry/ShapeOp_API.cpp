@@ -9,10 +9,10 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 ///////////////////////////////////////////////////////////////////////////////
-#include "API.h"
-#include "Solver.h"
-#include "Constraint.h"
-#include "Force.h"
+#include "ShapeOp_API.h"
+#include "ShapeOp_Solver.h"
+#include "ShapeOp_Constraint.h"
+#include "ShapeOp_Force.h"
 ///////////////////////////////////////////////////////////////////////////////
 /** \brief C structure that containts the C++ ShapeOp solver.*/
 struct ShapeOpSolver {

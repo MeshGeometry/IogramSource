@@ -9,10 +9,10 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 ///////////////////////////////////////////////////////////////////////////////
-#include "Solver.h"
-#include "LSSolver.h"
-#include "Constraint.h"
-#include "Force.h"
+#include "ShapeOp_Solver.h"
+#include "ShapeOp_LSSolver.h"
+#include "ShapeOp_Constraint.h"
+#include "ShapeOp_Force.h"
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef SHAPEOP_OPENMP
 #ifdef SHAPEOP_MSVC

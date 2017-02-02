@@ -8,7 +8,7 @@
 #include <Urho3D/Container/Vector.h>
 #include <Urho3D/Container/Str.h>
 
-#include "API.h"
+#include "ShapeOp_API.h"
 
 #include "TriMesh.h"
 
@@ -26,52 +26,52 @@ bool VerifyConstraintType(const String& constraint_type)
 	else if (constraint_type == "TriangleStrain") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "TetrahedronStrain") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Area") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Volume") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Bending") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Closeness") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Line") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Plane") {
 		//
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Circle") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Sphere") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Similarity") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Rigid") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Rectangle") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Parallelogram") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Laplacian") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "LaplacianDisplacement") {
 		ret = true;
 	}
-	else if (constraint_type == "TriangleStrain") {
+	else if (constraint_type == "Angle") {
 		ret = true;
 	}
 
@@ -124,10 +124,70 @@ bool VerifyConstraintIds(
 
 bool VerifyConstraint(
 	const String& constraint_type,
-	const VariantVector& ids_list
+	int nb_ids
 )
 {
-	return false;
+	bool ret = false;
+
+	if (constraint_type == "EdgeStrain" && nb_ids == 2) {
+		ret = true;
+	}
+	else if (constraint_type == "TriangleStrain" && nb_ids == 3) {
+		ret = true;
+	}
+	else if (constraint_type == "TetrahedronStrain" && nb_ids == 4) {
+		ret = true;
+	}
+	else if (constraint_type == "Area" && nb_ids == 3) {
+		ret = true;
+	}
+	else if (constraint_type == "Volume" && nb_ids == 4) {
+		ret = true;
+	}
+	else if (constraint_type == "Bending" && nb_ids == 4) {
+		// indices form two neighboring triangles sharing an edge
+		ret = true;
+	}
+	else if (constraint_type == "Closeness" && nb_ids == 1) {
+		ret = true;
+	}
+	else if (constraint_type == "Line" && nb_ids >= 2) {
+		ret = true;
+	}
+	else if (constraint_type == "Plane" && nb_ids >= 3) {
+		//
+	}
+	else if (constraint_type == "Circle" && nb_ids >= 3) {
+		ret = true;
+	}
+	else if (constraint_type == "Sphere" && nb_ids >= 4) {
+		ret = true;
+	}
+	else if (constraint_type == "Similarity" && nb_ids >= 1) {
+		ret = true;
+	}
+	else if (constraint_type == "Rigid" && nb_ids >= 1) {
+		ret = true;
+	}
+	else if (constraint_type == "Rectangle" && nb_ids == 4) {
+		ret = true;
+	}
+	else if (constraint_type == "Parallelogram" && nb_ids == 4) {
+		ret = true;
+	}
+	else if (constraint_type == "Laplacian" && nb_ids >= 2) {
+		// center vertex first, then the one ring neighborhood
+		ret = true;
+	}
+	else if (constraint_type == "LaplacianDisplacement" && nb_ids >= 2) {
+		// center vertex_first, then the one ring neighborhood
+		ret = true;
+	}
+	else if (constraint_type == "Angle" && nb_ids == 3) {
+		ret = true;
+	}
+
+	return ret;
 }
 
 }
@@ -222,7 +282,7 @@ void ShapeOp_MakeConstraint::SolveInstance(
 		return;
 	}
 
-	bool constraint_valid = VerifyConstraint(constraint_type, ids_list);
+	bool constraint_valid = VerifyConstraint(constraint_type, nb_ids);
 
 	if (constraint_valid == false) {
 		URHO3D_LOGWARNING("ShapeOp_MakeConstraint --- ConstraintType & ConstraintIds not valid together");

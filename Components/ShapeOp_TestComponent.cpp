@@ -12,7 +12,7 @@
 //#include <ShapeOp/src/Solver.h>
 
 //#include "Solver.h"
-#include "API.h"
+#include "ShapeOp_API.h"
 
 #include "TriMesh.h"
 
