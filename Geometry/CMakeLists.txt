@@ -53,3 +53,6 @@ set(RESOURCE_DIRS "")
 setup_library ()
 
 set_target_properties(Geometry PROPERTIES LINKER_LANGUAGE CXX)
+
+#### RELEAE COPYING ######
+install(TARGETS Geometry CONFIGURATIONS Release DESTINATION ${CMAKE_SOURCE_DIR}/SDK/lib )

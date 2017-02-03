@@ -23,6 +23,8 @@ public:
     /// Parses the specified .xml file and loads and executes all plugins specified in that file.
     void LoadPluginsFromFile(String pluginListFilename);
 
+	void LoadPluginsFromDirectory(String folderPath);
+
     /// Loads plugins specified on command line with --plugin
     void LoadPluginsFromCommandLine();
 
