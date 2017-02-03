@@ -41,5 +41,7 @@ Urho3D::Variant ShapeOpVertexForce_Make(
 	int vertex_id
 );
 
+bool ShapeOpVertexForce_Verify(const Urho3D::Variant& vertex_force);
+
 int ShapeOpVertexForce_id(const Urho3D::Variant& vertex_force);
 std::vector<double> ShapeOpVertexForce_force(const Urho3D::Variant& vertex_force);
