@@ -14,6 +14,9 @@ if (COMMAND cmake_policy)
     endif ()
 endif ()
 
+#make sure append this to debug
+set(CMAKE_DEBUG_POSTFIX "_d")
+
 # Set CMake modules search path
 set (CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake/Modules)
 
@@ -37,7 +40,7 @@ add_definitions(-DNOMINMAX)
 include_directories("../ThirdParty")
 include_directories("../ThirdParty/Libigl")
 include_directories("../ThirdParty/Eigen")
-#include_directories("../ThirdParty/ShapeOp/src")
+include_directories("../ThirdParty/ShapeOp")
 include_directories("../ThirdParty/Assimp/include")
 include_directories("../Core")
 include_directories("../Geometry")

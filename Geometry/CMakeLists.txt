@@ -14,6 +14,9 @@ if (COMMAND cmake_policy)
     endif ()
 endif ()
 
+#make sure append this to debug
+set(CMAKE_DEBUG_POSTFIX "_d")
+
 # Set CMake modules search path
 set (CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake/Modules)
 
@@ -35,16 +38,19 @@ set (TARGET_NAME Geometry)
 
 #define includes
 include_directories("./")
-#include_directories("../ThirdParty/ShapeOp/api")
 include_directories("../ThirdParty/Assimp/include")
 
 # Define source files
-#define_source_files (RECURSE GROUP)
 define_source_files ()
 
 list(APPEND SOURCE_FILES 
     "../ThirdParty/TetGen/tetgen.cxx"
     "../ThirdParty/TetGen/predicates.cxx")
+
+file(GLOB SHAPEOP_SRC
+    "../ThirdParty/ShapeOp/ShapeOp_*")
+
+list(APPEND SOURCE_FILES ${SHAPEOP_SRC})
 
 #get rid of resource copying
 set(RESOURCE_DIRS "")
@@ -55,4 +61,4 @@ setup_library ()
 set_target_properties(Geometry PROPERTIES LINKER_LANGUAGE CXX)
 
 #### RELEAE COPYING ######
-install(TARGETS Geometry CONFIGURATIONS Release DESTINATION ${CMAKE_SOURCE_DIR}/SDK/lib )
+install(TARGETS Geometry DESTINATION ${CMAKE_SOURCE_DIR}/SDK/lib )

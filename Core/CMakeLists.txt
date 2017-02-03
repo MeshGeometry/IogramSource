@@ -14,6 +14,9 @@ if (COMMAND cmake_policy)
     endif ()
 endif ()
 
+#make sure append this to debug
+set(CMAKE_DEBUG_POSTFIX "_d")
+
 # Set CMake modules search path
 set (CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake/Modules)
 
@@ -35,4 +38,4 @@ define_source_files ()
 setup_library ()
 
 #### RELEAE COPYING ######
-install(TARGETS Core CONFIGURATIONS Release DESTINATION ${CMAKE_SOURCE_DIR}/SDK/lib )
+install(TARGETS Core DESTINATION ${CMAKE_SOURCE_DIR}/SDK/lib )
