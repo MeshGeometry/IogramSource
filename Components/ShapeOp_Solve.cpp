@@ -19,7 +19,7 @@ using namespace Urho3D;
 
 String ShapeOp_Solve::iconTexture = "Textures/Icons/DefaultIcon.png";
 
-ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 2, 1)
+ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 3, 1)
 {
 	SetName("ShapeOpSolve");
 	SetFullName("ShapeOp Solve");
@@ -38,6 +38,12 @@ ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 2, 1)
 	inputSlots_[1]->SetDescription("Constraint List");
 	inputSlots_[1]->SetVariantType(VariantType::VAR_VARIANTMAP);
 	inputSlots_[1]->SetDataAccess(DataAccess::LIST);
+
+	inputSlots_[2]->SetName("Force List");
+	inputSlots_[2]->SetVariableName("FL");
+	inputSlots_[2]->SetDescription("Force List");
+	inputSlots_[2]->SetVariantType(VariantType::VAR_VARIANTMAP);
+	inputSlots_[2]->SetDataAccess(DataAccess::LIST);
 
 	outputSlots_[0]->SetName("Mesh output");
 	outputSlots_[0]->SetVariableName("M");
@@ -69,6 +75,14 @@ void ShapeOp_Solve::SolveInstance(
 		}
 	}
 
+	VariantVector force_list = inSolveInstance[2].GetVariantVector();
+	for (unsigned i = 0; i < force_list.Size(); ++i) {
+		if (!ShapeOpVertexForce_Verify(force_list[i])) {
+			URHO3D_LOGWARNING("ShapeOp_Solve --- force_list failed verification at index " + i);
+			return;
+		}
+	}
+
 	URHO3D_LOGINFO("ShapeOp_Solve all constraints verified");
 
 	ShapeOpSolver* op = shapeop_create();
@@ -87,8 +101,6 @@ void ShapeOp_Solve::SolveInstance(
 	for (unsigned i = 0; i < constraint_list.Size(); ++i) {
 		Variant constraint = constraint_list[i];
 
-		std::vector<int> ids = ShapeOpConstraint_ids(constraint);
-
 		shapeop_addConstraint(
 			op,
 			ShapeOpConstraint_constraintType(constraint).CString(),
@@ -97,6 +109,27 @@ void ShapeOp_Solve::SolveInstance(
 			ShapeOpConstraint_weight(constraint)
 		);
 	}
+
+	URHO3D_LOGINFO("ShapeOp_Solve --- Constraints added");
+
+	// all forces are captured here so their data won't go out of scope after added to the solver
+	std::vector<std::vector<double> > all_forces;
+	for (unsigned i = 0; i < force_list.Size(); ++i) {
+		std::vector<double> force = ShapeOpVertexForce_force(force_list[i]);
+		all_forces.push_back(force);
+	}
+
+	for (unsigned i = 0; i < force_list.Size(); ++i) {
+		Variant vertex_force = force_list[i];
+
+		shapeop_addVertexForce(
+			op,
+			all_forces[i].data(),
+			ShapeOpVertexForce_id(vertex_force)
+		);
+	}
+
+	URHO3D_LOGINFO("ShapeOp_Solve --- Vertex forces added");
 
 	shapeop_init(op);
 
