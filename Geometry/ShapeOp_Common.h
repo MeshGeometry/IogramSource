@@ -25,11 +25,14 @@ typedef SHAPEOP_SCALAR ShapeOpScalar;
 /** \brief Defines the API prefix for the current platform.*/
 #if defined(_WIN32) || defined(_WIN64)
 #pragma warning( disable : 4251 ) //Disable warnings about templates and std types exposed in the c++ interface.
+/*
 #ifdef SHAPEOP_EXPORT
 #define SHAPEOP_API __declspec(dllexport)
 #else
 #define SHAPEOP_API __declspec(dllimport)
 #endif
+*/
+#define SHAPEOP_API
 #else
 #define SHAPEOP_API
 #endif

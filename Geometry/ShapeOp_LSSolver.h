@@ -12,7 +12,7 @@
 #ifndef LSSOLVER_H
 #define LSSOLVER_H
 ///////////////////////////////////////////////////////////////////////////////
-#include "Types.h"
+#include "ShapeOp_Types.h"
 
 #include <iostream>
 #include <unsupported/Eigen/src/IterativeSolvers/MINRES.h>

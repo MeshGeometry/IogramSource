@@ -2,10 +2,10 @@
 
 #include "IoComponentBase.h"
 
-class URHO3D_API ShapeOp_OrientationConstraint : public IoComponentBase {
-	URHO3D_OBJECT(ShapeOp_OrientationConstraint, IoComponentBase)
+class URHO3D_API ShapeOp_Solve : public IoComponentBase {
+	URHO3D_OBJECT(ShapeOp_Solve, IoComponentBase)
 public:
-	ShapeOp_OrientationConstraint(Urho3D::Context* context);
+	ShapeOp_Solve(Urho3D::Context* context);
 
 	void SolveInstance(
 		const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,
