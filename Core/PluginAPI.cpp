@@ -83,7 +83,7 @@ const String pluginSuffix = ".dll";
 	// Note that using just dlopen() with no path name will not succeed
 	path = "/data/data/" + owner->PackageName() + "/lib/lib" + filename.Trimmed() + pluginSuffix;
 #else
-	path = GetNativePath(GetSubsystem<FileSystem>()->GetProgramDir() + "Plugins/" + filename.Trimmed() + pluginSuffix);
+	path = GetNativePath(filename.Trimmed() + pluginSuffix);
 #endif
 	FileSystem* fs = GetSubsystem<FileSystem>();
 	if (!fs->FileExists(path))
@@ -162,6 +162,38 @@ Vector<String> PluginAPI::ConfigurationFiles() const
     //        configs.Push(owner->LookupRelativePath(config));
     //}
     return configs;
+}
+
+void PluginAPI::LoadPluginsFromDirectory(String folderPath)
+{
+	FileSystem* fs = GetSubsystem<FileSystem>();
+	if (!fs->DirExists(folderPath))
+	{
+		URHO3D_LOGERROR("No folder found at path: " + folderPath);
+		return;
+	}
+
+	//add trailing slash
+	folderPath = AddTrailingSlash(folderPath);
+
+
+	Vector<String> results;
+	fs->ScanDir(results, folderPath, "", SCAN_FILES, true);
+
+	for (int i = 0; i < results.Size(); i++)
+	{
+		String currPath = results[i];
+		String fileName = GetFileName(folderPath + currPath);
+
+		//check for debug suffix
+		if (fileName.Contains("_d"))
+		{
+			fileName = fileName.Split('_')[0];
+		}
+
+		//try to load this plugin
+		LoadPlugin(folderPath + fileName);
+	}
 }
 
 void PluginAPI::LoadPluginsFromFile(String pluginConfigurationFile)

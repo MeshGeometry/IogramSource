@@ -33,3 +33,6 @@ define_source_files ()
 
 # Setup target with resource copying
 setup_library ()
+
+#### RELEAE COPYING ######
+install(TARGETS Core CONFIGURATIONS Release DESTINATION ${CMAKE_SOURCE_DIR}/SDK/lib )
