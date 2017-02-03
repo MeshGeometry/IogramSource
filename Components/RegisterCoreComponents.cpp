@@ -199,6 +199,7 @@ you must include it here and follow the registration pattern in RegisterComponen
 
 #include "ShapeOp_TestComponent.h"
 #include "ShapeOp_MakeConstraint.h"
+#include "ShapeOp_MakeVertexForce.h"
 #include "ShapeOp_Solve.h"
 
 using namespace Urho3D;
@@ -400,4 +401,5 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<ShapeOp_TestComponent>(context);
 	RegisterIogramType<ShapeOp_MakeConstraint>(context);
 	RegisterIogramType<ShapeOp_Solve>(context);
+	RegisterIogramType<ShapeOp_MakeVertexForce>(context);
 }

@@ -5,6 +5,9 @@
 #include <Urho3D/Container/Str.h>
 #include <Urho3D/Core/Variant.h>
 
+////////////////////
+// ShapeOpConstraint
+
 bool IsValidShapeOpConstraint(
 	const Urho3D::String& constraint_type,
 	const Urho3D::VariantVector& id_list,
@@ -29,3 +32,14 @@ double ShapeOpConstraint_weight(const Urho3D::Variant& constraint);
 std::vector<double> ShapeOp_TriMeshToPoints(const Urho3D::Variant& tri_mesh);
 
 Urho3D::VariantVector ShapeOp_PointsToVertexList(const std::vector<double>& pts);
+
+//////////////
+// VertexForce
+
+Urho3D::Variant ShapeOpVertexForce_Make(
+	const Urho3D::Vector3& force_on_vertex,
+	int vertex_id
+);
+
+int ShapeOpVertexForce_id(const Urho3D::Variant& vertex_force);
+std::vector<double> ShapeOpVertexForce_force(const Urho3D::Variant& vertex_force);
