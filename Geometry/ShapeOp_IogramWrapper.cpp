@@ -182,7 +182,7 @@ Urho3D::Variant ShapeOpConstraint_Make(
 	constraint["nb_ids"] = nb_ids;
 	constraint["weight"] = weight;
 
-	return constraint;
+	return Urho3D::Variant(constraint);
 }
 
 bool ShapeOpConstraint_Verify(const Urho3D::Variant& constraint)
@@ -270,4 +270,62 @@ Urho3D::VariantVector ShapeOp_PointsToVertexList(const std::vector<double>& pts)
 	}
 
 	return vertex_list;
+}
+
+//////////////
+// VertexForce
+
+Urho3D::Variant ShapeOpVertexForce_Make(
+	const Urho3D::Vector3& force_on_vertex,
+	int vertex_id
+)
+{
+	Urho3D::VariantMap vertex_force;
+	vertex_force["type"] = Urho3D::String("ShapeOpVertexForce");
+	vertex_force["force"] = force_on_vertex;
+	vertex_force["id"] = vertex_id;
+
+	return Urho3D::Variant(vertex_force);
+}
+
+bool ShapeOpVertexForce_Verify(const Urho3D::Variant& vertex_force)
+{
+	if (vertex_force.GetType() != Urho3D::VariantType::VAR_VARIANTMAP) return false;
+
+	Urho3D::VariantMap var_map = vertex_force.GetVariantMap();
+	Urho3D::Variant var_type = var_map["type"];
+	if (var_type.GetType() != Urho3D::VariantType::VAR_STRING) return false;
+
+	if (var_type.GetString() != "ShapeOpVertexForce") return false;
+
+	return true;
+}
+
+int ShapeOpVertexForce_id(const Urho3D::Variant& vertex_force)
+{
+	bool ver = ShapeOpVertexForce_Verify(vertex_force);
+	if (!ver) return -1;
+
+	Urho3D::VariantMap var_map = vertex_force.GetVariantMap();
+
+	int id = var_map["id"].GetInt();
+
+	return id;
+}
+
+std::vector<double> ShapeOpVertexForce_force(const Urho3D::Variant& vertex_force)
+{
+	bool ver = ShapeOpVertexForce_Verify(vertex_force);
+	if (!ver) return std::vector<double>();
+
+	Urho3D::VariantMap var_map = vertex_force.GetVariantMap();
+
+	Urho3D::Vector3 v = var_map["force"].GetVector3();
+
+	std::vector<double> force;
+	force.push_back((double)v.x_);
+	force.push_back((double)v.y_);
+	force.push_back((double)v.z_);
+
+	return force;
 }
