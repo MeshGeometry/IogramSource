@@ -12,12 +12,15 @@
 Urho3D::Variant TriMesh_Make(const Eigen::MatrixXf& V, const Eigen::MatrixXi& F);
 Urho3D::Variant TriMesh_Make(const Urho3D::Variant& vertices, const Urho3D::Variant& faces);
 Urho3D::Variant TriMesh_Make(const Urho3D::VariantVector& vertexList, const Urho3D::VariantVector& faceList);
+Urho3D::Variant TriMesh_Make(const Urho3D::VariantVector& vertexList, const Urho3D::VariantVector& faceList, 
+	const Urho3D::VariantVector& labelList);
 
 bool TriMesh_Verify(const Urho3D::Variant& triMesh);
 
 Urho3D::VariantVector TriMesh_GetVertexList(const Urho3D::Variant& triMesh);
 Urho3D::VariantVector TriMesh_GetFaceList(const Urho3D::Variant& triMesh);
 Urho3D::VariantVector TriMesh_GetNormalList(const Urho3D::Variant& triMesh);
+Urho3D::VariantVector TriMesh_GetLabelList(const Urho3D::Variant& triMesh);
 
 Urho3D::VariantVector TriMesh_ComputeFaceNormals(const Urho3D::Variant& triMesh, bool normalize = false);
 Urho3D::VariantVector TriMesh_ComputeVertexNormals(const Urho3D::Variant& triMesh, bool normalize = false);

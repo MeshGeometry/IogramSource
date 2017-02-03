@@ -247,6 +247,28 @@ Urho3D::Variant TriMesh_Make(const Urho3D::Variant& vertices, const Urho3D::Vari
 	return TriMesh_Make(vertexList, faceList);
 }
 
+Urho3D::Variant TriMesh_Make(const Urho3D::VariantVector& vertexList, const Urho3D::VariantVector& faceList,
+	const Urho3D::VariantVector& labelList)
+{
+	// verify labels
+	Variant earlyRet;
+	if (labelList.Size() != faceList.Size()/3)
+		return earlyRet;
+
+	for (unsigned i = 0; i < labelList.Size(); ++i) {
+		if (labelList[i].GetType() != VariantType::VAR_INTVECTOR2) {
+			std::cerr << "ERROR: TriMesh_Make --- labelList[i].GetType() != VAR_INTVECTOR2, i=" << i << "\n";
+			return earlyRet;
+		}
+	}
+
+	Variant basicMesh = TriMesh_Make(vertexList, faceList);
+	VariantMap finalMesh = basicMesh.GetVariantMap();
+	finalMesh["labels"] = Variant(labelList);
+
+	return Variant(finalMesh);
+}
+
 bool TriMesh_Verify(const Urho3D::Variant& triMesh)
 {
 	if (triMesh.GetType() != VariantType::VAR_VARIANTMAP) return false;
@@ -290,6 +312,20 @@ Urho3D::VariantVector TriMesh_GetNormalList(const Urho3D::Variant& triMesh)
 
 	VariantMap var_map = triMesh.GetVariantMap();
 	return var_map["normals"].GetVariantVector();
+}
+
+Urho3D::VariantVector TriMesh_GetLabelList(const Urho3D::Variant& triMesh)
+{
+	bool ver = TriMesh_Verify(triMesh);
+	if (!ver) {
+		return VariantVector();
+	}
+
+	VariantMap var_map = triMesh.GetVariantMap();
+	Variant var_labels = var_map["labels"];
+	if (var_labels.GetType() != VariantType::VAR_VARIANTVECTOR) return VariantVector();
+
+	return var_map["labels"].GetVariantVector();
 }
 
 Urho3D::Vector<float> TriMesh_GetVerticesAsFloats(const Urho3D::Variant& triMesh)
