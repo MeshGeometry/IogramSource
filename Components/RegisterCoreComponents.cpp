@@ -43,6 +43,8 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Sets_GetValueByKey.h"
 #include "Sets_ExportViewData.h"
 #include "Sets_ImportViewData.h"
+#include "Sets_SendData.h"
+#include "Sets_ReceiveData.h"
 #include "Maths_MassAverage.h"
 #include "Maths_MassAddition.h"
 #include "Input_Slider.h"
@@ -250,6 +252,8 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Sets_GetValueByKey>(context);
 	RegisterIogramType<Sets_ExportViewData>(context);
 	RegisterIogramType<Sets_ImportViewData>(context);
+	RegisterIogramType<Sets_SendData>(context);
+	RegisterIogramType<Sets_ReceiveData>(context);
 	RegisterIogramType<Maths_MassAverage>(context);
 	RegisterIogramType<Maths_MassAddition>(context);
 	RegisterIogramType<Input_Slider>(context);
