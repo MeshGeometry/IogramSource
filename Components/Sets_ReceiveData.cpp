@@ -16,7 +16,9 @@ String Sets_ReceiveData::iconTexture = "Textures/Icons/Sets_ReceiveData.png";
 
 
 Sets_ReceiveData::Sets_ReceiveData(Context* context) :
-	IoComponentBase(context, 0, 0)
+	IoComponentBase(context, 0, 0),
+	importPort_(2345),
+	sourceAddress_("localhost")
 {
 	SetName("ExportViewData");
 	SetFullName("Export View Data");
@@ -27,23 +29,22 @@ Sets_ReceiveData::Sets_ReceiveData(Context* context) :
 		"Data",
 		"Out",
 		"Data tree to export",
-		VAR_NONE,
-		DataAccess::TREE
+		VAR_VARIANTVECTOR,
+		DataAccess::LIST
 	);
 
 	AddOutputSlot(
 		"ExportedData",
 		"Out",
 		"Exported Data",
-		VAR_VARIANTMAP,
-		DataAccess::TREE
+		VAR_VARIANTVECTOR,
+		DataAccess::LIST
 	);
 
-	exportPort_ = 2345;
 
 	//connect
 	Network* network = GetSubsystem<Network>();
-	bool res = network->Connect("localhost", CHAT_SERVER_PORT, 0);
+	bool res = network->Connect(sourceAddress_, importPort_, 0);
 
 	SubscribeToEvent(E_NETWORKMESSAGE, URHO3D_HANDLER(Sets_ReceiveData, HandleNetworkMessage));
 }
@@ -55,31 +56,54 @@ String Sets_ReceiveData::GetNodeStyle()
 
 void Sets_ReceiveData::HandleCustomInterface(UIElement* customElement)
 {
-	exportNameEdit = customElement->CreateChild<LineEdit>("PropertyEdit");
-	exportNameEdit->SetStyle("LineEdit");
-	exportNameEdit->SetWidth(100);
-	if (exportNameEdit)
-	{
-		SubscribeToEvent(exportNameEdit, E_TEXTFINISHED, URHO3D_HANDLER(Sets_ReceiveData, HandleLineEdit));
-		exportPort_ = GetGenericData("SendPort").GetInt();
-		exportNameEdit->SetText(String(exportPort_));
-	}
+	importPortEdit_ = customElement->CreateChild<LineEdit>("ImportPort");
+	importPortEdit_->SetStyle("LineEdit");
+	importPortEdit_->SetWidth(100);
+	importPort_ = GetGenericData("ImportPort").GetInt();
+	importPortEdit_->SetText(String(importPort_));
+
+	addressEdit_ = customElement->CreateChild<LineEdit>("AddressEdit");
+	addressEdit_->SetStyle("LineEdit");
+	addressEdit_->SetWidth(100);
+	sourceAddress_ = GetGenericData("SourceAddress").GetString();
+	addressEdit_->SetText(sourceAddress_);
+
+	SubscribeToEvent(importPortEdit_, E_TEXTFINISHED, URHO3D_HANDLER(Sets_ReceiveData, HandleLineEdit));
+	SubscribeToEvent(addressEdit_, E_TEXTFINISHED, URHO3D_HANDLER(Sets_ReceiveData, HandleLineEdit));
 }
 
 void Sets_ReceiveData::HandleLineEdit(StringHash eventType, VariantMap& eventData)
 {
 	using namespace TextFinished;
 
-	if (exportNameEdit)
+	LineEdit* le = (LineEdit*)eventData[P_ELEMENT].GetPtr();
+
+	if (le == importPortEdit_)
 	{
-		//exportPort_ = exportNameEdit->GetText();
-		solvedFlag_ = 0;
-
+		importPort_ = ToInt(importPortEdit_->GetText());
 		//set as metadata
-		SetGenericData("ExportVariableName", exportPort_);
+		SetGenericData("ImportPort", importPort_);
 
+		//reconnect
+		Network* network = GetSubsystem<Network>();
+		bool res = network->Connect(sourceAddress_, importPort_, 0);
+
+		solvedFlag_ = 0;
 		GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
 
+	}
+
+	if (le == addressEdit_)
+	{
+		sourceAddress_ = addressEdit_->GetText();
+		SetGenericData("SourceAddress", sourceAddress_);
+
+		//reconnect
+		Network* network = GetSubsystem<Network>();
+		bool res = network->Connect(sourceAddress_, importPort_, 0);
+
+		solvedFlag_ = 0;
+		GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
 	}
 }
 
@@ -103,7 +127,9 @@ void Sets_ReceiveData::HandleNetworkMessage(Urho3D::StringHash eventType, Urho3D
 		const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
 		// Use a MemoryBuffer to read the message data so that there is no unnecessary copying
 		MemoryBuffer msg(data);
-		incomingData_ = msg.ReadString();
+		incomingData_ = msg.ReadVariantVector();
+
+		int size = incomingData_.Size();
 
 		solvedFlag_ = 0;
 		GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
