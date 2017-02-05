@@ -20,8 +20,11 @@ public:
 	virtual void HandleCustomInterface(Urho3D::UIElement* customElement);
 	static Urho3D::String iconTexture;
 
+	Urho3D::Variant incomingData_;
+
 	Urho3D::LineEdit* exportNameEdit;
 	int exportPort_;
+	unsigned short CHAT_SERVER_PORT = 2345;
 	int MSG_CHAT = 32;
 	void HandleLineEdit(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 	void HandleNetworkMessage(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);

@@ -41,6 +41,10 @@ Sets_ReceiveData::Sets_ReceiveData(Context* context) :
 
 	exportPort_ = 2345;
 
+	//connect
+	Network* network = GetSubsystem<Network>();
+	bool res = network->Connect("localhost", CHAT_SERVER_PORT, 0);
+
 	SubscribeToEvent(E_NETWORKMESSAGE, URHO3D_HANDLER(Sets_ReceiveData, HandleNetworkMessage));
 }
 
@@ -84,7 +88,7 @@ void Sets_ReceiveData::SolveInstance(
 	Urho3D::Vector<Urho3D::Variant>& outSolveInstance
 )
 {
-	outSolveInstance[0] = inSolveInstance[0];
+	outSolveInstance[0] = incomingData_;
 }
 
 void Sets_ReceiveData::HandleNetworkMessage(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
@@ -99,14 +103,9 @@ void Sets_ReceiveData::HandleNetworkMessage(Urho3D::StringHash eventType, Urho3D
 		const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
 		// Use a MemoryBuffer to read the message data so that there is no unnecessary copying
 		MemoryBuffer msg(data);
-		Variant dataVar = msg.ReadVariant();
+		incomingData_ = msg.ReadString();
 
-		// If we are the server, prepend the sender's IP address and port and echo to everyone
-		// If we are a client, just display the message
-		if (network->IsServerRunning())
-		{
-			Connection* sender = static_cast<Connection*>(eventData[P_CONNECTION].GetPtr());
-
-		}
+		solvedFlag_ = 0;
+		GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
 	}
 }

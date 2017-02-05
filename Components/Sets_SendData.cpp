@@ -89,15 +89,26 @@ void Sets_SendData::SolveInstance(
 {
 	Network* network = GetSubsystem<Network>();
 
+	//connect
+	String address = "localhost";
+	bool res = network->Connect(address, CHAT_SERVER_PORT, 0);
+
 	Connection* serverConnection = network->GetServerConnection();
 
 	if (serverConnection)
 	{
 		// A VectorBuffer object is convenient for constructing a message to send
 		VectorBuffer msg;
-		msg.WriteVariant(outSolveInstance[0]);
+		//msg.WriteVariant(inSolveInstance[0]);
+		msg.WriteString("Hello, there");
 		// Send the chat message as in-order and reliable
-		serverConnection->SendMessage(32, true, true, msg);
+		//serverConnection->SendMessage(MSG_CHAT, true, true, msg);
+
+		if (network->IsServerRunning())
+		{
+			serverConnection->SendMessage(MSG_CHAT, true, true, msg);
+			network->BroadcastMessage(MSG_CHAT, true, true, msg);
+		}
 	}
 }
 
