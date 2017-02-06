@@ -46,13 +46,9 @@ Sets_SendData::Sets_SendData(Context* context) :
 		DataAccess::ITEM
 		);
 
-	exportPort_ = 2345;
+
 	SubscribeToEvent(E_SERVERCONNECTED, URHO3D_HANDLER(Sets_SendData, HandleConnectionStatus));
 
-	//send this data via udp
-	Network* network = GetSubsystem<Network>();
-	bool res = network->StartServer(exportPort_);
-	bool serverRunning = network->IsServerRunning();
 }
 
 String Sets_SendData::GetNodeStyle()
@@ -107,29 +103,54 @@ void Sets_SendData::SolveInstance(
 {
 	Network* network = GetSubsystem<Network>();
 
-	//connect
-	String address = "localhost";
-	bool res = network->Connect(address, CHAT_SERVER_PORT, 0);
+	//create server if necessary
+	if (!network->IsServerRunning())
+	{
+		Network* network = GetSubsystem<Network>();
+		bool res = network->StartServer(exportPort_);
+	}
 
-	Connection* serverConnection = network->GetServerConnection();
-	if (serverConnection)
+	if (network->IsServerRunning())
 	{
 		// A VectorBuffer object is convenient for constructing a message to send
 		VectorBuffer msg;
 
 		//A message is always preceded by the variant type
 		msg.WriteVariantVector(inSolveInstance[0].GetVariantVector());
+		network->BroadcastMessage(MSG_CHAT, true, true, msg);
 
-		if (network->IsServerRunning())
-		{
-			serverConnection->SendMessage(MSG_CHAT, true, true, msg);
-			network->BroadcastMessage(MSG_CHAT, true, true, msg);
 
-			//push to output
-			outSolveInstance[0] = inSolveInstance[0];
-			outSolveInstance[1] = serverConnection->GetAddress();
-		}
+		//push to output
+		outSolveInstance[0] = inSolveInstance[0];
+		outSolveInstance[1] = "localhost";
 	}
+	else
+	{
+		SetAllOutputsNull(outSolveInstance);
+	}
+
+	//connect
+	//String address = "localhost"; //TODO: enable send connections to non local host address
+	//bool res = network->Connect(address, exportPort_, 0);
+	//Connection* serverConnection = network->GetServerConnection();
+	//if (serverConnection)
+	//{
+	//	// A VectorBuffer object is convenient for constructing a message to send
+	//	VectorBuffer msg;
+
+	//	//A message is always preceded by the variant type
+	//	msg.WriteVariantVector(inSolveInstance[0].GetVariantVector());
+
+	//	if (network->IsServerRunning())
+	//	{
+	//		serverConnection->SendMessage(MSG_CHAT, true, true, msg);
+	//		network->BroadcastMessage(MSG_CHAT, true, true, msg);
+
+	//		//push to output
+	//		outSolveInstance[0] = inSolveInstance[0];
+	//		outSolveInstance[1] = serverConnection->GetAddress();
+	//	}
+	//}
 }
 
 void Sets_SendData::HandleConnectionStatus(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)

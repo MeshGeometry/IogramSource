@@ -42,10 +42,6 @@ Sets_ReceiveData::Sets_ReceiveData(Context* context) :
 	);
 
 
-	//connect
-	Network* network = GetSubsystem<Network>();
-	bool res = network->Connect(sourceAddress_, importPort_, 0);
-
 	SubscribeToEvent(E_NETWORKMESSAGE, URHO3D_HANDLER(Sets_ReceiveData, HandleNetworkMessage));
 }
 
@@ -70,6 +66,10 @@ void Sets_ReceiveData::HandleCustomInterface(UIElement* customElement)
 
 	SubscribeToEvent(importPortEdit_, E_TEXTFINISHED, URHO3D_HANDLER(Sets_ReceiveData, HandleLineEdit));
 	SubscribeToEvent(addressEdit_, E_TEXTFINISHED, URHO3D_HANDLER(Sets_ReceiveData, HandleLineEdit));
+
+	//connect
+	Network* network = GetSubsystem<Network>();
+	bool res = network->Connect(sourceAddress_, importPort_, 0);
 }
 
 void Sets_ReceiveData::HandleLineEdit(StringHash eventType, VariantMap& eventData)
