@@ -77,6 +77,7 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 	textArea_->SetHeight(100);
 	textArea_->GetTextElement()->SetFontSize(9);
 
+
 	if (inputSlots_[0]->GetLinkedOutputSlot().NotNull())
 		SetDataTree();
 	else
@@ -84,6 +85,27 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 
 	SubscribeToEvent(textArea_, E_TEXTFINISHED, URHO3D_HANDLER(Input_Panel, HandleLineEditCommit));
 	SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(Input_Panel, HandleSetText));
+	SubscribeToEvent(E_DEFOCUSED, URHO3D_HANDLER(Input_Panel, HandleDefocus));
+}
+
+void Input_Panel::HandleDefocus(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
+{
+	using namespace Defocused;
+
+	UIElement* el = (UIElement*)eventData[P_ELEMENT].GetPtr();
+	if (el == textArea_)
+	{
+		if (textArea_.NotNull())
+		{
+			if (!textArea_->GetText().Empty())
+			{
+
+				VariantMap emptyMap;
+				HandleLineEditCommit("", emptyMap);
+			}
+
+		}
+	}
 }
 
 void Input_Panel::HandleSetText(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)

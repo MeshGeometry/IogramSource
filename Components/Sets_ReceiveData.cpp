@@ -6,6 +6,7 @@
 #include <Urho3D/Network/Network.h>
 #include <Urho3D/Network/NetworkEvents.h>
 #include <Urho3D/IO/MemoryBuffer.h>
+#include <Urho3D/IO/Compression.h>
 
 #include <assert.h>
 
@@ -126,8 +127,9 @@ void Sets_ReceiveData::HandleNetworkMessage(Urho3D::StringHash eventType, Urho3D
 	{
 		const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
 		// Use a MemoryBuffer to read the message data so that there is no unnecessary copying
-		MemoryBuffer msg(data);
-		incomingData_ = msg.ReadVariantVector();
+		VectorBuffer vb(data);
+		VectorBuffer decompMsg = DecompressVectorBuffer(vb);
+		incomingData_ = decompMsg.ReadVariantVector();
 
 		int size = incomingData_.Size();
 

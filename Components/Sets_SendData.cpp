@@ -6,6 +6,7 @@
 #include <Urho3D/Network/Network.h>
 #include <Urho3D/Network/NetworkEvents.h>
 #include <Urho3D/IO/MemoryBuffer.h>
+#include <Urho3D/IO/Compression.h>
 
 #include <assert.h>
 
@@ -117,7 +118,11 @@ void Sets_SendData::SolveInstance(
 
 		//A message is always preceded by the variant type
 		msg.WriteVariantVector(inSolveInstance[0].GetVariantVector());
-		network->BroadcastMessage(MSG_CHAT, true, true, msg);
+
+		//compress
+		VectorBuffer compressedMsg = CompressVectorBuffer(msg);
+
+		network->BroadcastMessage(MSG_CHAT, true, true, compressedMsg);
 
 
 		//push to output

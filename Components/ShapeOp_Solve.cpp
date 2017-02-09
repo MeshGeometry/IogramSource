@@ -72,7 +72,7 @@ void ShapeOp_Solve::SolveInstance(
 
 	VariantVector constraint_list = inSolveInstance[1].GetVariantVector();
 	for (unsigned i = 0; i < constraint_list.Size(); ++i) {
-		if (!ShapeOpConstraint_Verify(constraint_list[i])) {
+		if (!constraint_list[i].IsEmpty() && !ShapeOpConstraint_Verify(constraint_list[i])) {
 			URHO3D_LOGWARNING("ShapeOp_Solve --- Constraint List failed verification at index " + i);
 			SetAllOutputsNull(outSolveInstance);
 			return;
