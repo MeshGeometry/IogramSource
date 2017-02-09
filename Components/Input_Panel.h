@@ -34,5 +34,6 @@ public:
 	void HandleGraphSolve(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 	void HandleSetText(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 	void HandleDefocus(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
+	void HandleFocus(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 
 };

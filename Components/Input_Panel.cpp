@@ -39,8 +39,8 @@ void Input_Panel::SetDataTree()
 
 			if (!inputSlots_[0]->GetLinkedOutputSlot())
 			{
-				editable_ = true;
-				textArea_->SetEditable(true);
+				//editable_ = true;
+				//textArea_->SetEditable(true);
 			}
 			else
 			{
@@ -75,7 +75,11 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 	textArea_ = customElement->CreateChild<MultiLineEdit>("TextArea");
 	textArea_->SetStyleAuto();
 	textArea_->SetHeight(100);
-	textArea_->GetTextElement()->SetFontSize(9);
+	textArea_->GetTextElement()->SetFontSize(11);
+	textArea_->SetEditable(false);
+	textArea_->GetCursor()->SetMaxWidth(1);
+	textArea_->GetCursor()->SetOpacity(0.7f);
+	textArea_->GetCursor()->SetBlendMode(BLEND_ALPHA);
 
 
 	if (inputSlots_[0]->GetLinkedOutputSlot().NotNull())
@@ -86,6 +90,7 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 	SubscribeToEvent(textArea_, E_TEXTFINISHED, URHO3D_HANDLER(Input_Panel, HandleLineEditCommit));
 	SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(Input_Panel, HandleSetText));
 	SubscribeToEvent(E_DEFOCUSED, URHO3D_HANDLER(Input_Panel, HandleDefocus));
+	SubscribeToEvent(E_FOCUSED, URHO3D_HANDLER(Input_Panel, HandleFocus));
 }
 
 void Input_Panel::HandleDefocus(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
@@ -104,7 +109,26 @@ void Input_Panel::HandleDefocus(Urho3D::StringHash eventType, Urho3D::VariantMap
 				HandleLineEditCommit("", emptyMap);
 			}
 
+			textArea_->SetEditable(false);
+
 		}
+	}
+
+	URHO3D_LOGINFO("Cursor width: " + String(textArea_->GetCursor()->GetWidth()));
+}
+
+void Input_Panel::HandleFocus(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
+{
+	using namespace Defocused;
+
+	UIElement* el = (UIElement*)eventData[P_ELEMENT].GetPtr();
+	if (el == textArea_)
+	{
+		if (textArea_.NotNull())
+		{
+			textArea_->SetEditable(true);
+		}
+
 	}
 }
 
@@ -136,17 +160,17 @@ void Input_Panel::HandleGraphSolve(Urho3D::StringHash eventType, Urho3D::Variant
 {
 	if (!inputSlots_[0]->GetLinkedOutputSlot())
 	{
-		editable_ = true;
+		//editable_ = true;
 		if (textArea_.NotNull())
 		{
-			textArea_->SetEditable(true);
+			//textArea_->SetEditable(true);
 			SetDataTreeContent();
 		}
 	}
 	else
 	{
 		SetDataTree();
-		editable_ = false;
+		//editable_ = false;
 	}
 }
 
@@ -164,6 +188,7 @@ void Input_Panel::HandleLineEditCommit(StringHash eventType, VariantMap& eventDa
 
 	//split text in to multiple lines
 	StringVector lines = textArea_->GetText().Split('\n');
+	
 	for (int i = 0; i < lines.Size(); i++)
 	{
 

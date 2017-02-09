@@ -49,6 +49,7 @@ void IoSerialization::SaveGraph(IoGraph const & graph, String path)
 		nodeVal.Set("enabled", node->IsSolveEnabled());
 		nodeVal.Set("unique_view_name", node->GetUniqueViewName());
 		nodeVal.Set("coordinates", node->GetCoordinates().ToString());
+		nodeVal.Set("view_size", node->GetViewSize().ToString());
 
 		//write meta data
 		JSONValue metaValue;
@@ -196,6 +197,7 @@ void IoSerialization::LoadGraph(IoGraph & graph, File* source)
 		bool enabled = compVal.Get("enabled").GetBool();
 		String viewName = compVal.Get("unique_view_name").GetString();
 		Variant coords(VAR_INTVECTOR2, compVal.Get("coordinates").GetString());
+		Variant viewSize(VAR_INTVECTOR2, compVal.Get("view_size").GetString());
 
 		//create the component
 		// First check if factory for type exists
@@ -262,6 +264,7 @@ void IoSerialization::LoadGraph(IoGraph & graph, File* source)
 			//set view name and coords
 			newComp->SetUniqueViewName(viewName);
 			newComp->SetCoordinates(coords.GetIntVector2());
+			newComp->SetViewSize(viewSize.GetIntVector2());
 
 			graph.AddNewComponent(newComp);
 			int id = graph.GetComponentIndex(newComp->ID);

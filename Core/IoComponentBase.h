@@ -151,6 +151,8 @@ public:
 	void SetUniqueViewName(Urho3D::String viewName) { uniqueViewID_ = viewName; };
 	Urho3D::IntVector2 GetCoordinates() const { return coordinates_; };
 	void SetCoordinates(Urho3D::IntVector2 newCoords) { coordinates_ = newCoords; };
+	Urho3D::IntVector2 GetViewSize() const { return viewSize_; };
+	void SetViewSize(Urho3D::IntVector2 newSize) { viewSize_ = newSize; };
 
 public:
 	/* early metadata */
@@ -209,6 +211,7 @@ protected: // protected so derived objects can access
 
 	Urho3D::String uniqueViewID_;
 	Urho3D::IntVector2 coordinates_;
+	Urho3D::IntVector2 viewSize_;
 
 	Urho3D::HashMap<Urho3D::String, Urho3D::Pair<Urho3D::String, Urho3D::Variant>> metaData_;
 };
