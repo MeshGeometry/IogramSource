@@ -67,6 +67,7 @@ void IoSerialization::SaveGraph(IoGraph const & graph, String path)
 			slotVal.Set("slot_index", j);
 			slotVal.Set("data_access", slot->dataAccess_);
 			slotVal.Set("slot_var_label", slot->variableName_);
+			slotVal.Set("slot_label", slot->name_);
 
 			SharedPtr<IoOutputSlot> linkedSlot = slot->linkedOutputSlot_;
 			if (linkedSlot.NotNull())
@@ -233,7 +234,8 @@ void IoSerialization::LoadGraph(IoGraph & graph, File* source)
 				for (int i = 0; i < numInputs - orgNumInputs; i++)
 				{
 					JSONValue slotVal = compVal.Get("input_slots")[orgNumInputs + i];
-					String sName = "A" + String(i);
+					String sName = "Custom" + String(i);
+					String varLabel = "CS" + String(i);
 					DataAccess da = DataAccess::ITEM;
 					if (!slotVal["data_access"].IsNull())
 					{
@@ -241,11 +243,15 @@ void IoSerialization::LoadGraph(IoGraph & graph, File* source)
 					}
 					if (!slotVal["slot_var_label"].IsNull())
 					{
-						sName = slotVal["slot_var_label"].GetString();
+						varLabel = slotVal["slot_var_label"].GetString();
+					}
+					if (!slotVal["slot_label"].IsNull())
+					{
+						sName = slotVal["slot_label"].GetString();
 					}
 					newComp->AddInputSlot(
-						"CustomSlot",
 						sName,
+						varLabel,
 						"A Custom Slot",
 						VAR_STRING,
 						DataAccess::ITEM
