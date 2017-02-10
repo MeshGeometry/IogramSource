@@ -1,6 +1,7 @@
 #include "Widget_TextLabel.h"
 #include <Urho3D/UI/UIEvents.h>
 #include <Urho3D/UI/Text.h>
+#include <Urho3D/UI/UI.h>
 
 // we will need a SendClickEvent
 
@@ -83,6 +84,11 @@ void Widget_TextLabel::HandleDoubleClick(StringHash eventType, VariantMap& event
 void Widget_TextLabel::HandleBaseMove(StringHash eventType, VariantMap& eventData)
 {
 	using namespace DragMove;
+    UI* ui = GetSubsystem<UI>();
+    float curScale = ui->GetScale();
+    if (curScale < 0.01)
+        curScale = 1.0f;
+    
 
 	if (isMovable)
 	{
@@ -90,7 +96,7 @@ void Widget_TextLabel::HandleBaseMove(StringHash eventType, VariantMap& eventDat
 		int DY = eventData[P_DY].GetInt();
 
 		IntVector2 pos = GetPosition();
-		SetPosition(pos + IntVector2(DX, DY));
+		SetPosition(pos + IntVector2(DX/curScale, DY/curScale));
 	}
 
 }
