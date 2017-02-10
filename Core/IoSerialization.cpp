@@ -68,6 +68,7 @@ void IoSerialization::SaveGraph(IoGraph const & graph, String path)
 			slotVal.Set("data_access", slot->dataAccess_);
 			slotVal.Set("slot_var_label", slot->variableName_);
 			slotVal.Set("slot_label", slot->name_);
+			slotVal.Set("protected", slot->GetIsProtected());
 
 			SharedPtr<IoOutputSlot> linkedSlot = slot->linkedOutputSlot_;
 			if (linkedSlot.NotNull())
@@ -237,6 +238,7 @@ void IoSerialization::LoadGraph(IoGraph & graph, File* source)
 					String sName = "Custom" + String(i);
 					String varLabel = "CS" + String(i);
 					DataAccess da = DataAccess::ITEM;
+					bool isProtected = slotVal["protected"].GetBool();
 					if (!slotVal["data_access"].IsNull())
 					{
 
@@ -249,13 +251,17 @@ void IoSerialization::LoadGraph(IoGraph & graph, File* source)
 					{
 						sName = slotVal["slot_label"].GetString();
 					}
-					newComp->AddInputSlot(
+
+					IoInputSlot* iSlot = newComp->AddInputSlot(
 						sName,
 						varLabel,
 						"A Custom Slot",
 						VAR_STRING,
 						DataAccess::ITEM
 					);
+
+					iSlot->SetIsProtected(isProtected);
+	
 				}
 			}
 

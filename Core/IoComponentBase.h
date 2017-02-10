@@ -60,14 +60,14 @@ public:
 	void DeleteOutputSlot(int index);
 
 	///slot convenience functions
-	void AddInputSlot(
+	IoInputSlot* AddInputSlot(
 		Urho3D::String name,
 		Urho3D::String variableName,
 		Urho3D::String description,
 		Urho3D::VariantType type,
 		DataAccess dataAccess);
 
-	void AddInputSlot(
+	IoInputSlot* AddInputSlot(
 		Urho3D::String name,
 		Urho3D::String variableName,
 		Urho3D::String description,
@@ -75,7 +75,7 @@ public:
 		DataAccess dataAccess,
 		Urho3D::Variant defaultValue);
 
-	void AddOutputSlot(
+	IoOutputSlot* AddOutputSlot(
 		Urho3D::String name,
 		Urho3D::String variableName,
 		Urho3D::String description,

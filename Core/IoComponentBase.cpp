@@ -437,7 +437,7 @@ void IoComponentBase::AddOutputSlot()
 	solvedFlag_ = 0;
 }
 
-void IoComponentBase::AddInputSlot(
+IoInputSlot*  IoComponentBase::AddInputSlot(
 		String name,
 		String variableName,
 		String description,
@@ -468,9 +468,11 @@ void IoComponentBase::AddInputSlot(
 	SendEvent("NewInputSlotAdded", data);
 
 	solvedFlag_ = 0;
+
+	return xslotPtr.Get();
 }
 
-void IoComponentBase::AddInputSlot(
+IoInputSlot*  IoComponentBase::AddInputSlot(
 	String name,
 	String variableName,
 	String description,
@@ -512,9 +514,11 @@ void IoComponentBase::AddInputSlot(
 	SendEvent("NewInputSlotAdded", data);
 
 	solvedFlag_ = 0;
+
+	return xslotPtr.Get();
 }
 
-void IoComponentBase::AddOutputSlot(
+IoOutputSlot*  IoComponentBase::AddOutputSlot(
 		String name,
 		String variableName,
 		String description,
@@ -540,6 +544,8 @@ void IoComponentBase::AddOutputSlot(
 	SendEvent("NewOutputSlotAdded", data);
 
 	solvedFlag_ = 0;
+
+	return xslotPtr.Get();
 }
 
 void IoComponentBase::DeleteInputSlot(int index)

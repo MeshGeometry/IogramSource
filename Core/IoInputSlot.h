@@ -46,7 +46,7 @@ public:
 	);
 
 	friend class IoOutputSlot;
-	
+
 	////////////////////////////////////////////////////
 	////////////// SERIALIZATION ///////////////////////
 
@@ -71,6 +71,8 @@ public:
 
 	DataAccess GetDataAccess() const { return dataAccess_; }
 	void SetDataAccess(DataAccess dataAccess) { dataAccess_ = dataAccess; }
+	bool GetIsProtected() { return isProtected_; };
+	void SetIsProtected( bool protect) { isProtected_ = protect; };
 
 private: // protected?
 
@@ -90,6 +92,8 @@ private:
 	Urho3D::String description_ = "";
 	Urho3D::VariantType typeHint_ = Urho3D::VariantType::VAR_NONE;
 	Urho3D::Variant defaultValue_ = Urho3D::Variant();
+	bool isProtected_;
+
 public:
 	Urho3D::String GetName() const { return name_; }
 	Urho3D::String GetVariableName() const { return variableName_; }
