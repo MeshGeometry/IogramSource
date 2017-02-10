@@ -105,6 +105,8 @@ void ShapeOp_Solve::SolveInstance(
 )
 {
 	//
+	// TMP: turned off due to num input slot confusion
+	/*
 	float weld_eps = inSolveInstance[1].GetFloat();
 	if (weld_eps <= 0.0f) {
 		std::cout << "weld_eps = " << weld_eps << std::endl;
@@ -112,6 +114,7 @@ void ShapeOp_Solve::SolveInstance(
 		SetAllOutputsNull(outSolveInstance);
 		return;
 	}
+	*/
 
 	//
 	VariantVector uncleaned_input = inSolveInstance[0].GetVariantVector();
@@ -155,6 +158,26 @@ void ShapeOp_Solve::SolveInstance(
 	}
 
 	assert(raw_index == (int)raw_vertices.Size());
+
+	Vector<Vector3> welded_vertices;
+	Vector<int> new_indices;
+	WeldVertices(raw_vertices, welded_vertices, new_indices, 0.001f);
+
+	// TMP: debug output
+	std::cout << "raw_vertices:" << std::endl;
+	for (int i = 0; i < std::min(10, (int)raw_vertices.Size()); ++i) {
+		Vector3 v = raw_vertices[i];
+		std::cout << "i: " << v.x_ << " " << v.y_ << " " << v.z_ << std::endl;
+	}
+	std::cout << "welded_vertices:" << std::endl;
+	for (int i = 0; i < std::min(10, (int)welded_vertices.Size()); ++i) {
+		Vector3 v = welded_vertices[i];
+		std::cout << "i: " << v.x_ << " " << v.y_ << " " << v.z_ << std::endl;
+	}
+	std::cout << "new_indices:" << std::endl;
+	for (int i = 0; i < std::min(10, (int)new_indices.Size()); ++i) {
+		std::cout << "i: " << new_indices[i] << std::endl;
+	}
 
 	/*
 
