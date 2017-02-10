@@ -179,6 +179,38 @@ void ShapeOp_Solve::SolveInstance(
 		std::cout << "i: " << new_indices[i] << std::endl;
 	}
 
+	// now that:
+	//   welded_vertices
+	//   new_indices
+	// are prepared, go through the constraints and set the corresponding welded (processed) indices
+	for (unsigned i = 0; i < constraints.Size(); ++i) {
+
+		VariantMap* var_map = constraints[i].GetVariantMapPtr();
+
+
+		VariantVector* shapeop_vertices = (*var_map)["vertices"].GetVariantVectorPtr();
+
+		int num_shapeop_vertices = shapeop_vertices->Size();
+
+		for (unsigned j = 0; j < shapeop_vertices->Size(); ++j) {
+			VariantMap* var_map2 = (*shapeop_vertices)[j].GetVariantMapPtr();
+
+			int current_raw_index = (*var_map2)["raw_index"].GetInt();
+			if (current_raw_index == -1) {
+				SetAllOutputsNull(outSolveInstance);
+				URHO3D_LOGWARNING("ShapeOp_Solve --- current_raw_index == -1, something went wrong");
+				return;
+			}
+			int processed_index = new_indices[current_raw_index];
+			SetConstraintProcessedIndex(constraints[i], j, processed_index);
+		}
+	}
+
+	// TMP: debug output
+	for (unsigned i = 0; i < constraints.Size(); ++i) {
+		ShapeOpConstraint_Print(constraints[i]);
+	}
+
 	/*
 
 	// TriMesh input for points

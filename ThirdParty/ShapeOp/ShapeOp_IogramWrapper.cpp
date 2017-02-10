@@ -2,6 +2,8 @@
 
 #include <Urho3D/IO/Log.h>
 
+#include <iostream>
+
 #include "TriMesh.h"
 
 namespace {
@@ -394,4 +396,26 @@ int GetConstraintProcessedIndex(
 	Urho3D::VariantVector* vertices = (*var_map)["vertices"].GetVariantVectorPtr();
 	Urho3D::VariantMap* shapeop_vertex_var_map = (*vertices)[i].GetVariantMapPtr();
 	return (*shapeop_vertex_var_map)["processed_index"].GetInt();
+}
+
+void ShapeOpConstraint_Print(
+	Urho3D::Variant& constraint
+)
+{
+	if (!ShapeOpConstraint_Verify) {
+		std::cout << "ShapeOpConstraint_Print --- constraint failed to verify" << std::endl;
+	}
+
+	Urho3D::VariantMap* var_map = constraint.GetVariantMapPtr();
+	Urho3D::String constraintType = (*var_map)["constraintType"].GetString();
+	float weight = (*var_map)["weight"].GetFloat();
+	std::cout << constraintType.CString() << " weight=" << weight << std::endl;
+	Urho3D::VariantVector* shapeop_vertices = (*var_map)["vertices"].GetVariantVectorPtr();
+	for (int i = 0; i < (int)shapeop_vertices->Size(); ++i) {
+		Urho3D::VariantMap* var_map2 = (*shapeop_vertices)[i].GetVariantMapPtr();
+		Urho3D::Vector3 v = (*var_map2)["coords"].GetVector3();
+		int raw_index = (*var_map2)["raw_index"].GetInt();
+		int processed_index = (*var_map2)["processed_index"].GetInt();
+		std::cout << "\t(" << v.x_ << "," << v.y_ << "," << v.z_ << ") raw=" << raw_index << " processed=" << processed_index << std::endl;
+	}
 }
