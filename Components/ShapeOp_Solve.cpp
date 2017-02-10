@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include <iostream>
+#include <vector>
 
 #include <Urho3D/Core/Context.h>
 #include <Urho3D/Core/Object.h>
@@ -17,9 +18,59 @@
 
 using namespace Urho3D;
 
+namespace {
+
+void WeldVertices(
+	const Vector<Vector3>& vertices,
+	Vector<Vector3>& welded_vertices,
+	Vector<int>& new_indices, // new_indices.Size() == vertices.Size() and
+							  // new_indices[i] = j means that vertices[i]
+							  // is the same as welded_vertices[j]
+	float eps
+)
+{
+	float epsSquared = eps * eps;
+
+	if (vertices.Size() <= 1) {
+		URHO3D_LOGWARNING("WeldVertices-- - vertices.Size() <= 1, nothing to do");
+		return;
+	}
+
+	std::vector<int> vertexDuplicates_(vertices.Size());
+
+	for (int i = 0; i < (int)vertices.Size(); ++i) {
+		vertexDuplicates_[i] = i; // Assume not a duplicate
+		for (int j = 0; j < i; ++j) {
+			if ((vertices[j] - vertices[i]).LengthSquared() < epsSquared) {
+				vertexDuplicates_[i] = j;
+				break;
+			}
+		}
+	}
+
+	std::vector<int> vertexUniques_ = vertexDuplicates_;
+	std::sort(vertexUniques_.begin(), vertexUniques_.end());
+	vertexUniques_.erase(std::unique(vertexUniques_.begin(), vertexUniques_.end()), vertexUniques_.end());
+
+	for (int i = 0; i < vertexUniques_.size(); ++i) {
+		int k = vertexUniques_[i];
+		welded_vertices.Push(vertices[k]);
+	}
+
+	for (int j = 0; j < (int)vertices.Size(); ++j) {
+		int orig_j = vertexDuplicates_[j];
+		int uniq_j = find(vertexUniques_.begin(), vertexUniques_.end(), orig_j) - vertexUniques_.begin();
+		new_indices.Push(uniq_j);
+	}
+
+	assert(new_indices.Size() == vertices.Size());
+}
+
+} // namespace
+
 String ShapeOp_Solve::iconTexture = "Textures/Icons/DefaultIcon.png";
 
-ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 3, 1)
+ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 2, 1)
 {
 	SetName("ShapeOpSolve");
 	SetFullName("ShapeOp Solve");
@@ -27,27 +78,23 @@ ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 3, 1)
 	SetGroup(IoComponentGroup::MESH);
 	SetSubgroup("Operators");
 
-	inputSlots_[0]->SetName("Mesh input");
-	inputSlots_[0]->SetVariableName("M");
-	inputSlots_[0]->SetDescription("Mesh input");
+	inputSlots_[0]->SetName("Constraint List");
+	inputSlots_[0]->SetVariableName("CL");
+	inputSlots_[0]->SetDescription("Constraint List");
 	inputSlots_[0]->SetVariantType(VariantType::VAR_VARIANTMAP);
-	inputSlots_[0]->SetDataAccess(DataAccess::ITEM);
+	inputSlots_[0]->SetDataAccess(DataAccess::LIST);
 
-	inputSlots_[1]->SetName("Constraint List");
-	inputSlots_[1]->SetVariableName("CL");
-	inputSlots_[1]->SetDescription("Constraint List");
-	inputSlots_[1]->SetVariantType(VariantType::VAR_VARIANTMAP);
-	inputSlots_[1]->SetDataAccess(DataAccess::LIST);
+	inputSlots_[1]->SetName("WeldDist");
+	inputSlots_[1]->SetVariableName("WD");
+	inputSlots_[1]->SetDescription("Weld points within distance");
+	inputSlots_[1]->SetVariantType(VariantType::VAR_FLOAT);
+	inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
+	inputSlots_[1]->SetDefaultValue(Variant(0.0001f));
+	inputSlots_[1]->DefaultSet();
 
-	inputSlots_[2]->SetName("Force List");
-	inputSlots_[2]->SetVariableName("FL");
-	inputSlots_[2]->SetDescription("Force List");
-	inputSlots_[2]->SetVariantType(VariantType::VAR_VARIANTMAP);
-	inputSlots_[2]->SetDataAccess(DataAccess::LIST);
-
-	outputSlots_[0]->SetName("Mesh output");
-	outputSlots_[0]->SetVariableName("M");
-	outputSlots_[0]->SetDescription("Mesh output");
+	outputSlots_[0]->SetName("Whatever");
+	outputSlots_[0]->SetVariableName("W");
+	outputSlots_[0]->SetDescription("Whatever this will end up being");
 	outputSlots_[0]->SetVariantType(VariantType::VAR_VARIANTMAP);
 	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
 }
@@ -57,6 +104,60 @@ void ShapeOp_Solve::SolveInstance(
 	Vector<Variant>& outSolveInstance
 )
 {
+	//
+	float weld_eps = inSolveInstance[1].GetFloat();
+	if (weld_eps <= 0.0f) {
+		std::cout << "weld_eps = " << weld_eps << std::endl;
+		URHO3D_LOGWARNING("ShapeOp_Solve --- WeldDist must be > 0.0f");
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
+
+	//
+	VariantVector uncleaned_input = inSolveInstance[0].GetVariantVector();
+	VariantVector constraints;
+	for (unsigned i = 0; i < uncleaned_input.Size(); ++i) {
+
+		Variant var = uncleaned_input[i];
+		if (ShapeOpConstraint_Verify(var)) {
+			constraints.Push(var);
+		}
+	}
+	if (constraints.Size() <= 0) {
+		SetAllOutputsNull(outSolveInstance);
+		URHO3D_LOGWARNING("ShapeOp_Solve --- no valid constraints found at ConstraintList");
+		return;
+	}
+	URHO3D_LOGINFO("ShapeOp_Solve --- found valid constraints, beginning vertex processing....");
+
+	int raw_index = 0;
+	Vector<Vector3> raw_vertices;
+	for (unsigned i = 0; i < constraints.Size(); ++i) {
+
+		VariantMap* var_map = constraints[i].GetVariantMapPtr();
+
+
+		VariantVector* shapeop_vertices = (*var_map)["vertices"].GetVariantVectorPtr();
+
+		int num_shapeop_vertices = shapeop_vertices->Size();
+
+		for (unsigned j = 0; j < shapeop_vertices->Size(); ++j) {
+			VariantMap* var_map2 = (*shapeop_vertices)[j].GetVariantMapPtr();
+			Vector3 v = (*var_map2)["coords"].GetVector3();
+			std::cout << "vertex: " << v.x_ << " " << v.y_ << " " << v.z_ << std::endl;
+			raw_vertices.Push(v);
+
+			SetConstraintRawIndex(constraints[i], j, raw_index);
+
+			//
+			++raw_index;
+		}
+	}
+
+	assert(raw_index == (int)raw_vertices.Size());
+
+	/*
+
 	// TriMesh input for points
 
 	Variant mesh_in = inSolveInstance[0];
@@ -188,4 +289,6 @@ void ShapeOp_Solve::SolveInstance(
 	Variant mesh_out = TriMesh_Make(new_vertex_list, face_list);
 
 	outSolveInstance[0] = mesh_out;
+
+	*/
 }

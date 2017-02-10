@@ -44,7 +44,7 @@ ShapeOp_EdgeStrain::ShapeOp_EdgeStrain(Context* context) : IoComponentBase(conte
 	inputSlots_[2]->SetDescription("Weight of edge constraint");
 	inputSlots_[2]->SetVariantType(VariantType::VAR_FLOAT);
 	inputSlots_[2]->SetDataAccess(DataAccess::ITEM);
-	inputSlots_[2]->SetDefaultValue(Variant(1.0));
+	inputSlots_[2]->SetDefaultValue(Variant(1.0f));
 	inputSlots_[2]->DefaultSet();
 
 	outputSlots_[0]->SetName("EdgeStrain");
@@ -59,7 +59,12 @@ void ShapeOp_EdgeStrain::SolveInstance(
 	Vector<Variant>& outSolveInstance
 )
 {
-	if (!IsAllInputValid(inSolveInstance)) {
+	if (
+		inSolveInstance[0].GetType() != VAR_VECTOR3 ||
+		inSolveInstance[1].GetType() != VAR_VECTOR3 ||
+		!(inSolveInstance[2].GetType() == VAR_FLOAT || inSolveInstance[2].GetType() == VAR_DOUBLE)
+		)
+	{
 		SetAllOutputsNull(outSolveInstance);
 		URHO3D_LOGWARNING("ShapeOp_EdgeStrain --- invalid input");
 		return;
@@ -67,9 +72,9 @@ void ShapeOp_EdgeStrain::SolveInstance(
 	Vector3 start_coords = inSolveInstance[0].GetVector3();
 	Vector3 end_coords = inSolveInstance[1].GetVector3();
 	float weight = inSolveInstance[2].GetFloat();
-	if (weight <= 0.0) {
+	if (weight <= 0.0f) {
 		SetAllOutputsNull(outSolveInstance);
-		URHO3D_LOGWARNING("ShapeOp_EdgeStrain --- weight must be > 0.0");
+		URHO3D_LOGWARNING("ShapeOp_EdgeStrain --- weight must be > 0.0f");
 		return;
 	}
 
@@ -80,7 +85,7 @@ void ShapeOp_EdgeStrain::SolveInstance(
 	shapeop_vertices.Push(end);
 
 	VariantMap var_map;
-	var_map["type"] = Variant("ShapeOp_Constraint");
+	var_map["type"] = Variant("ShapeOpConstraint");
 	var_map["constraintType"] = Variant("EdgeStrain");
 	var_map["weight"] = weight;
 	var_map["vertices"] = shapeop_vertices;

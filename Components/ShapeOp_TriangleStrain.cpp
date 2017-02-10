@@ -50,7 +50,7 @@ ShapeOp_TriangleStrain::ShapeOp_TriangleStrain(Context* context) : IoComponentBa
 	inputSlots_[3]->SetDescription("Weight of edge constraint");
 	inputSlots_[3]->SetVariantType(VariantType::VAR_FLOAT);
 	inputSlots_[3]->SetDataAccess(DataAccess::ITEM);
-	inputSlots_[3]->SetDefaultValue(Variant(1.0));
+	inputSlots_[3]->SetDefaultValue(Variant(1.0f));
 	inputSlots_[3]->DefaultSet();
 
 	outputSlots_[0]->SetName("TriangleStrain");
@@ -65,16 +65,22 @@ void ShapeOp_TriangleStrain::SolveInstance(
 	Vector<Variant>& outSolveInstance
 )
 {
-	if (!IsAllInputValid(inSolveInstance)) {
+	if (
+		inSolveInstance[0].GetType() != VAR_VECTOR3 ||
+		inSolveInstance[1].GetType() != VAR_VECTOR3 ||
+		inSolveInstance[2].GetType() != VAR_VECTOR3 ||
+		!(inSolveInstance[3].GetType() == VAR_FLOAT || inSolveInstance[3].GetType() == VAR_DOUBLE)
+		)
+	{
 		SetAllOutputsNull(outSolveInstance);
-		URHO3D_LOGWARNING("ShapeOp_TriangleStrain --- invalid input");
+		URHO3D_LOGWARNING("ShapeOp_EdgeStrain --- invalid input");
 		return;
 	}
 	Vector3 a_coords = inSolveInstance[0].GetVector3();
 	Vector3 b_coords = inSolveInstance[1].GetVector3();
 	Vector3 c_coords = inSolveInstance[2].GetVector3();
 	float weight = inSolveInstance[3].GetFloat();
-	if (weight <= 0.0) {
+	if (weight <= 0.0f) {
 		SetAllOutputsNull(outSolveInstance);
 		URHO3D_LOGWARNING("ShapeOp_TriangleStrain --- weight must be > 0.0");
 		return;
@@ -89,7 +95,7 @@ void ShapeOp_TriangleStrain::SolveInstance(
 	shapeop_vertices.Push(c);
 
 	VariantMap var_map;
-	var_map["type"] = Variant("ShapeOp_Constraint");
+	var_map["type"] = Variant("ShapeOpConstraint");
 	var_map["constraintType"] = Variant("TriangleStrain");
 	var_map["weight"] = weight;
 	var_map["vertices"] = shapeop_vertices;
