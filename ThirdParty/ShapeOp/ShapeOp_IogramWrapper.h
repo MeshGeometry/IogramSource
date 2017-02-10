@@ -45,3 +45,28 @@ bool ShapeOpVertexForce_Verify(const Urho3D::Variant& vertex_force);
 
 int ShapeOpVertexForce_id(const Urho3D::Variant& vertex_force);
 std::vector<double> ShapeOpVertexForce_force(const Urho3D::Variant& vertex_force);
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// New approach
+
+Urho3D::Variant ShapeOpVertex_Make(
+	const Urho3D::Vector3& v
+);
+
+void SetConstraintRawIndex(
+	Urho3D::Variant& constraint,
+	int i, // index into constraint's "vertices" VariantVector of ShapeOpVertex objects
+	int raw_index // index into master raw vertex list to store
+);
+
+void SetConstraintProcessedIndex(
+	Urho3D::Variant& constraint,
+	int i, // index into constraint's "vertices" VariantVector of ShapeOpVertex objects
+	int processed_index // index into master processed vertex list to store
+);
+
+int GetConstraintProcessedIndex(
+	Urho3D::Variant& constraint,
+	int i // index into constraint's "vertices" VariantVector of ShapeOpVertex objects
+);
