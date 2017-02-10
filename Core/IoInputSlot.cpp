@@ -11,7 +11,8 @@ IoInputSlot::IoInputSlot(Urho3D::Context* context, Urho3D::SharedPtr<IoComponent
 	linkedOutputSlot_(),
 	ioDataTree_(context, defaultValue),
 	dataAccess_(dataAccess),
-	defaultValue_(defaultValue)
+	defaultValue_(defaultValue),
+	isProtected_(true)
 {
 }
 
