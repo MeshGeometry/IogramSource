@@ -92,10 +92,11 @@ ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 2, 1)
 	inputSlots_[1]->SetDefaultValue(Variant(0.0001f));
 	inputSlots_[1]->DefaultSet();
 
-	outputSlots_[0]->SetName("Whatever");
-	outputSlots_[0]->SetVariableName("W");
-	outputSlots_[0]->SetDescription("Whatever this will end up being");
-	outputSlots_[0]->SetVariantType(VariantType::VAR_VARIANTMAP);
+	// unfinished
+	outputSlots_[0]->SetName("Points");
+	outputSlots_[0]->SetVariableName("Pts");
+	outputSlots_[0]->SetDescription("Point list output");
+	outputSlots_[0]->SetVariantType(VariantType::VAR_VECTOR3);
 	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
 }
 
@@ -211,46 +212,11 @@ void ShapeOp_Solve::SolveInstance(
 		ShapeOpConstraint_Print(constraints[i]);
 	}
 
-	/*
-
-	// TriMesh input for points
-
-	Variant mesh_in = inSolveInstance[0];
-	if (!TriMesh_Verify(mesh_in)) {
-		URHO3D_LOGWARNING("ShapeOp_Solve --- M must be a TriMesh");
-		SetAllOutputsNull(outSolveInstance);
-		return;
-	}
-	VariantVector vertex_list = TriMesh_GetVertexList(mesh_in);
-	VariantVector face_list = TriMesh_GetFaceList(mesh_in);
-
-	// Constraints
-
-	VariantVector constraint_list = inSolveInstance[1].GetVariantVector();
-	for (unsigned i = 0; i < constraint_list.Size(); ++i) {
-		if (!constraint_list[i].IsEmpty() && !ShapeOpConstraint_Verify(constraint_list[i])) {
-			URHO3D_LOGWARNING("ShapeOp_Solve --- Constraint List failed verification at index " + i);
-			SetAllOutputsNull(outSolveInstance);
-			return;
-		}
-	}
-	if (constraint_list.Size() <= 0) {
-		URHO3D_LOGWARNING("ShapeOp_Solve --- cannot run Solve with empty Constraint List");
-		SetAllOutputsNull(outSolveInstance);
-		return;
-	}
-	URHO3D_LOGINFO("ShapeOp_Solve all constraints verified");
+	///////////////////////////////////////////////////////////////////////
 
 	// Vertex Forces
 
-	VariantVector force_list = inSolveInstance[2].GetVariantVector();
-	for (unsigned i = 0; i < force_list.Size(); ++i) {
-		if (!ShapeOpVertexForce_Verify(force_list[i])) {
-			URHO3D_LOGWARNING("ShapeOp_Solve --- Force list failed verification at index " + i);
-			return;
-		}
-	}
-	URHO3D_LOGINFO("ShapeOp_Solve all forces verified");
+	// ... these are gone?
 
 	///////////////////////////////
 	// ShapeOp API calls start here
@@ -260,7 +226,14 @@ void ShapeOp_Solve::SolveInstance(
 
 	ShapeOpSolver* op = shapeop_create();
 
-	std::vector<double> pts_in = ShapeOp_TriMeshToPoints(mesh_in);
+	std::vector<double> pts_in;
+	for (int i = 0; i < (int)welded_vertices.Size(); ++i) {
+		Vector3 v = welded_vertices[i];
+		pts_in.push_back((double)v.x_);
+		pts_in.push_back((double)v.y_);
+		pts_in.push_back((double)v.z_);
+	}
+
 	int nb_points = (int)(pts_in.size() / 3);
 	shapeop_setPoints(op, pts_in.data(), nb_points);
 
@@ -268,6 +241,10 @@ void ShapeOp_Solve::SolveInstance(
 	// 3A) Setup the constraints with #shapeop_addConstraint and #shapeop_editConstraint
 
 	// all ids are captured here so their data won't go out of scope after added to the solver
+
+	// change how the constraints are added ....
+
+	/*
 	std::vector<std::vector<int> > all_ids;
 	for (unsigned i = 0; i < constraint_list.Size(); ++i) {
 		std::vector<int> ids = ShapeOpConstraint_ids(constraint_list[i]);
@@ -287,26 +264,12 @@ void ShapeOp_Solve::SolveInstance(
 	}
 
 	URHO3D_LOGINFO("ShapeOp_Solve --- Constraints added");
+	*/
 
 	////////////////////////////////////////////////////
 	// 3B) Setup the forces with #shapeop_addVertexForce
 
-	// all forces are captured here so their data won't go out of scope after added to the solver
-	std::vector<std::vector<double> > all_forces;
-	for (unsigned i = 0; i < force_list.Size(); ++i) {
-		std::vector<double> force = ShapeOpVertexForce_force(force_list[i]);
-		all_forces.push_back(force);
-	}
-
-	for (unsigned i = 0; i < force_list.Size(); ++i) {
-		Variant vertex_force = force_list[i];
-
-		shapeop_addVertexForce(
-			op,
-			all_forces[i].data(),
-			ShapeOpVertexForce_id(vertex_force)
-		);
-	}
+	// ... not sure if we're still adding forces to individual vertices
 
 	URHO3D_LOGINFO("ShapeOp_Solve --- Vertex forces added");
 
@@ -314,12 +277,12 @@ void ShapeOp_Solve::SolveInstance(
 	// 4) Initialize the solver with #shapeop_init or #shapeop_initDynamic
 
 	//shapeop_init(op);
-	shapeop_initDynamic(op, 2.0, 0.1, 0.1);
+	//shapeop_initDynamic(op, 2.0, 0.1, 0.1);
 
 	//////////////////////////////////
 	// 5) Optimize with #shapeop_solve
 
-	shapeop_solve(op, 100);
+	//shapeop_solve(op, 100);
 
 	///////////////////////////////////////////////////
 	// 6) Get back the vertices with #shapeop_getPoints
@@ -338,12 +301,4 @@ void ShapeOp_Solve::SolveInstance(
 	// 7) Delete the solver with #shapeop_delete
 
 	shapeop_delete(op);
-
-	VariantVector new_vertex_list = ShapeOp_PointsToVertexList(pts_out_vec);
-
-	Variant mesh_out = TriMesh_Make(new_vertex_list, face_list);
-
-	outSolveInstance[0] = mesh_out;
-
-	*/
 }
