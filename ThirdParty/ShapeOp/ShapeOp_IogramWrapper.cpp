@@ -329,3 +329,69 @@ std::vector<double> ShapeOpVertexForce_force(const Urho3D::Variant& vertex_force
 
 	return force;
 }
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// New approach
+
+Urho3D::Variant ShapeOpVertex_Make(
+	const Urho3D::Vector3& v
+)
+{
+	Urho3D::VariantMap var_map;
+	var_map["coords"] = Urho3D::Variant(v);
+	var_map["raw_index"] = Urho3D::Variant(-1);
+	var_map["processed_index"] = Urho3D::Variant(-1);
+
+	return Urho3D::Variant(var_map);
+}
+
+void SetConstraintRawIndex(
+	Urho3D::Variant& constraint,
+	int i, // index into constraint's "vertices" VariantVector of ShapeOpVertex objects
+	int raw_index // index into master raw vertex list to store
+)
+{
+	Urho3D::VariantMap* var_map = constraint.GetVariantMapPtr();
+
+	Urho3D::VariantVector* vertices = (*var_map)["vertices"].GetVariantVectorPtr();
+	Urho3D::VariantMap* shapeop_vertex_var_map = (*vertices)[i].GetVariantMapPtr();
+	(*shapeop_vertex_var_map)["raw_index"] = Urho3D::Variant(raw_index);
+}
+
+int GetConstraintRawIndex(
+	Urho3D::Variant& constraint,
+	int i // index into constraint's "vertices" VariantVector of ShapeOpVertex objects
+)
+{
+	Urho3D::VariantMap* var_map = constraint.GetVariantMapPtr();
+
+	Urho3D::VariantVector* vertices = (*var_map)["vertices"].GetVariantVectorPtr();
+	Urho3D::VariantMap* shapeop_vertex_var_map = (*vertices)[i].GetVariantMapPtr();
+	return (*shapeop_vertex_var_map)["raw_index"].GetInt();
+}
+
+void SetConstraintProcessedIndex(
+	Urho3D::Variant& constraint,
+	int i, // index into constraint's "vertices" VariantVector of ShapeOpVertex objects
+	int processed_index // index into master processed vertex list to store
+)
+{
+	Urho3D::VariantMap* var_map = constraint.GetVariantMapPtr();
+
+	Urho3D::VariantVector* vertices = (*var_map)["vertices"].GetVariantVectorPtr();
+	Urho3D::VariantMap* shapeop_vertex_var_map = (*vertices)[i].GetVariantMapPtr();
+	(*shapeop_vertex_var_map)["processed_index"] = Urho3D::Variant(processed_index);
+}
+
+int GetConstraintProcessedIndex(
+	Urho3D::Variant& constraint,
+	int i // index into constraint's "vertices" VariantVector of ShapeOpVertex objects
+)
+{
+	Urho3D::VariantMap* var_map = constraint.GetVariantMapPtr();
+
+	Urho3D::VariantVector* vertices = (*var_map)["vertices"].GetVariantVectorPtr();
+	Urho3D::VariantMap* shapeop_vertex_var_map = (*vertices)[i].GetVariantMapPtr();
+	return (*shapeop_vertex_var_map)["processed_index"].GetInt();
+}

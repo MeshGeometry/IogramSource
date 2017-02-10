@@ -1,6 +1,7 @@
 #include "Widget_Container.h"
 #include <Urho3D/UI/UIEvents.h>
 #include <Urho3D/UI/Text.h>
+#include <Urho3D/UI/UI.h>
 
 using namespace Urho3D;
 
@@ -34,6 +35,11 @@ Widget_Container::~Widget_Container()
 void Widget_Container::HandleBaseMove(StringHash eventType, VariantMap& eventData)
 {
 	using namespace DragMove;
+    
+    UI* ui = GetSubsystem<UI>();
+    float curScale = ui->GetScale();
+    if (curScale < 0.01)
+        curScale = 1.0f;
 
 	if (isMovable)
 	{
@@ -41,7 +47,7 @@ void Widget_Container::HandleBaseMove(StringHash eventType, VariantMap& eventDat
 		int DY = eventData[P_DY].GetInt();
 
 		IntVector2 pos = GetPosition();
-		SetPosition(pos + IntVector2(DX, DY));
+		SetPosition(pos + IntVector2(DX/curScale, DY/curScale));
 	}
 
 }
