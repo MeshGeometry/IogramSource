@@ -4,12 +4,12 @@
 #include <Urho3D/UI/UIElement.h>
 #include <Urho3D/UI/LineEdit.h>
 
-class URHO3D_API Sets_ReceiveData : public IoComponentBase {
+class URHO3D_API Interop_ReceiveData : public IoComponentBase {
 
-	URHO3D_OBJECT(Sets_ReceiveData, IoComponentBase)
+	URHO3D_OBJECT(Interop_ReceiveData, IoComponentBase)
 
 public:
-	Sets_ReceiveData(Urho3D::Context* context);
+	Interop_ReceiveData(Urho3D::Context* context);
 
 	void SolveInstance(
 		const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,

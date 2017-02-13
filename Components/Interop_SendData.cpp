@@ -1,5 +1,5 @@
-#include "Sets_SendData.h"
-
+#include "Interop_SendData.h"
+#ifdef URHO3D_NETWORK
 #include "IoGraph.h"
 
 #include <Urho3D/UI/UIEvents.h>
@@ -12,9 +12,9 @@
 
 using namespace Urho3D;
 
-String Sets_SendData::iconTexture = "Textures/Icons/Sets_SendData.png";
+String Interop_SendData::iconTexture = "Textures/Icons/Interop_SendData.png";
 
-Sets_SendData::Sets_SendData(Context* context) :
+Interop_SendData::Interop_SendData(Context* context) :
 	IoComponentBase(context, 0, 0),
 	exportPort_(2345)
 {
@@ -48,29 +48,29 @@ Sets_SendData::Sets_SendData(Context* context) :
 		);
 
 
-	SubscribeToEvent(E_SERVERCONNECTED, URHO3D_HANDLER(Sets_SendData, HandleConnectionStatus));
+	SubscribeToEvent(E_SERVERCONNECTED, URHO3D_HANDLER(Interop_SendData, HandleConnectionStatus));
 
 }
 
-String Sets_SendData::GetNodeStyle()
+String Interop_SendData::GetNodeStyle()
 {
 	return "ExportDataNode";
 }
 
-void Sets_SendData::HandleCustomInterface(UIElement* customElement)
+void Interop_SendData::HandleCustomInterface(UIElement* customElement)
 {
 	exportNameEdit = customElement->CreateChild<LineEdit>("PropertyEdit");
 	exportNameEdit->SetStyle("LineEdit");
 	exportNameEdit->SetWidth(100);
 	if (exportNameEdit)
 	{
-		SubscribeToEvent(exportNameEdit, E_TEXTFINISHED, URHO3D_HANDLER(Sets_SendData, HandleLineEdit));
+		SubscribeToEvent(exportNameEdit, E_TEXTFINISHED, URHO3D_HANDLER(Interop_SendData, HandleLineEdit));
 		exportPort_ = GetGenericData("SendPort").GetInt();
 		exportNameEdit->SetText(String(exportPort_));
 	}
 }
 
-void Sets_SendData::HandleLineEdit(StringHash eventType, VariantMap& eventData)
+void Interop_SendData::HandleLineEdit(StringHash eventType, VariantMap& eventData)
 {
 	using namespace TextFinished;
 
@@ -97,7 +97,7 @@ void Sets_SendData::HandleLineEdit(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Sets_SendData::SolveInstance(
+void Interop_SendData::SolveInstance(
 	const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,
 	Urho3D::Vector<Urho3D::Variant>& outSolveInstance
 )
@@ -158,7 +158,8 @@ void Sets_SendData::SolveInstance(
 	//}
 }
 
-void Sets_SendData::HandleConnectionStatus(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
+void Interop_SendData::HandleConnectionStatus(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
 {
 
 }
+#endif

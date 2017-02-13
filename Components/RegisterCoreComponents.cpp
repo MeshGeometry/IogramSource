@@ -43,8 +43,6 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Sets_GetValueByKey.h"
 #include "Sets_ExportViewData.h"
 #include "Sets_ImportViewData.h"
-#include "Sets_SendData.h"
-#include "Sets_ReceiveData.h"
 #include "Maths_MassAverage.h"
 #include "Maths_MassAddition.h"
 #include "Input_Slider.h"
@@ -73,6 +71,10 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Input_EditGeometryListener.h"
 #include "Interop_SystemCommand.h"
 #include "Interop_AsyncSystemCommand.h"
+#ifdef URHO3D_NETWORK
+#include "Interop_SendData.h"
+#include "Interop_ReceiveData.h"
+#endif
 #include "Resource_LoadResource.h"
 #include "Resource_CreateMaterial.h"
 #include "Graphics_BaseSettings.h"
@@ -157,6 +159,7 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Curve_PolylineEvaluate.h"
 #include "Curve_SketchPlane.h"
 #include "Curve_Rebuild.h"
+#include "Curve_Length.h"
 #include "Curve_ReadBagOfEdges.h"
 #include "Mesh_SubdivideMesh.h"
 #include "Input_SliderListener.h"
@@ -215,7 +218,7 @@ void RegisterCoreComponents(Context* context)
 	context->RegisterFactory<Widget_Vector3Slider>();
 	context->RegisterFactory<Widget_ColorSlider>();
 	context->RegisterFactory<CurveRenderer>();
-	
+
 	RegisterIogramType<Maths_Addition>(context);
 	RegisterIogramType<Maths_Subtraction>(context);
 	RegisterIogramType<Maths_Multiplication>(context);
@@ -251,8 +254,6 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Sets_GetValueByKey>(context);
 	RegisterIogramType<Sets_ExportViewData>(context);
 	RegisterIogramType<Sets_ImportViewData>(context);
-	RegisterIogramType<Sets_SendData>(context);
-	RegisterIogramType<Sets_ReceiveData>(context);
 	RegisterIogramType<Maths_MassAverage>(context);
 	RegisterIogramType<Maths_MassAddition>(context);
 	RegisterIogramType<Input_Slider>(context);
@@ -282,12 +283,16 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Input_EditGeometryListener>(context);
 	RegisterIogramType<Interop_SystemCommand>(context);
 	RegisterIogramType<Interop_AsyncSystemCommand>(context);
+#ifdef URHO3D_NETWORK
+	RegisterIogramType<Interop_SendData>(context);
+	RegisterIogramType<Interop_ReceiveData>(context);
+#endif
 	RegisterIogramType<Resource_LoadResource>(context);
 	RegisterIogramType<Resource_CreateMaterial>(context);
 	RegisterIogramType<Graphics_BaseSettings>(context);
 	RegisterIogramType<Graphics_Viewport>(context);
 	RegisterIogramType<Graphics_MeshRenderer>(context);
-    RegisterIogramType<Graphics_MeshEdges>(context);
+	RegisterIogramType<Graphics_MeshEdges>(context);
 	RegisterIogramType<Graphics_CurveToModel>(context);
 	RegisterIogramType<Graphics_CurveRenderer>(context);
 	RegisterIogramType<Graphics_RenderTexture>(context);
@@ -352,8 +357,8 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Mesh_BoundingBox>(context);
 	RegisterIogramType<Mesh_HausdorffDistance>(context);
 	RegisterIogramType<Mesh_HarmonicDeformation>(context);
-//	RegisterIogramType<Mesh_FieldRemesh>(context);
-//	RegisterIogramType<Curve_ZigZagPolyline>(context);
+	//	RegisterIogramType<Mesh_FieldRemesh>(context);
+	//	RegisterIogramType<Curve_ZigZagPolyline>(context);
 	RegisterIogramType<Curve_Polyline>(context);
 	RegisterIogramType<Curve_OffsetPolyline>(context);
 	RegisterIogramType<Curve_SmoothPolyline>(context);
@@ -366,6 +371,7 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Curve_Polygon>(context);
 	RegisterIogramType<Curve_SketchPlane>(context);
 	RegisterIogramType<Curve_Rebuild>(context);
+	RegisterIogramType<Curve_Length>(context);
 	RegisterIogramType<Curve_ReadBagOfEdges>(context);
 	RegisterIogramType<Mesh_SubdivideMesh>(context);
 	RegisterIogramType<Input_SliderListener>(context);

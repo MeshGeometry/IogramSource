@@ -1,7 +1,7 @@
-#include "Sets_ReceiveData.h"
+#include "Interop_ReceiveData.h"
 
+#ifdef URHO3D_NETWORK
 #include "IoGraph.h"
-
 #include <Urho3D/UI/UIEvents.h>
 #include <Urho3D/Network/Network.h>
 #include <Urho3D/Network/NetworkEvents.h>
@@ -12,11 +12,11 @@
 
 using namespace Urho3D;
 
-String Sets_ReceiveData::iconTexture = "Textures/Icons/Sets_ReceiveData.png";
+String Interop_ReceiveData::iconTexture = "Textures/Icons/Interop_ReceiveData.png";
 
 
 
-Sets_ReceiveData::Sets_ReceiveData(Context* context) :
+Interop_ReceiveData::Interop_ReceiveData(Context* context) :
 	IoComponentBase(context, 0, 0),
 	importPort_(2345),
 	sourceAddress_("localhost")
@@ -42,16 +42,15 @@ Sets_ReceiveData::Sets_ReceiveData(Context* context) :
 		DataAccess::LIST
 	);
 
-
-	SubscribeToEvent(E_NETWORKMESSAGE, URHO3D_HANDLER(Sets_ReceiveData, HandleNetworkMessage));
+	SubscribeToEvent(E_NETWORKMESSAGE, URHO3D_HANDLER(Interop_ReceiveData, HandleNetworkMessage));
 }
 
-String Sets_ReceiveData::GetNodeStyle()
+String Interop_ReceiveData::GetNodeStyle()
 {
 	return "ExportDataNode";
 }
 
-void Sets_ReceiveData::HandleCustomInterface(UIElement* customElement)
+void Interop_ReceiveData::HandleCustomInterface(UIElement* customElement)
 {
 	importPortEdit_ = customElement->CreateChild<LineEdit>("ImportPort");
 	importPortEdit_->SetStyle("LineEdit");
@@ -65,15 +64,15 @@ void Sets_ReceiveData::HandleCustomInterface(UIElement* customElement)
 	sourceAddress_ = GetGenericData("SourceAddress").GetString();
 	addressEdit_->SetText(sourceAddress_);
 
-	SubscribeToEvent(importPortEdit_, E_TEXTFINISHED, URHO3D_HANDLER(Sets_ReceiveData, HandleLineEdit));
-	SubscribeToEvent(addressEdit_, E_TEXTFINISHED, URHO3D_HANDLER(Sets_ReceiveData, HandleLineEdit));
+	SubscribeToEvent(importPortEdit_, E_TEXTFINISHED, URHO3D_HANDLER(Interop_ReceiveData, HandleLineEdit));
+	SubscribeToEvent(addressEdit_, E_TEXTFINISHED, URHO3D_HANDLER(Interop_ReceiveData, HandleLineEdit));
 
 	//connect
 	Network* network = GetSubsystem<Network>();
 	bool res = network->Connect(sourceAddress_, importPort_, 0);
 }
 
-void Sets_ReceiveData::HandleLineEdit(StringHash eventType, VariantMap& eventData)
+void Interop_ReceiveData::HandleLineEdit(StringHash eventType, VariantMap& eventData)
 {
 	using namespace TextFinished;
 
@@ -108,7 +107,7 @@ void Sets_ReceiveData::HandleLineEdit(StringHash eventType, VariantMap& eventDat
 	}
 }
 
-void Sets_ReceiveData::SolveInstance(
+void Interop_ReceiveData::SolveInstance(
 	const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,
 	Urho3D::Vector<Urho3D::Variant>& outSolveInstance
 )
@@ -116,7 +115,7 @@ void Sets_ReceiveData::SolveInstance(
 	outSolveInstance[0] = incomingData_;
 }
 
-void Sets_ReceiveData::HandleNetworkMessage(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
+void Interop_ReceiveData::HandleNetworkMessage(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
 {
 	Network* network = GetSubsystem<Network>();
 
@@ -137,3 +136,4 @@ void Sets_ReceiveData::HandleNetworkMessage(Urho3D::StringHash eventType, Urho3D
 		GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
 	}
 }
+#endif

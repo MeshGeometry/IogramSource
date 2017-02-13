@@ -14,6 +14,7 @@ Urho3D::VariantVector Polyline_GetVertexList(const Urho3D::Variant& polyline);
 int Polyline_GetSequentialVertexNumber(const Urho3D::Variant& polyline);
 
 Urho3D::VariantVector Polyline_ComputeSequentialVertexList(const Urho3D::Variant& polyline);
+float Polyline_GetCurveLength(const Urho3D::Variant& polyline);
 
 Urho3D::Variant Polyline_Clean(const Urho3D::Variant& polyline);
 
