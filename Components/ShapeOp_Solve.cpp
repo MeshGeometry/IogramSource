@@ -66,11 +66,17 @@ void WeldVertices(
 	assert(new_indices.Size() == vertices.Size());
 }
 
+struct MeshTrackingData {
+	Variant* mesh;
+	std::vector<int> raw_indices;
+	std::vector<int> processed_indices;
+};
+
 } // namespace
 
 String ShapeOp_Solve::iconTexture = "Textures/Icons/DefaultIcon.png";
 
-ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 7, 1)
+ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 8, 2)
 {
 	SetName("ShapeOpSolve");
 	SetFullName("ShapeOp Solve");
@@ -130,12 +136,24 @@ ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 7, 1)
 	inputSlots_[6]->SetDefaultValue(Variant(10));
 	inputSlots_[6]->DefaultSet();
 
+	inputSlots_[7]->SetName("MeshList");
+	inputSlots_[7]->SetVariableName("ML");
+	inputSlots_[7]->SetDescription("List of tracked meshes");
+	inputSlots_[7]->SetVariantType(VariantType::VAR_VARIANTMAP);
+	inputSlots_[7]->SetDataAccess(DataAccess::LIST);
+
 	// unfinished
 	outputSlots_[0]->SetName("Points");
 	outputSlots_[0]->SetVariableName("Pts");
 	outputSlots_[0]->SetDescription("Point list output");
 	outputSlots_[0]->SetVariantType(VariantType::VAR_VECTOR3);
 	outputSlots_[0]->SetDataAccess(DataAccess::LIST);
+
+	outputSlots_[1]->SetName("MeshList");
+	outputSlots_[1]->SetVariableName("ML");
+	outputSlots_[1]->SetDescription("Mesh list output");
+	outputSlots_[1]->SetVariantType(VariantType::VAR_VARIANTMAP);
+	outputSlots_[1]->SetDataAccess(DataAccess::LIST);
 }
 
 void ShapeOp_Solve::SolveInstance(
@@ -143,9 +161,7 @@ void ShapeOp_Solve::SolveInstance(
 	Vector<Variant>& outSolveInstance
 )
 {
-	//
-	// TMP: turned off due to num input slot confusion
-	/*
+	// get weld epsilon
 	float weld_eps = inSolveInstance[1].GetFloat();
 	if (weld_eps <= 0.0f) {
 		std::cout << "weld_eps = " << weld_eps << std::endl;
@@ -153,8 +169,8 @@ void ShapeOp_Solve::SolveInstance(
 		SetAllOutputsNull(outSolveInstance);
 		return;
 	}
-	*/
 
+	// get gravity
 	Variant g_var = inSolveInstance[2];
 	bool add_gravity = false;
 	Vector3 g_vec;
@@ -164,7 +180,8 @@ void ShapeOp_Solve::SolveInstance(
 	}
 
 
-	// get ShapeOp initialization parameters
+	// get ShapeOp initialization parameters:
+	// mass, damping, timestep
 	double mass = 1.0;
 	Variant mass_var = inSolveInstance[3];
 	double damping = 1.0;
@@ -252,6 +269,7 @@ void ShapeOp_Solve::SolveInstance(
 	WeldVertices(raw_vertices, welded_vertices, new_indices, 0.001f);
 
 	// TMP: debug output
+	/*
 	std::cout << "raw_vertices:" << std::endl;
 	for (int i = 0; i < std::min(10, (int)raw_vertices.Size()); ++i) {
 		Vector3 v = raw_vertices[i];
@@ -266,6 +284,7 @@ void ShapeOp_Solve::SolveInstance(
 	for (int i = 0; i < std::min(10, (int)new_indices.Size()); ++i) {
 		std::cout << "i: " << new_indices[i] << std::endl;
 	}
+	*/
 
 	// now that:
 	//   welded_vertices
@@ -297,6 +316,47 @@ void ShapeOp_Solve::SolveInstance(
 	// TMP: debug output
 	for (unsigned i = 0; i < constraints.Size(); ++i) {
 		ShapeOpConstraint_Print(constraints[i]);
+	}
+
+	// Vertex welding and ShapeOp stuff looks valid,
+	// we can now process the tracked meshes, if any
+	VariantVector unverified_meshes = inSolveInstance[7].GetVariantVector();
+	std::vector<MeshTrackingData> tracked_meshes;
+	for (int i = 0; i < unverified_meshes.Size(); ++i) {
+		if (TriMesh_Verify(unverified_meshes[i])) {
+			MeshTrackingData mtd;
+			mtd.mesh = &unverified_meshes[i];
+			VariantMap* var_map = unverified_meshes[i].GetVariantMapPtr();
+			VariantVector* vertex_list = (*var_map)["vertices"].GetVariantVectorPtr();
+			for (unsigned j = 0; j < vertex_list->Size(); ++j) {
+				Vector3 v = (*vertex_list)[j].GetVector3();
+				bool found = false;
+				for (unsigned k = 0; k < raw_vertices.Size(); ++k) {
+					Vector3 w = raw_vertices[k];
+					if (
+						v.x_ == w.x_ &&
+						v.y_ == w.y_ &&
+						v.z_ == w.z_
+						)
+					{
+						std::cout << "FOUND exact match for tracked mesh vertex in raw_vertices" << std::endl;
+						found = true;
+						mtd.raw_indices.push_back(k);
+						break;
+					}
+				}
+				if (!found) {
+					std::cout << "FAILED to find exact math for tracked mesh vertex in raw_vertices" << std::endl;
+				}
+			}
+			if ((unsigned)mtd.raw_indices.size() == vertex_list->Size()) {
+				for (int j = 0; j < mtd.raw_indices.size(); ++j) {
+					std::cout << mtd.raw_indices[j] << " ";
+				}
+				std::cout << std::endl;
+				tracked_meshes.push_back(mtd);
+			}
+		}
 	}
 
 	///////////////////////////////
@@ -402,6 +462,28 @@ void ShapeOp_Solve::SolveInstance(
 
 	shapeop_delete(op);
 
+	VariantVector meshes_out;
+	for (int i = 0; i < tracked_meshes.size(); ++i) {
+		MeshTrackingData mtd = tracked_meshes[i];
+		for (int j = 0; j < mtd.raw_indices.size(); ++j) {
+			int raw_index = mtd.raw_indices[j];
+			mtd.processed_indices.push_back(new_indices[raw_index]);
+		}
+		VariantVector new_vertex_list;
+		for (int j = 0; j < mtd.processed_indices.size(); ++j) {
+			//Vector3 new_vertex = welded_vertices[mtd.processed_indices[j]];
+			Vector3 new_vertex = points[mtd.processed_indices[j]].GetVector3();
+			new_vertex_list.Push(new_vertex);
+
+			std::cout << mtd.processed_indices[j] << " ";
+		}
+		VariantVector new_face_list = TriMesh_GetFaceList(*mtd.mesh);
+		Variant new_mesh = TriMesh_Make(new_vertex_list, new_face_list);
+		meshes_out.Push(new_mesh);
+		std::cout << std::endl;
+	}
+
 
 	outSolveInstance[0] = points;
+	outSolveInstance[1] = meshes_out;
 }
