@@ -70,7 +70,7 @@ void WeldVertices(
 
 String ShapeOp_Solve::iconTexture = "Textures/Icons/DefaultIcon.png";
 
-ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 6, 1)
+ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 7, 1)
 {
 	SetName("ShapeOpSolve");
 	SetFullName("ShapeOp Solve");
@@ -98,31 +98,37 @@ ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 6, 1)
 	inputSlots_[2]->SetVariantType(VariantType::VAR_VECTOR3);
 	inputSlots_[2]->SetDataAccess(DataAccess::ITEM);
 
-	/*
-	inputSlots_[1]->SetName("WeldDist");
-	inputSlots_[1]->SetVariableName("WD");
-	inputSlots_[1]->SetDescription("Weld points within distance");
-	inputSlots_[1]->SetVariantType(VariantType::VAR_FLOAT);
-	inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
-	inputSlots_[1]->SetDefaultValue(Variant(0.0001f));
-	inputSlots_[1]->DefaultSet();
+	inputSlots_[3]->SetName("Mass");
+	inputSlots_[3]->SetVariableName("M");
+	inputSlots_[3]->SetDescription("Mass (assigned to all points; 1.0f default)");
+	inputSlots_[3]->SetVariantType(VariantType::VAR_FLOAT);
+	inputSlots_[3]->SetDataAccess(DataAccess::ITEM);
+	inputSlots_[3]->SetDefaultValue(Variant(1.0f));
+	inputSlots_[3]->DefaultSet();
 
-	inputSlots_[1]->SetName("WeldDist");
-	inputSlots_[1]->SetVariableName("WD");
-	inputSlots_[1]->SetDescription("Weld points within distance");
-	inputSlots_[1]->SetVariantType(VariantType::VAR_FLOAT);
-	inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
-	inputSlots_[1]->SetDefaultValue(Variant(0.0001f));
-	inputSlots_[1]->DefaultSet();
+	inputSlots_[4]->SetName("Damping");
+	inputSlots_[4]->SetVariableName("D");
+	inputSlots_[4]->SetDescription("Damping (default 1.0f)");
+	inputSlots_[4]->SetVariantType(VariantType::VAR_FLOAT);
+	inputSlots_[4]->SetDataAccess(DataAccess::ITEM);
+	inputSlots_[4]->SetDefaultValue(Variant(1.0f));
+	inputSlots_[4]->DefaultSet();
 
-	inputSlots_[1]->SetName("WeldDist");
-	inputSlots_[1]->SetVariableName("WD");
-	inputSlots_[1]->SetDescription("Weld points within distance");
-	inputSlots_[1]->SetVariantType(VariantType::VAR_FLOAT);
-	inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
-	inputSlots_[1]->SetDefaultValue(Variant(0.0001f));
-	inputSlots_[1]->DefaultSet();
-	*/
+	inputSlots_[5]->SetName("Timestep");
+	inputSlots_[5]->SetVariableName("T");
+	inputSlots_[5]->SetDescription("Timestep (default 1.0f)");
+	inputSlots_[5]->SetVariantType(VariantType::VAR_FLOAT);
+	inputSlots_[5]->SetDataAccess(DataAccess::ITEM);
+	inputSlots_[5]->SetDefaultValue(Variant(1.0f));
+	inputSlots_[5]->DefaultSet();
+
+	inputSlots_[6]->SetName("Iterations");
+	inputSlots_[6]->SetVariableName("I");
+	inputSlots_[6]->SetDescription("Iterations for solver (default 10)");
+	inputSlots_[6]->SetVariantType(VariantType::VAR_INT);
+	inputSlots_[6]->SetDataAccess(DataAccess::ITEM);
+	inputSlots_[6]->SetDefaultValue(Variant(10));
+	inputSlots_[6]->DefaultSet();
 
 	// unfinished
 	outputSlots_[0]->SetName("Points");
@@ -155,6 +161,41 @@ void ShapeOp_Solve::SolveInstance(
 	if (g_var.GetType() == VAR_VECTOR3) {
 		add_gravity = true;
 		g_vec = g_var.GetVector3();
+	}
+
+
+	// get ShapeOp initialization parameters
+	double mass = 1.0;
+	Variant mass_var = inSolveInstance[3];
+	double damping = 1.0;
+	Variant damping_var = inSolveInstance[4];
+	double timestep = 1.0;
+	Variant timestep_var = inSolveInstance[5];
+	if (mass_var.GetType() == VAR_FLOAT || mass_var.GetType() == VAR_DOUBLE) {
+		double mass_ = mass_var.GetDouble();
+		if (mass_ > 0.0) {
+			mass = mass_;
+		}
+	}
+	if (damping_var.GetType() == VAR_FLOAT || damping_var.GetType() == VAR_DOUBLE) {
+		double damping_ = damping_var.GetDouble();
+		if (damping_ > 0.0) {
+			damping = damping_;
+		}
+	}
+	if (timestep_var.GetType() == VAR_FLOAT || timestep_var.GetType() == VAR_DOUBLE) {
+		double timestep_ = timestep_var.GetDouble();
+		if (timestep_ > 0.0) {
+			timestep = timestep_;
+		}
+	}
+	int iterations = 10;
+	Variant iterations_var = inSolveInstance[6];
+	if (iterations_var.GetType() == VAR_INT) {
+		int iterations_ = iterations_var.GetInt();
+		if (iterations_ > 0) {
+			iterations = iterations_;
+		}
 	}
 
 	//////////////////////////////////////////////////////
@@ -331,12 +372,15 @@ void ShapeOp_Solve::SolveInstance(
 	// 4) Initialize the solver with #shapeop_init or #shapeop_initDynamic
 
 	//shapeop_init(op);
-	shapeop_initDynamic(op, 2.0, 0.1, 0.1);
+	shapeop_initDynamic(op, mass, damping, timestep);
+	//shapeop_initDynamic(op, 2.0, 0.1, 0.1);
 
 	//////////////////////////////////
 	// 5) Optimize with #shapeop_solve
 
-	shapeop_solve(op, 100);
+	URHO3D_LOGINFO("ShapeOp_Solve --- solver starting for " + String(iterations) + " iterations....");
+	shapeop_solve(op, iterations);
+	URHO3D_LOGINFO("ShapeOp_Sovle --- solver finished");
 
 	///////////////////////////////////////////////////
 	// 6) Get back the vertices with #shapeop_getPoints
@@ -344,11 +388,6 @@ void ShapeOp_Solve::SolveInstance(
 	// Block below has debug stuff, can be simplified after
 	double* pts_out = new double[3 * nb_points];
 	shapeop_getPoints(op, pts_out, nb_points);
-	std::vector<double> pts_out_vec;
-	for (int i = 0; i < 3 * nb_points; ++i) {
-		std::cout << pts_out[i] << " ";
-		pts_out_vec.push_back(pts_out[i]);
-	}
 
 	VariantVector points;
 	for (int i = 0; i < 3 * nb_points; i += 3) {
