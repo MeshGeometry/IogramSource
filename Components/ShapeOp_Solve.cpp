@@ -70,7 +70,7 @@ void WeldVertices(
 
 String ShapeOp_Solve::iconTexture = "Textures/Icons/DefaultIcon.png";
 
-ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 2, 1)
+ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 6, 1)
 {
 	SetName("ShapeOpSolve");
 	SetFullName("ShapeOp Solve");
@@ -92,12 +92,44 @@ ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 2, 1)
 	inputSlots_[1]->SetDefaultValue(Variant(0.0001f));
 	inputSlots_[1]->DefaultSet();
 
+	inputSlots_[2]->SetName("Gravity");
+	inputSlots_[2]->SetVariableName("G");
+	inputSlots_[2]->SetDescription("Gravity");
+	inputSlots_[2]->SetVariantType(VariantType::VAR_VECTOR3);
+	inputSlots_[2]->SetDataAccess(DataAccess::ITEM);
+
+	/*
+	inputSlots_[1]->SetName("WeldDist");
+	inputSlots_[1]->SetVariableName("WD");
+	inputSlots_[1]->SetDescription("Weld points within distance");
+	inputSlots_[1]->SetVariantType(VariantType::VAR_FLOAT);
+	inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
+	inputSlots_[1]->SetDefaultValue(Variant(0.0001f));
+	inputSlots_[1]->DefaultSet();
+
+	inputSlots_[1]->SetName("WeldDist");
+	inputSlots_[1]->SetVariableName("WD");
+	inputSlots_[1]->SetDescription("Weld points within distance");
+	inputSlots_[1]->SetVariantType(VariantType::VAR_FLOAT);
+	inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
+	inputSlots_[1]->SetDefaultValue(Variant(0.0001f));
+	inputSlots_[1]->DefaultSet();
+
+	inputSlots_[1]->SetName("WeldDist");
+	inputSlots_[1]->SetVariableName("WD");
+	inputSlots_[1]->SetDescription("Weld points within distance");
+	inputSlots_[1]->SetVariantType(VariantType::VAR_FLOAT);
+	inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
+	inputSlots_[1]->SetDefaultValue(Variant(0.0001f));
+	inputSlots_[1]->DefaultSet();
+	*/
+
 	// unfinished
 	outputSlots_[0]->SetName("Points");
 	outputSlots_[0]->SetVariableName("Pts");
 	outputSlots_[0]->SetDescription("Point list output");
 	outputSlots_[0]->SetVariantType(VariantType::VAR_VECTOR3);
-	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
+	outputSlots_[0]->SetDataAccess(DataAccess::LIST);
 }
 
 void ShapeOp_Solve::SolveInstance(
@@ -116,6 +148,14 @@ void ShapeOp_Solve::SolveInstance(
 		return;
 	}
 	*/
+
+	Variant g_var = inSolveInstance[2];
+	bool add_gravity = false;
+	Vector3 g_vec;
+	if (g_var.GetType() == VAR_VECTOR3) {
+		add_gravity = true;
+		g_vec = g_var.GetVector3();
+	}
 
 	//////////////////////////////////////////////////////
 	// Go through the input and find the valid constraints
@@ -281,16 +321,22 @@ void ShapeOp_Solve::SolveInstance(
 
 	URHO3D_LOGINFO("ShapeOp_Solve --- Vertex forces added");
 
+	double gravity_force[3] = { (double)g_vec.x_, (double)g_vec.y_, (double)g_vec.z_ };
+	if (add_gravity) {
+		shapeop_addGravityForce(op, gravity_force);
+		URHO3D_LOGINFO("ShapeOp_Solve --- Gravity force added");
+	}
+
 	//////////////////////////////////////////////////////////////////////
 	// 4) Initialize the solver with #shapeop_init or #shapeop_initDynamic
 
 	//shapeop_init(op);
-	//shapeop_initDynamic(op, 2.0, 0.1, 0.1);
+	shapeop_initDynamic(op, 2.0, 0.1, 0.1);
 
 	//////////////////////////////////
 	// 5) Optimize with #shapeop_solve
 
-	//shapeop_solve(op, 100);
+	shapeop_solve(op, 100);
 
 	///////////////////////////////////////////////////
 	// 6) Get back the vertices with #shapeop_getPoints
@@ -303,10 +349,20 @@ void ShapeOp_Solve::SolveInstance(
 		std::cout << pts_out[i] << " ";
 		pts_out_vec.push_back(pts_out[i]);
 	}
+
+	VariantVector points;
+	for (int i = 0; i < 3 * nb_points; i += 3) {
+		Vector3 pt((float)pts_out[i], (float)pts_out[i + 1], (float)pts_out[i + 2]);
+		points.Push(pt);
+	}
+
 	delete pts_out;
 
 	////////////////////////////////////////////
 	// 7) Delete the solver with #shapeop_delete
 
 	shapeop_delete(op);
+
+
+	outSolveInstance[0] = points;
 }
