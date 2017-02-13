@@ -266,7 +266,7 @@ String IoDataTree::ToString(bool truncate) const
 
 		String path = itr->first_;
 		String itemCount = String(itr->second_->data.Size());
-		out += "Branch: " + path + ",\t N = " + itemCount + "\n";
+		out += "Branch: " + path + ", N = " + itemCount + "\n";
 		int numItems = itr->second_->data.Size();
 		if (truncate)
 			numItems = Min(numItems, 3);
@@ -274,7 +274,7 @@ String IoDataTree::ToString(bool truncate) const
 		for(int i = 0; i < numItems; i++)
 		{
 			Variant var = itr->second_->data[i];
-			out += "\t" + var.ToString() + "\t, type: " + var.GetTypeName() + "\n";
+			out += "    " + var.ToString() + ", type: " + var.GetTypeName() + "\n";
 		}
 
 		if (truncate && itr->second_->data.Size() > 3)

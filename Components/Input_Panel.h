@@ -3,6 +3,7 @@
 #include <Urho3D/UI/Button.h>
 #include <Urho3D/UI/LineEdit.h>
 #include <Urho3D/UI/MultiLineEdit.h>
+#include <Urho3D/UI/DropDownList.h>
 
 #include "IoComponentBase.h"
 
@@ -23,17 +24,20 @@ public:
 	static Urho3D::String iconTexture;
 
 	Urho3D::SharedPtr<Urho3D::MultiLineEdit> textArea_;
+	Urho3D::SharedPtr<Urho3D::LineEdit> targetType_;
 
 	virtual void HandleCustomInterface(Urho3D::UIElement* customElement);
 	bool editable_;
 
 	void SetDataTree();
 	void SetDataTreeContent();
+	void CastPanelContents();
 
 	void HandleLineEditCommit(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 	void HandleGraphSolve(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 	void HandleSetText(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 	void HandleDefocus(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 	void HandleFocus(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
+	void HandleTargetTypeChange(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 
 };

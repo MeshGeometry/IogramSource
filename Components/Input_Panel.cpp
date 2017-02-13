@@ -9,6 +9,7 @@ using namespace Urho3D;
 
 String Input_Panel::iconTexture = "Textures/Icons/Input_Panel.png";
 
+
 Input_Panel::Input_Panel(Urho3D::Context* context) :
 	IoComponentBase(context, 1, 1),
 	editable_(true)
@@ -63,7 +64,11 @@ void Input_Panel::SetDataTreeContent()
 		for (int i = 0; i < contents.Size(); i++)
 		{
 			flatContent += contents[i];
-			flatContent += "\n";
+			
+			if (!contents[i].EndsWith("\n"))
+			{
+				flatContent += "\n";
+			}
 		}
 
 		textArea_->SetText(flatContent);
@@ -81,12 +86,22 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 	textArea_->GetCursor()->SetOpacity(0.7f);
 	textArea_->GetCursor()->SetBlendMode(BLEND_ALPHA);
 
+	targetType_ = customElement->CreateChild<LineEdit>("TargetType");
+	targetType_->SetStyleAuto();
+
+	String savedType = GetGenericData("TargetType").GetString();
+	if (!savedType.Empty())
+	{
+		targetType_->SetText(savedType);
+	}
+
 
 	if (inputSlots_[0]->GetLinkedOutputSlot().NotNull())
 		SetDataTree();
 	else
 		SetDataTreeContent();
 
+	SubscribeToEvent(targetType_, E_TEXTFINISHED, URHO3D_HANDLER(Input_Panel, HandleTargetTypeChange));
 	SubscribeToEvent(textArea_, E_TEXTFINISHED, URHO3D_HANDLER(Input_Panel, HandleLineEditCommit));
 	SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(Input_Panel, HandleSetText));
 	SubscribeToEvent(E_DEFOCUSED, URHO3D_HANDLER(Input_Panel, HandleDefocus));
@@ -174,6 +189,20 @@ void Input_Panel::HandleGraphSolve(Urho3D::StringHash eventType, Urho3D::Variant
 	}
 }
 
+void Input_Panel::HandleTargetTypeChange(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
+{
+	using namespace TextFinished;
+
+	if (targetType_.NotNull())
+	{
+		String newType = targetType_->GetText();
+		SetGenericData("TargetType", newType);
+
+		VariantMap emptyMap;
+		HandleLineEditCommit("", emptyMap);
+	}
+}
+
 void Input_Panel::HandleLineEditCommit(StringHash eventType, VariantMap& eventData)
 {
 	using namespace TextFinished;
@@ -186,26 +215,35 @@ void Input_Panel::HandleLineEditCommit(StringHash eventType, VariantMap& eventDa
 	path.Push(0);
 	IoDataTree tree(GetContext());
 
-	//split text in to multiple lines
-	StringVector lines = textArea_->GetText().Split('\n');
-	
-	for (int i = 0; i < lines.Size(); i++)
+	String targetTypeName = "";
+	if (targetType_.NotNull())
 	{
+		targetTypeName = targetType_->GetText();
+	}
 
-		String val = lines[i];
+	if (!targetTypeName.Empty())
+	{
+		//split text in to multiple lines
+		StringVector lines = textArea_->GetText().Split('\n');
 
-		VariantType type = VAR_STRING;
-
-		//try to find type by splitting with comma
-		Vector<String> parts = val.Split(',');
-		if (parts.Size() > 1)
+		for (int i = 0; i < lines.Size(); i++)
 		{
-			type = Variant::GetTypeFromName(parts[1].Trimmed());
+
+			String val = lines[i];
+			Variant var(targetTypeName, val);
+
+			if (var.GetType() != VAR_NONE)
+			{
+				tree.Add(path, var);
+			}
 		}
 
-		Variant var(type, val);
 
-		tree.Add(path, var);
+	}
+	else
+	{
+		String currText = textArea_->GetText();
+		tree.Add(path,currText);
 	}
 
 	//set input
@@ -213,6 +251,11 @@ void Input_Panel::HandleLineEditCommit(StringHash eventType, VariantMap& eventDa
 
 	//call solve
 	GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
+}
+
+void Input_Panel::CastPanelContents()
+{
+
 }
 
 

@@ -205,6 +205,7 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "ShapeOp_Solve.h"
 #include "ShapeOp_EdgeStrain.h"
 #include "ShapeOp_TriangleStrain.h"
+#include "ShapeOp_Closeness.h"
 
 using namespace Urho3D;
 
@@ -410,4 +411,5 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<ShapeOp_Solve>(context);
 	RegisterIogramType<ShapeOp_EdgeStrain>(context);
 	RegisterIogramType<ShapeOp_TriangleStrain>(context);
+	RegisterIogramType<ShapeOp_Closeness>(context);
 }

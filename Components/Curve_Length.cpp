@@ -9,7 +9,7 @@ using namespace Urho3D;
 String Curve_Length::iconTexture = "Textures/Icons/Curve_Length.png";
 
 Curve_Length::Curve_Length(Context* context) :
-	IoComponentBase(context, 2, 1)
+	IoComponentBase(context, 1, 1)
 {
 	SetName("CurveLength");
 	SetFullName("Curve Length");
