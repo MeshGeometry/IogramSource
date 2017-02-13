@@ -143,6 +143,27 @@ VariantVector Polyline_ComputeSequentialVertexList(const Urho3D::Variant& polyli
 	return seqVertexList;
 }
 
+float Polyline_GetCurveLength(const Urho3D::Variant& polyline)
+{
+	if (!Polyline_Verify(polyline)) return 0.0f;
+	
+	VariantVector verts = Polyline_ComputeSequentialVertexList(polyline);
+	float length = 0.0f;
+
+	if (verts.Size() < 2)
+		return 0.0f;
+
+	for (int i = 0; i < verts.Size() - 1; i++)
+	{
+		Vector3 vA = verts[i].GetVector3();
+		Vector3 vB = verts[i + 1].GetVector3();
+
+		length += (vB - vA).Length();
+	}
+
+	return length;
+}
+
 Urho3D::Vector<Urho3D::Pair<int, int>> Polyline_ComputeEdges(const Urho3D::Variant& polyline)
 {
 	if (!Polyline_Verify(polyline)) return Vector<Urho3D::Pair<int, int>>();

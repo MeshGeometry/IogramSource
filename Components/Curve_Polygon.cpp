@@ -14,7 +14,7 @@ using namespace Urho3D;
 String Curve_Polygon::iconTexture = "Textures/Icons/Curve_Polygon.png";
 
 Curve_Polygon::Curve_Polygon(Context* context) :
-	IoComponentBase(context, 2, 1)
+	IoComponentBase(context, 2, 2)
 {
 	SetName("Polygon");
 	SetFullName("Construct Polygon");
@@ -42,6 +42,12 @@ Curve_Polygon::Curve_Polygon(Context* context) :
 	outputSlots_[0]->SetDescription("Constructed polygon");
 	outputSlots_[0]->SetVariantType(VariantType::VAR_VARIANTMAP);
 	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
+
+	outputSlots_[1]->SetName("Vertices");
+	outputSlots_[1]->SetVariableName("V");
+	outputSlots_[1]->SetDescription("Constructed vertices");
+	outputSlots_[1]->SetVariantType(VariantType::VAR_VECTOR3);
+	outputSlots_[1]->SetDataAccess(DataAccess::LIST);
 }
 
 void Curve_Polygon::SolveInstance(
@@ -72,4 +78,5 @@ void Curve_Polygon::SolveInstance(
 	Variant polygon = Polyline_Make(vertex_list);
 
 	outSolveInstance[0] = polygon;
+	outSolveInstance[1] = vertex_list;
 }
