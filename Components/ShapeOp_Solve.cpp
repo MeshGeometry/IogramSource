@@ -117,7 +117,9 @@ void ShapeOp_Solve::SolveInstance(
 	}
 	*/
 
-	//
+	//////////////////////////////////////////////////////
+	// Go through the input and find the valid constraints
+
 	VariantVector uncleaned_input = inSolveInstance[0].GetVariantVector();
 	VariantVector constraints;
 	for (unsigned i = 0; i < uncleaned_input.Size(); ++i) {
@@ -133,6 +135,11 @@ void ShapeOp_Solve::SolveInstance(
 		return;
 	}
 	URHO3D_LOGINFO("ShapeOp_Solve --- found valid constraints, beginning vertex processing....");
+
+	///////////////////////////////////////////////////////////////////
+	// Collect points into master point list, then weld nearby vertices
+	// letting the constraints know about all indices, into both
+	// master list and welded list
 
 	int raw_index = 0;
 	Vector<Vector3> raw_vertices;
@@ -157,7 +164,6 @@ void ShapeOp_Solve::SolveInstance(
 			++raw_index;
 		}
 	}
-
 	assert(raw_index == (int)raw_vertices.Size());
 
 	Vector<Vector3> welded_vertices;
@@ -212,12 +218,6 @@ void ShapeOp_Solve::SolveInstance(
 		ShapeOpConstraint_Print(constraints[i]);
 	}
 
-	///////////////////////////////////////////////////////////////////////
-
-	// Vertex Forces
-
-	// ... these are gone?
-
 	///////////////////////////////
 	// ShapeOp API calls start here
 
@@ -225,6 +225,9 @@ void ShapeOp_Solve::SolveInstance(
 	// 1) Create the solver with #shapeop_create
 
 	ShapeOpSolver* op = shapeop_create();
+
+	//////////////////////////////////////////////
+	// 2) Set the vertices with #shapeop_setPoints
 
 	std::vector<double> pts_in;
 	for (int i = 0; i < (int)welded_vertices.Size(); ++i) {
@@ -239,6 +242,13 @@ void ShapeOp_Solve::SolveInstance(
 
 	////////////////////////////////////////////////////////////////////////////////////
 	// 3A) Setup the constraints with #shapeop_addConstraint and #shapeop_editConstraint
+
+	for (unsigned i = 0; i < constraints.Size(); ++i) {
+
+		Variant constraint = constraints[i];
+
+
+	}
 
 	// all ids are captured here so their data won't go out of scope after added to the solver
 
