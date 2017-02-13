@@ -38,6 +38,11 @@ int GetConstraintProcessedIndex(
 	int i // index into constraint's "vertices" VariantVector of ShapeOpVertex objects
 );
 
+int GetConstraintIds(
+	Urho3D::Variant& constraint,
+	std::vector<int>& ids
+);
+
 void ShapeOpConstraint_Print(
 	Urho3D::Variant& constraint
 );

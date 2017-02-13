@@ -243,38 +243,36 @@ void ShapeOp_Solve::SolveInstance(
 	////////////////////////////////////////////////////////////////////////////////////
 	// 3A) Setup the constraints with #shapeop_addConstraint and #shapeop_editConstraint
 
+	// all ids are captured here so their data won't go out of scope after added to the solver
+	// since they must be added as array ptr/size combos
+	std::vector<std::vector<int> > all_ids;
 	for (unsigned i = 0; i < constraints.Size(); ++i) {
 
 		Variant constraint = constraints[i];
-
-
-	}
-
-	// all ids are captured here so their data won't go out of scope after added to the solver
-
-	// change how the constraints are added ....
-
-	/*
-	std::vector<std::vector<int> > all_ids;
-	for (unsigned i = 0; i < constraint_list.Size(); ++i) {
-		std::vector<int> ids = ShapeOpConstraint_ids(constraint_list[i]);
+		std::vector<int> ids;
+		int val = GetConstraintIds(constraint, ids);
 		all_ids.push_back(ids);
 	}
 
-	for (unsigned i = 0; i < constraint_list.Size(); ++i) {
-		Variant constraint = constraint_list[i];
+	assert((unsigned)all_ids.size() == constraints.Size());
+
+	int count = 0;
+	for (unsigned i = 0; i < constraints.Size(); ++i) {
+
+		Variant constraint = constraints[i];
+		int nb_ids = (int)all_ids[i].size();
 
 		shapeop_addConstraint(
 			op,
 			ShapeOpConstraint_constraintType(constraint).CString(),
 			all_ids[i].data(),
-			ShapeOpConstraint_nb_ids(constraint),
+			nb_ids,
 			ShapeOpConstraint_weight(constraint)
 		);
+		count++;
 	}
 
-	URHO3D_LOGINFO("ShapeOp_Solve --- Constraints added");
-	*/
+	URHO3D_LOGINFO("ShapeOp_Solve --- " + String(count) + " Constraints added");
 
 	////////////////////////////////////////////////////
 	// 3B) Setup the forces with #shapeop_addVertexForce
