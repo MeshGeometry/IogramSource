@@ -207,6 +207,8 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "ShapeOp_TriangleStrain.h"
 #include "ShapeOp_Closeness.h"
 #include "ShapeOp_GeometryStrain.h"
+#include "ShapeOp_MeshTriangleStrain.h"
+#include "ShapeOp_GenericConstraint.h"
 
 using namespace Urho3D;
 
@@ -414,4 +416,6 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<ShapeOp_TriangleStrain>(context);
 	RegisterIogramType<ShapeOp_Closeness>(context);
 	RegisterIogramType<ShapeOp_GeometryStrain>(context);
+	RegisterIogramType<ShapeOp_MeshTriangleStrain>(context);
+	RegisterIogramType<ShapeOp_GenericConstraint>(context);
 }

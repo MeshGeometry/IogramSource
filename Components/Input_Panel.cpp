@@ -79,7 +79,7 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 {
 	textArea_ = customElement->CreateChild<MultiLineEdit>("TextArea");
 	textArea_->SetStyleAuto();
-	textArea_->SetHeight(100);
+	textArea_->SetWidth(100);
 	textArea_->GetTextElement()->SetFontSize(11);
 	textArea_->SetEditable(false);
 	textArea_->GetCursor()->SetMaxWidth(1);
@@ -88,6 +88,7 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 
 	targetType_ = customElement->CreateChild<LineEdit>("TargetType");
 	targetType_->SetStyleAuto();
+	targetType_->SetMaxHeight(24);
 
 	String savedType = GetGenericData("TargetType").GetString();
 	if (!savedType.Empty())
@@ -100,6 +101,9 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 		SetDataTree();
 	else
 		SetDataTreeContent();
+
+	customElement->SetMinSize(120, 100);
+	customElement->UpdateLayout();
 
 	SubscribeToEvent(targetType_, E_TEXTFINISHED, URHO3D_HANDLER(Input_Panel, HandleTargetTypeChange));
 	SubscribeToEvent(textArea_, E_TEXTFINISHED, URHO3D_HANDLER(Input_Panel, HandleLineEditCommit));
