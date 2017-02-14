@@ -19,7 +19,7 @@ namespace {
 
 String ShapeOp_EdgeStrain::iconTexture = "Textures/Icons/DefaultIcon.png";
 
-ShapeOp_EdgeStrain::ShapeOp_EdgeStrain(Context* context) : IoComponentBase(context, 3, 1)
+ShapeOp_EdgeStrain::ShapeOp_EdgeStrain(Context* context) : IoComponentBase(context, 5, 1)
 {
 	SetName("ShapeOpEdgeStrain");
 	SetFullName("ShapeOp Edge Strain");
@@ -46,6 +46,18 @@ ShapeOp_EdgeStrain::ShapeOp_EdgeStrain(Context* context) : IoComponentBase(conte
 	inputSlots_[2]->SetDataAccess(DataAccess::ITEM);
 	inputSlots_[2]->SetDefaultValue(Variant(1.0f));
 	inputSlots_[2]->DefaultSet();
+
+	inputSlots_[3]->SetName("rangeMin");
+	inputSlots_[3]->SetVariableName("rMin");
+	inputSlots_[3]->SetDescription("rangeMin for ShapeOp EdgeConstraint");
+	inputSlots_[3]->SetVariantType(VariantType::VAR_FLOAT);
+	inputSlots_[3]->SetDataAccess(DataAccess::ITEM);
+
+	inputSlots_[4]->SetName("rangeMax");
+	inputSlots_[4]->SetVariableName("rMax");
+	inputSlots_[4]->SetDescription("rangeMax for ShapeOp EdgeConstraint");
+	inputSlots_[4]->SetVariantType(VariantType::VAR_FLOAT);
+	inputSlots_[4]->SetDataAccess(DataAccess::ITEM);
 
 	outputSlots_[0]->SetName("EdgeStrain");
 	outputSlots_[0]->SetVariableName("ES");
@@ -89,6 +101,30 @@ void ShapeOp_EdgeStrain::SolveInstance(
 	var_map["constraintType"] = Variant("EdgeStrain");
 	var_map["weight"] = weight;
 	var_map["vertices"] = shapeop_vertices;
+
+	// User has the option of supplying minRange and maxRange values if defaults won't do
+	VariantType type_minRange = inSolveInstance[3].GetType();
+	VariantType type_maxRange = inSolveInstance[4].GetType();
+	if (
+		(type_minRange == VAR_INT || type_minRange == VAR_FLOAT || type_minRange == VAR_DOUBLE) &&
+		(type_maxRange == VAR_INT || type_maxRange == VAR_FLOAT || type_maxRange == VAR_DOUBLE)
+		)
+	{
+		double minRange = inSolveInstance[3].GetDouble();
+		double maxRange = inSolveInstance[4].GetDouble();
+		if (
+			minRange >= 0.0 &&
+			maxRange >= minRange
+			)
+		{
+			double length = (start_coords - end_coords).Length();
+
+			var_map["length"] = length;
+			var_map["minRange"] = minRange;
+			var_map["maxRange"] = maxRange;
+			var_map["editFlag"] = 1;
+		}
+	}
 
 	Variant constraint = Variant(var_map);
 	outSolveInstance[0] = constraint;

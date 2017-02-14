@@ -46,3 +46,12 @@ int GetConstraintIds(
 void ShapeOpConstraint_Print(
 	Urho3D::Variant& constraint
 );
+
+int ShapeOpConstraint_NeedsEdit(
+	Urho3D::Variant& constraint
+);
+
+void ShapeOpConstraint_SetConstraintId(
+	Urho3D::Variant& constraint,
+	int constraint_id
+);

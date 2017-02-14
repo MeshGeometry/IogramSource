@@ -139,6 +139,62 @@ void UpdateConstraintsAfterWelding(
 	}
 }
 
+struct ConstraintEditData {
+	int index_into_constraints;
+	std::vector<double> scalars;
+};
+
+void PrepareAndCall_shapeop_editConstraint(
+	Variant& constraint,
+	std::vector<ConstraintEditData>& all_edit_data,
+	ShapeOpSolver* op
+)
+{
+	String constraintType = ShapeOpConstraint_constraintType(constraint);
+
+	VariantMap* var_map = constraint.GetVariantMapPtr();
+
+	if (constraintType == String("EdgeStrain")) {
+		int constraint_id = (*var_map)["constraint_id"].GetInt();
+		assert(constraint_id != -1);
+
+		ConstraintEditData ced;
+		ced.scalars = std::vector<double>(3);
+		ced.scalars[0] = (*var_map)["length"].GetDouble();
+		ced.scalars[1] = (*var_map)["rangeMin"].GetDouble();
+		ced.scalars[2] = (*var_map)["rangeMax"].GetDouble();
+		all_edit_data.push_back(ced);
+		int i = (int)all_edit_data.size() - 1;
+
+		shapeop_editConstraint(
+			op,
+			constraintType.CString(),
+			constraint_id,
+			all_edit_data[i].scalars.data(),
+			(int)all_edit_data[i].scalars.size()
+		);
+	}
+	else if (constraintType == String("TriangleStrian")) {
+		int constraint_id = (*var_map)["constraint_id"].GetInt();
+		assert(constraint_id != -1);
+
+		ConstraintEditData ced;
+		ced.scalars = std::vector<double>(2);
+		ced.scalars[0] = (*var_map)["rangeMin"].GetDouble();
+		ced.scalars[1] = (*var_map)["rangeMax"].GetDouble();
+		all_edit_data.push_back(ced);
+		int i = (int)all_edit_data.size() - 1;
+
+		shapeop_editConstraint(
+			op,
+			constraintType.CString(),
+			constraint_id,
+			all_edit_data[i].scalars.data(),
+			(int)all_edit_data[i].scalars.size()
+		);
+	}
+}
+
 // ShapeOp's solver natively operates on raw points not meshes.
 // This struct helps track meshes across a ShapeOp simulation.
 struct MeshTrackingData {
@@ -408,14 +464,29 @@ void ShapeOp_Solve::SolveInstance(
 		Variant constraint = constraints[i];
 		int nb_ids = (int)all_ids[i].size();
 
-		shapeop_addConstraint(
+		int constraint_id = shapeop_addConstraint(
 			op,
 			ShapeOpConstraint_constraintType(constraint).CString(),
 			all_ids[i].data(),
 			nb_ids,
 			ShapeOpConstraint_weight(constraint)
 		);
+		if (ShapeOpConstraint_NeedsEdit(constraints[i])) {
+			ShapeOpConstraint_SetConstraintId(constraints[i], constraint_id);
+		}
 		count++;
+	}
+
+	std::vector<ConstraintEditData> all_edit_data;
+	for (unsigned i = 0; i < constraints.Size(); ++i) {
+
+		if (ShapeOpConstraint_NeedsEdit(constraints[i])) {
+			PrepareAndCall_shapeop_editConstraint(
+				constraints[i],
+				all_edit_data,
+				op
+			);
+		}
 	}
 
 	URHO3D_LOGINFO("ShapeOp_Solve --- " + String(count) + " Constraints added");
