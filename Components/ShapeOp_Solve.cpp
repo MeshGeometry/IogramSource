@@ -85,7 +85,9 @@ void WeldVertices(
 	float epsSquared = eps * eps;
 
 	if (vertices.Size() <= 1) {
-		URHO3D_LOGWARNING("WeldVertices-- - vertices.Size() <= 1, nothing to do");
+		URHO3D_LOGWARNING("WeldVertices-- - vertices.Size() <= 1, nothing to process");
+		welded_vertices = vertices;
+		new_indices.Push(0);
 		return;
 	}
 
