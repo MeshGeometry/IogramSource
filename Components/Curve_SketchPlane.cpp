@@ -288,6 +288,12 @@ void Curve_SketchPlane::SolveInstance(
 		polysOut[i] = Polyline_ApplyTransform(trackedCurves_[i], xform);;
 	}
 
+	if (!sketchSurface_ || trackedCurves_.Empty())
+	{
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
+
 	outSolveInstance[0] = polysOut;
 	outSolveInstance[1] = sketchSurface_;
 }

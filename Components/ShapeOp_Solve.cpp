@@ -360,6 +360,12 @@ void ShapeOp_Solve::SolveInstance(
 	std::vector<MeshTrackingData> tracked_meshes;
 	SetUpMeshTrackingData(unverified_meshes, raw_vertices, tracked_meshes);
 
+	if (welded_vertices.Empty())
+	{
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
+
 	///////////////////////////////////////////////////////////////////////////////
 	// II. ShapeOp API calls
 	///////////////////////////////////////////////////////////////////////////////
