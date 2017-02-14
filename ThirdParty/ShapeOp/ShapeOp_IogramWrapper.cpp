@@ -157,3 +157,39 @@ void ShapeOpConstraint_Print(
 		std::cout << "\t(" << v.x_ << "," << v.y_ << "," << v.z_ << ") raw=" << raw_index << " processed=" << processed_index << std::endl;
 	}
 }
+
+int ShapeOpConstraint_NeedsEdit(
+	Urho3D::Variant& constraint
+)
+{
+	if (!ShapeOpConstraint_Verify(constraint)) {
+		std::cout << "ShapeOpConstraint_NeedsEdit --- constraint failed to verify" << std::endl;
+		return 0;
+	}
+
+	Urho3D::VariantMap* var_map = constraint.GetVariantMapPtr();
+	int editFlag = (*var_map)["editFlag"].GetInt();
+	if (editFlag == 1) {
+		return 1;
+	}
+	return 0;
+}
+
+void ShapeOpConstraint_SetConstraintId(
+	Urho3D::Variant& constraint,
+	int constraint_id
+)
+{
+	if (!ShapeOpConstraint_Verify(constraint)) {
+		std::cout << "ShapeOpConstraint_SetConstraintId --- constraint failed to verify" << std::endl;
+		return;
+	}
+
+	if (constraint_id < 0) {
+		std::cout << "ShapeOpConstraint_SetConstraintId --- invalid constraint_id, constraint_id < 0" << std::endl;
+		return;
+	}
+
+	Urho3D::VariantMap* var_map = constraint.GetVariantMapPtr();
+	(*var_map)["constraint_id"] = constraint_id;
+}
