@@ -18,7 +18,68 @@
 
 using namespace Urho3D;
 
+////////////////////////////////////////////////////
+// Helper functions collected in anonymous namespace
 namespace {
+
+// Input slot data extraction for solver parameters
+void GetInitializationParameters(
+	const Variant& mass_var,
+	double& mass,
+	const Variant& damping_var,
+	double& damping,
+	const Variant& timestep_var,
+	double& timestep,
+	const Variant& iterations_var,
+	int& iterations
+)
+{
+	if (mass_var.GetType() == VAR_FLOAT || mass_var.GetType() == VAR_DOUBLE) {
+		double mass_ = mass_var.GetDouble();
+		if (mass_ > 0.0) {
+			mass = mass_;
+		}
+	}
+	if (damping_var.GetType() == VAR_FLOAT || damping_var.GetType() == VAR_DOUBLE) {
+		double damping_ = damping_var.GetDouble();
+		if (damping_ > 0.0) {
+			damping = damping_;
+		}
+	}
+	if (timestep_var.GetType() == VAR_FLOAT || timestep_var.GetType() == VAR_DOUBLE) {
+		double timestep_ = timestep_var.GetDouble();
+		if (timestep_ > 0.0) {
+			timestep = timestep_;
+		}
+	}
+	if (iterations_var.GetType() == VAR_INT) {
+		int iterations_ = iterations_var.GetInt();
+		if (iterations_ > 0) {
+			iterations = iterations_;
+		}
+	}
+}
+
+void SetUpRawVertices(
+	VariantVector& constraints,
+	Vector<Vector3>& raw_vertices
+)
+{
+	int raw_index = 0;
+	for (unsigned i = 0; i < constraints.Size(); ++i) {
+
+		VariantMap* var_map = constraints[i].GetVariantMapPtr();
+		VariantVector* shapeop_vertices = (*var_map)["vertices"].GetVariantVectorPtr();
+
+		for (unsigned j = 0; j < shapeop_vertices->Size(); ++j) {
+			VariantMap* var_map2 = (*shapeop_vertices)[j].GetVariantMapPtr();
+			Vector3 v = (*var_map2)["coords"].GetVector3();
+			raw_vertices.Push(v);
+			SetConstraintRawIndex(constraints[i], j, raw_index);
+			++raw_index;
+		}
+	}
+}
 
 void WeldVertices(
 	const Vector<Vector3>& vertices,
@@ -66,46 +127,94 @@ void WeldVertices(
 	assert(new_indices.Size() == vertices.Size());
 }
 
+void UpdateConstraintsAfterWelding(
+	VariantVector& constraints,
+	const Vector<int>& new_indices
+)
+{
+	for (unsigned i = 0; i < constraints.Size(); ++i) {
+		VariantMap* var_map = constraints[i].GetVariantMapPtr();
+		VariantVector* shapeop_vertices = (*var_map)["vertices"].GetVariantVectorPtr();
+
+		for (unsigned j = 0; j < shapeop_vertices->Size(); ++j) {
+			VariantMap* var_map2 = (*shapeop_vertices)[j].GetVariantMapPtr();
+			int current_raw_index = (*var_map2)["raw_index"].GetInt();
+			int processed_index = new_indices[current_raw_index];
+			SetConstraintProcessedIndex(constraints[i], j, processed_index);
+		}
+	}
+}
+
+// ShapeOp's solver natively operates on raw points not meshes.
+// This struct helps track meshes across a ShapeOp simulation.
 struct MeshTrackingData {
 	Variant* mesh;
 	std::vector<int> raw_indices;
 	std::vector<int> processed_indices;
 };
 
-void GetInitializationParameters(
-	const Variant& mass_var,
-	double& mass,
-	const Variant& damping_var,
-	double& damping,
-	const Variant& timestep_var,
-	double& timestep,
-	const Variant& iterations_var,
-	int& iterations
+void SetUpMeshTrackingData(
+	VariantVector& unverified_meshes,
+	const Vector<Vector3>& raw_vertices,
+	std::vector<MeshTrackingData>& tracked_meshes
 )
 {
-	if (mass_var.GetType() == VAR_FLOAT || mass_var.GetType() == VAR_DOUBLE) {
-		double mass_ = mass_var.GetDouble();
-		if (mass_ > 0.0) {
-			mass = mass_;
+	for (int i = 0; i < unverified_meshes.Size(); ++i) {
+		if (TriMesh_Verify(unverified_meshes[i])) {
+			MeshTrackingData mtd;
+			mtd.mesh = &unverified_meshes[i];
+			VariantMap* var_map = unverified_meshes[i].GetVariantMapPtr();
+			VariantVector* vertex_list = (*var_map)["vertices"].GetVariantVectorPtr();
+			for (unsigned j = 0; j < vertex_list->Size(); ++j) {
+				Vector3 v = (*vertex_list)[j].GetVector3();
+				bool found = false;
+				for (unsigned k = 0; k < raw_vertices.Size(); ++k) {
+					Vector3 w = raw_vertices[k];
+					if (
+						v.x_ == w.x_ &&
+						v.y_ == w.y_ &&
+						v.z_ == w.z_
+						)
+					{
+						found = true;
+						mtd.raw_indices.push_back(k);
+						break;
+					}
+				}
+				if (!found) {
+					std::cout << "FAILED to find exact match for tracked mesh vertex in raw_vertices" << std::endl;
+				}
+			}
+			if ((unsigned)mtd.raw_indices.size() == vertex_list->Size()) {
+				// found a match for every vertex, so we can track this mesh
+				tracked_meshes.push_back(mtd);
+			}
 		}
 	}
-	if (damping_var.GetType() == VAR_FLOAT || damping_var.GetType() == VAR_DOUBLE) {
-		double damping_ = damping_var.GetDouble();
-		if (damping_ > 0.0) {
-			damping = damping_;
+}
+
+void UpdateTrackedMeshes(
+	const std::vector<MeshTrackingData>& tracked_meshes,
+	const Vector<int>& new_indices,
+	const VariantVector& points,
+	VariantVector& meshes_out
+)
+{
+	for (int i = 0; i < tracked_meshes.size(); ++i) {
+		MeshTrackingData mtd = tracked_meshes[i];
+		for (int j = 0; j < mtd.raw_indices.size(); ++j) {
+			int raw_index = mtd.raw_indices[j];
+			mtd.processed_indices.push_back(new_indices[raw_index]);
 		}
-	}
-	if (timestep_var.GetType() == VAR_FLOAT || timestep_var.GetType() == VAR_DOUBLE) {
-		double timestep_ = timestep_var.GetDouble();
-		if (timestep_ > 0.0) {
-			timestep = timestep_;
+		VariantVector new_vertex_list;
+		for (int j = 0; j < mtd.processed_indices.size(); ++j) {
+			//Vector3 new_vertex = welded_vertices[mtd.processed_indices[j]];
+			Vector3 new_vertex = points[mtd.processed_indices[j]].GetVector3();
+			new_vertex_list.Push(new_vertex);
 		}
-	}
-	if (iterations_var.GetType() == VAR_INT) {
-		int iterations_ = iterations_var.GetInt();
-		if (iterations_ > 0) {
-			iterations = iterations_;
-		}
+		VariantVector new_face_list = TriMesh_GetFaceList(*mtd.mesh);
+		Variant new_mesh = TriMesh_Make(new_vertex_list, new_face_list);
+		meshes_out.Push(new_mesh);
 	}
 }
 
@@ -197,10 +306,13 @@ void ShapeOp_Solve::SolveInstance(
 	Vector<Variant>& outSolveInstance
 )
 {
+	///////////////////////////////////////////////////////////////////////////////
+	// I. EXTRACT AND VERIFY INPUTS
+	///////////////////////////////////////////////////////////////////////////////
+
 	// get weld epsilon
 	float weld_eps = inSolveInstance[1].GetFloat();
 	if (weld_eps <= 0.0f) {
-		std::cout << "weld_eps = " << weld_eps << std::endl;
 		URHO3D_LOGWARNING("ShapeOp_Solve --- WeldDist must be > 0.0f");
 		SetAllOutputsNull(outSolveInstance);
 		return;
@@ -215,66 +327,22 @@ void ShapeOp_Solve::SolveInstance(
 		g_vec = g_var.GetVector3();
 	}
 
-
-	// get ShapeOp initialization parameters:
-	// mass, damping, timestep
-	double mass = 1.0;
-	double damping = 1.0;
-	double timestep = 1.0;
+	// get ShapeOp solver parameters
+	double mass = 1.0, damping = 1.0, timestep = 1.0;
 	int iterations = 10;
 	GetInitializationParameters(
-		inSolveInstance[3],
-		mass,
-		inSolveInstance[4],
-		damping,
-		inSolveInstance[5],
-		timestep,
-		inSolveInstance[6],
-		iterations
+		inSolveInstance[3], mass,
+		inSolveInstance[4], damping,
+		inSolveInstance[5], timestep,
+		inSolveInstance[6], iterations
 	);
-	/*
-	double mass = 1.0;
-	Variant mass_var = inSolveInstance[3];
-	double damping = 1.0;
-	Variant damping_var = inSolveInstance[4];
-	double timestep = 1.0;
-	Variant timestep_var = inSolveInstance[5];
-	if (mass_var.GetType() == VAR_FLOAT || mass_var.GetType() == VAR_DOUBLE) {
-		double mass_ = mass_var.GetDouble();
-		if (mass_ > 0.0) {
-			mass = mass_;
-		}
-	}
-	if (damping_var.GetType() == VAR_FLOAT || damping_var.GetType() == VAR_DOUBLE) {
-		double damping_ = damping_var.GetDouble();
-		if (damping_ > 0.0) {
-			damping = damping_;
-		}
-	}
-	if (timestep_var.GetType() == VAR_FLOAT || timestep_var.GetType() == VAR_DOUBLE) {
-		double timestep_ = timestep_var.GetDouble();
-		if (timestep_ > 0.0) {
-			timestep = timestep_;
-		}
-	}
-	int iterations = 10;
-	Variant iterations_var = inSolveInstance[6];
-	if (iterations_var.GetType() == VAR_INT) {
-		int iterations_ = iterations_var.GetInt();
-		if (iterations_ > 0) {
-			iterations = iterations_;
-		}
-	}
-	*/
 
-	//////////////////////////////////////////////////////
-	// Go through the input and find the valid constraints
-
-	VariantVector uncleaned_input = inSolveInstance[0].GetVariantVector();
+	// get all valid constraints
+	VariantVector unverified_constraints = inSolveInstance[0].GetVariantVector();
 	VariantVector constraints;
-	for (unsigned i = 0; i < uncleaned_input.Size(); ++i) {
+	for (unsigned i = 0; i < unverified_constraints.Size(); ++i) {
 
-		Variant var = uncleaned_input[i];
+		Variant var = unverified_constraints[i];
 		if (ShapeOpConstraint_Verify(var)) {
 			constraints.Push(var);
 		}
@@ -286,140 +354,26 @@ void ShapeOp_Solve::SolveInstance(
 	}
 	URHO3D_LOGINFO("ShapeOp_Solve --- found valid constraints, beginning vertex processing....");
 
-	///////////////////////////////////////////////////////////////////
-	// Collect points into master point list, then weld nearby vertices
-	// letting the constraints know about all indices, into both
-	// master list and welded list
-
-	int raw_index = 0;
+	// Collect points as raw_vertices, weld nearby ones, update constraint metadata
 	Vector<Vector3> raw_vertices;
-	for (unsigned i = 0; i < constraints.Size(); ++i) {
-
-		VariantMap* var_map = constraints[i].GetVariantMapPtr();
-
-
-		VariantVector* shapeop_vertices = (*var_map)["vertices"].GetVariantVectorPtr();
-
-		int num_shapeop_vertices = shapeop_vertices->Size();
-
-		for (unsigned j = 0; j < shapeop_vertices->Size(); ++j) {
-			VariantMap* var_map2 = (*shapeop_vertices)[j].GetVariantMapPtr();
-			Vector3 v = (*var_map2)["coords"].GetVector3();
-			std::cout << "vertex: " << v.x_ << " " << v.y_ << " " << v.z_ << std::endl;
-			raw_vertices.Push(v);
-
-			SetConstraintRawIndex(constraints[i], j, raw_index);
-
-			//
-			++raw_index;
-		}
-	}
-	assert(raw_index == (int)raw_vertices.Size());
-
+	SetUpRawVertices(constraints, raw_vertices);
 	Vector<Vector3> welded_vertices;
 	Vector<int> new_indices;
 	WeldVertices(raw_vertices, welded_vertices, new_indices, 0.001f);
+	UpdateConstraintsAfterWelding(constraints, new_indices);
 
-	// TMP: debug output
-	/*
-	std::cout << "raw_vertices:" << std::endl;
-	for (int i = 0; i < std::min(10, (int)raw_vertices.Size()); ++i) {
-		Vector3 v = raw_vertices[i];
-		std::cout << "i: " << v.x_ << " " << v.y_ << " " << v.z_ << std::endl;
-	}
-	std::cout << "welded_vertices:" << std::endl;
-	for (int i = 0; i < std::min(10, (int)welded_vertices.Size()); ++i) {
-		Vector3 v = welded_vertices[i];
-		std::cout << "i: " << v.x_ << " " << v.y_ << " " << v.z_ << std::endl;
-	}
-	std::cout << "new_indices:" << std::endl;
-	for (int i = 0; i < std::min(10, (int)new_indices.Size()); ++i) {
-		std::cout << "i: " << new_indices[i] << std::endl;
-	}
-	*/
-
-	// now that:
-	//   welded_vertices
-	//   new_indices
-	// are prepared, go through the constraints and set the corresponding welded (processed) indices
-	for (unsigned i = 0; i < constraints.Size(); ++i) {
-
-		VariantMap* var_map = constraints[i].GetVariantMapPtr();
-
-
-		VariantVector* shapeop_vertices = (*var_map)["vertices"].GetVariantVectorPtr();
-
-		int num_shapeop_vertices = shapeop_vertices->Size();
-
-		for (unsigned j = 0; j < shapeop_vertices->Size(); ++j) {
-			VariantMap* var_map2 = (*shapeop_vertices)[j].GetVariantMapPtr();
-
-			int current_raw_index = (*var_map2)["raw_index"].GetInt();
-			if (current_raw_index == -1) {
-				SetAllOutputsNull(outSolveInstance);
-				URHO3D_LOGWARNING("ShapeOp_Solve --- current_raw_index == -1, something went wrong");
-				return;
-			}
-			int processed_index = new_indices[current_raw_index];
-			SetConstraintProcessedIndex(constraints[i], j, processed_index);
-		}
-	}
-
-	// TMP: debug output
-	for (unsigned i = 0; i < constraints.Size(); ++i) {
-		ShapeOpConstraint_Print(constraints[i]);
-	}
-
-	// Vertex welding and ShapeOp stuff looks valid,
-	// we can now process the tracked meshes, if any
 	VariantVector unverified_meshes = inSolveInstance[7].GetVariantVector();
 	std::vector<MeshTrackingData> tracked_meshes;
-	for (int i = 0; i < unverified_meshes.Size(); ++i) {
-		if (TriMesh_Verify(unverified_meshes[i])) {
-			MeshTrackingData mtd;
-			mtd.mesh = &unverified_meshes[i];
-			VariantMap* var_map = unverified_meshes[i].GetVariantMapPtr();
-			VariantVector* vertex_list = (*var_map)["vertices"].GetVariantVectorPtr();
-			for (unsigned j = 0; j < vertex_list->Size(); ++j) {
-				Vector3 v = (*vertex_list)[j].GetVector3();
-				bool found = false;
-				for (unsigned k = 0; k < raw_vertices.Size(); ++k) {
-					Vector3 w = raw_vertices[k];
-					if (
-						v.x_ == w.x_ &&
-						v.y_ == w.y_ &&
-						v.z_ == w.z_
-						)
-					{
-						std::cout << "FOUND exact match for tracked mesh vertex in raw_vertices" << std::endl;
-						found = true;
-						mtd.raw_indices.push_back(k);
-						break;
-					}
-				}
-				if (!found) {
-					std::cout << "FAILED to find exact math for tracked mesh vertex in raw_vertices" << std::endl;
-				}
-			}
-			if ((unsigned)mtd.raw_indices.size() == vertex_list->Size()) {
-				for (int j = 0; j < mtd.raw_indices.size(); ++j) {
-					std::cout << mtd.raw_indices[j] << " ";
-				}
-				std::cout << std::endl;
-				tracked_meshes.push_back(mtd);
-			}
-		}
-	}
+	SetUpMeshTrackingData(unverified_meshes, raw_vertices, tracked_meshes);
 
-	///////////////////////////////
-	// ShapeOp API calls start here
+	///////////////////////////////////////////////////////////////////////////////
+	// II. ShapeOp API calls
+	///////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////
 	// 1) Create the solver with #shapeop_create
 
 	ShapeOpSolver* op = shapeop_create();
 
-	//////////////////////////////////////////////
 	// 2) Set the vertices with #shapeop_setPoints
 
 	std::vector<double> pts_in;
@@ -433,7 +387,6 @@ void ShapeOp_Solve::SolveInstance(
 	int nb_points = (int)(pts_in.size() / 3);
 	shapeop_setPoints(op, pts_in.data(), nb_points);
 
-	////////////////////////////////////////////////////////////////////////////////////
 	// 3A) Setup the constraints with #shapeop_addConstraint and #shapeop_editConstraint
 
 	// all ids are captured here so their data won't go out of scope after added to the solver
@@ -467,12 +420,9 @@ void ShapeOp_Solve::SolveInstance(
 
 	URHO3D_LOGINFO("ShapeOp_Solve --- " + String(count) + " Constraints added");
 
-	////////////////////////////////////////////////////
 	// 3B) Setup the forces with #shapeop_addVertexForce
 
 	// ... not sure if we're still adding forces to individual vertices
-
-	URHO3D_LOGINFO("ShapeOp_Solve --- Vertex forces added");
 
 	double gravity_force[3] = { (double)g_vec.x_, (double)g_vec.y_, (double)g_vec.z_ };
 	if (add_gravity) {
@@ -480,26 +430,29 @@ void ShapeOp_Solve::SolveInstance(
 		URHO3D_LOGINFO("ShapeOp_Solve --- Gravity force added");
 	}
 
-	//////////////////////////////////////////////////////////////////////
 	// 4) Initialize the solver with #shapeop_init or #shapeop_initDynamic
 
 	//shapeop_init(op);
 	shapeop_initDynamic(op, mass, damping, timestep);
-	//shapeop_initDynamic(op, 2.0, 0.1, 0.1);
 
-	//////////////////////////////////
 	// 5) Optimize with #shapeop_solve
 
 	URHO3D_LOGINFO("ShapeOp_Solve --- solver starting for " + String(iterations) + " iterations....");
 	shapeop_solve(op, iterations);
 	URHO3D_LOGINFO("ShapeOp_Sovle --- solver finished");
 
-	///////////////////////////////////////////////////
 	// 6) Get back the vertices with #shapeop_getPoints
 
-	// Block below has debug stuff, can be simplified after
-	double* pts_out = new double[3 * nb_points];
-	shapeop_getPoints(op, pts_out, nb_points);
+	std::vector<double> pts_out(3 * nb_points);
+	shapeop_getPoints(op, pts_out.data(), nb_points);
+
+	// 7) Delete the solver with #shapeop_delete
+
+	shapeop_delete(op);
+
+	///////////////////////////////////////////////////////////////////////////////
+	// III. Prepare and assign outputs
+	///////////////////////////////////////////////////////////////////////////////
 
 	VariantVector points;
 	for (int i = 0; i < 3 * nb_points; i += 3) {
@@ -507,34 +460,8 @@ void ShapeOp_Solve::SolveInstance(
 		points.Push(pt);
 	}
 
-	delete pts_out;
-
-	////////////////////////////////////////////
-	// 7) Delete the solver with #shapeop_delete
-
-	shapeop_delete(op);
-
 	VariantVector meshes_out;
-	for (int i = 0; i < tracked_meshes.size(); ++i) {
-		MeshTrackingData mtd = tracked_meshes[i];
-		for (int j = 0; j < mtd.raw_indices.size(); ++j) {
-			int raw_index = mtd.raw_indices[j];
-			mtd.processed_indices.push_back(new_indices[raw_index]);
-		}
-		VariantVector new_vertex_list;
-		for (int j = 0; j < mtd.processed_indices.size(); ++j) {
-			//Vector3 new_vertex = welded_vertices[mtd.processed_indices[j]];
-			Vector3 new_vertex = points[mtd.processed_indices[j]].GetVector3();
-			new_vertex_list.Push(new_vertex);
-
-			std::cout << mtd.processed_indices[j] << " ";
-		}
-		VariantVector new_face_list = TriMesh_GetFaceList(*mtd.mesh);
-		Variant new_mesh = TriMesh_Make(new_vertex_list, new_face_list);
-		meshes_out.Push(new_mesh);
-		std::cout << std::endl;
-	}
-
+	UpdateTrackedMeshes(tracked_meshes, new_indices, points, meshes_out);
 
 	outSolveInstance[0] = points;
 	outSolveInstance[1] = meshes_out;
