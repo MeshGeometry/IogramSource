@@ -86,6 +86,7 @@ void Scene_ScriptInstance::SolveInstance(
 	ScriptFile* script_file = cache->GetResource<ScriptFile>(path);
 	cache->ReloadResource(script_file);
 
+	bool exists = cache->Exists(path);
 
 	if (script_file)
 	{

@@ -221,6 +221,11 @@ void Input_Panel::HandleLineEditCommit(StringHash eventType, VariantMap& eventDa
 		targetTypeName = targetType_->GetText();
 	}
 
+	if (targetTypeName.Empty())
+	{
+		targetTypeName = "String";
+	}
+
 	if (!targetTypeName.Empty())
 	{
 		//split text in to multiple lines
