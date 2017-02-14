@@ -34,29 +34,21 @@ void GetInitializationParameters(
 	int& iterations
 )
 {
-	if (mass_var.GetType() == VAR_FLOAT || mass_var.GetType() == VAR_DOUBLE) {
-		double mass_ = mass_var.GetDouble();
-		if (mass_ > 0.0) {
-			mass = mass_;
-		}
+	double mass_ = mass_var.GetDouble();
+	if (mass_ > 0.0) {
+		mass = mass_;
 	}
-	if (damping_var.GetType() == VAR_FLOAT || damping_var.GetType() == VAR_DOUBLE) {
-		double damping_ = damping_var.GetDouble();
-		if (damping_ > 0.0) {
-			damping = damping_;
-		}
+	double damping_ = damping_var.GetDouble();
+	if (damping_ > 0.0) {
+		damping = damping_;
 	}
-	if (timestep_var.GetType() == VAR_FLOAT || timestep_var.GetType() == VAR_DOUBLE) {
-		double timestep_ = timestep_var.GetDouble();
-		if (timestep_ > 0.0) {
-			timestep = timestep_;
-		}
+	double timestep_ = timestep_var.GetDouble();
+	if (timestep_ > 0.0) {
+		timestep = timestep_;
 	}
-	if (iterations_var.GetType() == VAR_INT) {
-		int iterations_ = iterations_var.GetInt();
-		if (iterations_ > 0) {
-			iterations = iterations_;
-		}
+	int iterations_ = iterations_var.GetInt();
+	if (iterations_ > 0) {
+		iterations = iterations_;
 	}
 }
 
