@@ -72,6 +72,43 @@ struct MeshTrackingData {
 	std::vector<int> processed_indices;
 };
 
+void GetInitializationParameters(
+	const Variant& mass_var,
+	double& mass,
+	const Variant& damping_var,
+	double& damping,
+	const Variant& timestep_var,
+	double& timestep,
+	const Variant& iterations_var,
+	int& iterations
+)
+{
+	if (mass_var.GetType() == VAR_FLOAT || mass_var.GetType() == VAR_DOUBLE) {
+		double mass_ = mass_var.GetDouble();
+		if (mass_ > 0.0) {
+			mass = mass_;
+		}
+	}
+	if (damping_var.GetType() == VAR_FLOAT || damping_var.GetType() == VAR_DOUBLE) {
+		double damping_ = damping_var.GetDouble();
+		if (damping_ > 0.0) {
+			damping = damping_;
+		}
+	}
+	if (timestep_var.GetType() == VAR_FLOAT || timestep_var.GetType() == VAR_DOUBLE) {
+		double timestep_ = timestep_var.GetDouble();
+		if (timestep_ > 0.0) {
+			timestep = timestep_;
+		}
+	}
+	if (iterations_var.GetType() == VAR_INT) {
+		int iterations_ = iterations_var.GetInt();
+		if (iterations_ > 0) {
+			iterations = iterations_;
+		}
+	}
+}
+
 } // namespace
 
 String ShapeOp_Solve::iconTexture = "Textures/Icons/DefaultIcon.png";
@@ -142,7 +179,6 @@ ShapeOp_Solve::ShapeOp_Solve(Context* context) : IoComponentBase(context, 8, 2)
 	inputSlots_[7]->SetVariantType(VariantType::VAR_VARIANTMAP);
 	inputSlots_[7]->SetDataAccess(DataAccess::LIST);
 
-	// unfinished
 	outputSlots_[0]->SetName("Points");
 	outputSlots_[0]->SetVariableName("Pts");
 	outputSlots_[0]->SetDescription("Point list output");
@@ -183,6 +219,21 @@ void ShapeOp_Solve::SolveInstance(
 	// get ShapeOp initialization parameters:
 	// mass, damping, timestep
 	double mass = 1.0;
+	double damping = 1.0;
+	double timestep = 1.0;
+	int iterations = 10;
+	GetInitializationParameters(
+		inSolveInstance[3],
+		mass,
+		inSolveInstance[4],
+		damping,
+		inSolveInstance[5],
+		timestep,
+		inSolveInstance[6],
+		iterations
+	);
+	/*
+	double mass = 1.0;
 	Variant mass_var = inSolveInstance[3];
 	double damping = 1.0;
 	Variant damping_var = inSolveInstance[4];
@@ -214,6 +265,7 @@ void ShapeOp_Solve::SolveInstance(
 			iterations = iterations_;
 		}
 	}
+	*/
 
 	//////////////////////////////////////////////////////
 	// Go through the input and find the valid constraints
