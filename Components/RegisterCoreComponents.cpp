@@ -191,8 +191,12 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Mesh_CollapseShortEdges.h"
 #include "Mesh_MeanCurvatureFlow.h"
 #include "Mesh_PerVertexEval.h"
+#include "Mesh_ComputeAdjacencyData.h"
+#include "Mesh_VertexTopology.h"
+#include "Mesh_FaceTopology.h"
+#include "Mesh_BoundaryVertices.h"
 #include "Spatial_ReadOSM.h"
-#include "Offsets_NgonMeshReader.h"
+//#include "Offsets_NgonMeshReader.h"
 
 #include "Widget_Base.h"
 #include "Widget_OptionSlider.h"
@@ -408,8 +412,12 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Mesh_PerVertexEval>(context);
 	RegisterIogramType<Spatial_ReadOSM>(context);
 	RegisterIogramType<Mesh_SplitLongEdges>(context); //Disabled! Crashes on bad meshes like Hexayurt
-
-	RegisterIogramType<Offsets_NgonMeshReader>(context);
+    RegisterIogramType<Mesh_ComputeAdjacencyData>(context);
+    RegisterIogramType<Mesh_FaceTopology>(context);
+    RegisterIogramType<Mesh_VertexTopology>(context);
+	RegisterIogramType<Mesh_BoundaryVertices>(context);
+    
+	//RegisterIogramType<Offsets_NgonMeshReader>(context);
 
 	RegisterIogramType<ShapeOp_Solve>(context);
 	RegisterIogramType<ShapeOp_EdgeStrain>(context);

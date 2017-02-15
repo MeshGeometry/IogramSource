@@ -20,7 +20,7 @@
 
 
 // this computes all the various adjacency data and stores it as an enhanced triMesh
-Urho3D::Variant TriMesh_ComputeAdjacencyData(const Urho3D::Variant& triMeshWithData);
+Urho3D::Variant TriMesh_ComputeAdjacencyData(const Urho3D::Variant& triMesh);
 
 // this checks for existance, but makes no guarantee that the data is uptodate.
 bool TriMesh_HasAdjacencyData(const Urho3D::Variant& triMeshWithData);

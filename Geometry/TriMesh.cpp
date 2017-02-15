@@ -9,6 +9,8 @@
 #include <igl/remove_unreferenced.h>
 #include <igl/bfs_orient.h>
 #include <igl/edges.h>
+#include <igl/is_boundary_edge.h>
+//#include <igl/is_border_vertex.h>
 #pragma warning(pop)
 
 #include "ConversionUtilities.h"
@@ -392,6 +394,41 @@ Urho3D::Vector<int> TriMesh_GetFacesAsInts(const Urho3D::Variant& triMesh)
 	}
 
 	return facesOut;
+
+}
+
+Urho3D::Vector<Urho3D::Pair<int, int>> TriMesh_ComputeBoundaryEdges(const Urho3D::Variant & triMesh)
+{
+	//Urho3D::Vector<Urho3D::Pair<int, int>> edges = TriMesh_ComputeEdges(triMesh);
+
+	bool ver = TriMesh_Verify(triMesh);
+	if (!ver) {
+		return Vector<Pair<int, int>>();
+	}
+
+	//loop through faces and build up the edges
+	Eigen::MatrixXf V;
+	Eigen::MatrixXi F;
+	TriMeshToMatrices(triMesh, V, F);
+
+	Eigen::MatrixXi E;
+	igl::edges(F, E);
+
+	Eigen::VectorXi B;
+	igl::is_boundary_edge(E, F, B);
+
+	Vector<Pair<int, int>> edgesOut;
+	for (int i = 0; i < E.rows(); i++)
+	{
+		if (B(i) == true) {
+			int a = E.row(i)[0];
+			int b = E.row(i)[1];
+
+			edgesOut.Push(Pair<int, int>(a, b));
+		}
+	}
+
+	return edgesOut;
 
 }
 

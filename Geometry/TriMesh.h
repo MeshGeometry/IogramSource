@@ -29,6 +29,8 @@ Urho3D::Vector<float> TriMesh_GetVerticesAsFloats(const Urho3D::Variant& triMesh
 Urho3D::Vector<double> TriMesh_GetVerticesAsDoubles(const Urho3D::Variant& triMesh);
 Urho3D::Vector<int> TriMesh_GetFacesAsInts(const Urho3D::Variant& triMesh);
 
+Urho3D::Vector<Urho3D::Pair<int, int>> TriMesh_ComputeBoundaryEdges(const Urho3D::Variant& triMesh);
+
 Urho3D::Vector<Urho3D::Vector3> TriMesh_ComputePointCloud(const Urho3D::Variant& triMesh);
 
 Urho3D::Variant TriMesh_ApplyTransform(
