@@ -93,6 +93,12 @@ void ShapeOp_GenericConstraint::SolveInstance(
 	float min = inSolveInstance[3].GetFloat();
 	float max = inSolveInstance[4].GetFloat();
 
+	if (verts.Empty())
+	{
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
+
 	//get the verts
 	VariantVector shapeop_vertices;
 	for (int i = 0; i < verts.Size(); i++)

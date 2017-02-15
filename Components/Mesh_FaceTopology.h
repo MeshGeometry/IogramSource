@@ -3,10 +3,10 @@
 #include "IoComponentBase.h"
 
 
-class URHO3D_API Mesh_VertexTopology : public IoComponentBase {
-    URHO3D_OBJECT(Mesh_VertexTopology, IoComponentBase)
+class URHO3D_API Mesh_FaceTopology : public IoComponentBase {
+    URHO3D_OBJECT(Mesh_FaceTopology, IoComponentBase)
 public:
-    Mesh_VertexTopology(Urho3D::Context* context);
+    Mesh_FaceTopology(Urho3D::Context* context);
     
     void SolveInstance(
                        const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,

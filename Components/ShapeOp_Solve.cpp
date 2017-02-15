@@ -437,6 +437,12 @@ void ShapeOp_Solve::SolveInstance(
 		Vector<Vector3> welded_vertices;
 		Vector<int> new_indices;
 		WeldVertices(raw_vertices, welded_vertices, new_indices, 0.001f);
+		if (welded_vertices.Empty())
+		{
+			SetAllOutputsNull(outSolveInstance);
+			return;
+		}
+
 		m_new_indices = new_indices;
 		UpdateConstraintsAfterWelding(constraints, new_indices);
 
