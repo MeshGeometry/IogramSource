@@ -19,5 +19,5 @@ public:
 		Urho3D::Vector<Urho3D::Variant>& outSolveInstance
 		);
 
-	Urho3D::Vector<Urho3D::String> trackedItems;
+	Urho3D::Vector<Urho3D::Pair<int, Urho3D::String>> trackedItems;
 };

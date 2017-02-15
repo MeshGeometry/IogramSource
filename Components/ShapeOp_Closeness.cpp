@@ -39,9 +39,9 @@ ShapeOp_Closeness::ShapeOp_Closeness(Context* context) : IoComponentBase(context
 	inputSlots_[1]->SetDefaultValue(Variant(100.0f));
 	inputSlots_[1]->DefaultSet();
 
-	outputSlots_[0]->SetName("EdgeStrain");
-	outputSlots_[0]->SetVariableName("ES");
-	outputSlots_[0]->SetDescription("EdgeStrain ShapeOp constraint");
+	outputSlots_[0]->SetName("Closeness");
+	outputSlots_[0]->SetVariableName("CS");
+	outputSlots_[0]->SetDescription("Closeness ShapeOp constraint");
 	outputSlots_[0]->SetVariantType(VariantType::VAR_VARIANTMAP);
 	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
 }

@@ -18,4 +18,5 @@ public:
 	void DeleteOutputSlot(int index) = delete;
 
 	static Urho3D::String iconTexture;
+
 };

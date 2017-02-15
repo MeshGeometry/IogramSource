@@ -52,13 +52,21 @@ Scene_AppendRenderPath::Scene_AppendRenderPath(Urho3D::Context* context) : IoCom
 
 void Scene_AppendRenderPath::PreLocalSolve()
 {
-	Renderer* renderer(GetSubsystem<Renderer>());
-	RenderPath* renderPath = renderer->GetViewport(0)->GetRenderPath();
+	Renderer* renderer = GetSubsystem<Renderer>();
+	int numVP = renderer->GetNumViewports();
 
 	for (int i = 0; i < trackedItems.Size(); i++)
 	{
-		renderPath->RemoveCommands(trackedItems[i]);
-		renderPath->RemoveRenderTargets(trackedItems[i]);
+		int vpID = trackedItems[i].first_;
+		String rpCommand = trackedItems[i].second_;
+
+		if (vpID < numVP)
+		{
+			RenderPath* renderPath = renderer->GetViewport(vpID)->GetRenderPath();
+			renderPath->RemoveCommands(rpCommand);
+			renderPath->RemoveRenderTargets(rpCommand);
+		}
+
 	}
 
 	trackedItems.Clear();
@@ -71,16 +79,26 @@ void Scene_AppendRenderPath::SolveInstance(
 {
 	int vId = inSolveInstance[1].GetInt();
 	
-	Renderer* renderer(GetSubsystem<Renderer>());
+	Renderer* renderer = GetSubsystem<Renderer>();
+	int numVP = renderer->GetNumViewports();
 
-	if (vId >= renderer->GetNumViewports())
+	if (vId >= numVP)
 	{
 		URHO3D_LOGERROR("No viewport with that index.");
 		SetAllOutputsNull(outSolveInstance);
 		return;
 	}
 
-	RenderPath* renderPath = renderer->GetViewport(vId)->GetRenderPath();
+	//Viewport* vp = (Viewport*)GetGlobalVar("activeViewport").GetPtr();
+	Viewport* vp = renderer->GetViewport(vId);
+
+	if (!vp)
+	{
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
+	
+	RenderPath* renderPath = vp->GetRenderPath();
 	ResourceCache* cache = GetSubsystem<ResourceCache>();
 	String newRenderPath = inSolveInstance[0].GetString();
 	XMLFile* rFile = cache->GetResource<XMLFile>(newRenderPath);
@@ -95,13 +113,13 @@ void Scene_AppendRenderPath::SolveInstance(
 		if(!rt.IsNull())
 		{
 			tag = rt.GetAttribute("tag");
-			trackedItems.Push(tag);
+			trackedItems.Push(Pair<int, String>(vId, tag));
 		}
 		else
 		{
 			XMLElement cmd = rFile->GetRoot().GetChild("command");
 			tag = cmd.GetAttribute("tag");
-			trackedItems.Push(tag);
+			trackedItems.Push(Pair<int, String>(vId, tag));
 		}
 
 		if (res)
@@ -114,6 +132,8 @@ void Scene_AppendRenderPath::SolveInstance(
 			{
 				renderPath->SetShaderParameter(params[i].GetString(), vals[i]);
 			}
+
+			vp->SetRenderPath(renderPath);
 		}
 		
 		outSolveInstance[0] = tag;
