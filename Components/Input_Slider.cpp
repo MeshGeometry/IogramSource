@@ -47,7 +47,7 @@ String Input_Slider::GetNodeStyle()
 }
 void Input_Slider::HandleCustomInterface(UIElement* customElement)
 {
-	
+
 	//get the meta data
 	minRange = GetGenericData("min").GetFloat();
 	maxRange = GetGenericData("max").GetFloat();
@@ -60,47 +60,36 @@ void Input_Slider::HandleCustomInterface(UIElement* customElement)
 	//slider->SetMinHeight(20);
 	slider->SetSize(customElement->GetSize().x_, 12);
 	//slider->SetMaxHeight(30);
-	
+
 	UIElement* controls = customElement->CreateChild<UIElement>("ControlGroup");
 	controls->SetMinHeight(30);
 	controls->SetLayoutMode(LM_HORIZONTAL);
 	controls->SetLayoutSpacing(2);
-	//slider = (Slider*)customElement->GetChild("MainSlider", false);
-
-	if (slider)
-	{
-		SubscribeToEvent(slider, E_SLIDERCHANGED, URHO3D_HANDLER(Input_Slider, HandleSliderChanged));
-		Variant val;
-		inputSlots_[0]->GetIoDataTreePtr()->Begin();
-		inputSlots_[0]->GetIoDataTreePtr()->GetNextItem(val, DataAccess::ITEM);
-	}
 
 	minInput = controls->CreateChild<LineEdit>("SliderMin");
 	minInput->SetStyleAuto();
-	//minInput = (LineEdit*)customElement->GetChild("SliderMin", true);
-	if (minInput)
-	{
-		SubscribeToEvent(minInput, E_TEXTCHANGED, URHO3D_HANDLER(Input_Slider, HandleLineEdit));
-		minInput->SetText(String(minRange));
-	}
+	minInput->SetText(String(minRange));
 
 	maxInput = controls->CreateChild<LineEdit>("SliderMax");
 	maxInput->SetStyleAuto();
-	//maxInput = (LineEdit*)customElement->GetChild("SliderMax", true);
-	if (maxInput)
-	{
-		SubscribeToEvent(maxInput, E_TEXTCHANGED, URHO3D_HANDLER(Input_Slider, HandleLineEdit));
-		maxInput->SetText(String(maxRange));
-	}
+	maxInput->SetText(String(maxRange));
 
 	valInput = controls->CreateChild<LineEdit>("CurrentValue");
 	valInput->SetStyleAuto();
-	//valInput = (LineEdit*)customElement->GetChild("CurrentValue", true);
-	if (valInput)
-	{
-		SubscribeToEvent(valInput, E_TEXTFINISHED, URHO3D_HANDLER(Input_Slider, HandleLineEdit));
-		valInput->SetText(String(currentValue));
-	}
+	valInput->SetText(String(currentValue));
+
+	SubscribeToEvent(slider, E_SLIDERCHANGED, URHO3D_HANDLER(Input_Slider, HandleSliderChanged));
+	SubscribeToEvent(valInput, E_TEXTFINISHED, URHO3D_HANDLER(Input_Slider, HandleLineEdit));
+	SubscribeToEvent(maxInput, E_TEXTCHANGED, URHO3D_HANDLER(Input_Slider, HandleLineEdit));
+	SubscribeToEvent(minInput, E_TEXTCHANGED, URHO3D_HANDLER(Input_Slider, HandleLineEdit));
+
+
+	//set the value
+	float range = Abs(maxRange - minRange);
+	slider->SetRange(range);
+	float val = currentValue - minRange;
+	slider->SetValue(val);
+
 }
 void Input_Slider::HandleSliderChanged(StringHash eventType, VariantMap& eventData)
 {
