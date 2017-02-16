@@ -94,6 +94,11 @@ void Input_Slider::HandleCustomInterface(UIElement* customElement)
 void Input_Slider::HandleSliderChanged(StringHash eventType, VariantMap& eventData)
 {
 	using namespace SliderChanged;
+
+	Slider* s = (Slider*)eventData[P_ELEMENT].GetPtr();
+	if (s != slider)
+		return;
+
 	float val = eventData[P_VALUE].GetFloat();
 	val = minRange + val; //remap to proper range
 						  //valText->SetText(String(val));

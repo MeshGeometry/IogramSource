@@ -154,6 +154,11 @@ void Input_GeometryEdit::HandleMouseMove(StringHash eventType, VariantMap& event
 	int x = eventData[P_X].GetInt();
 	int y = eventData[P_Y].GetInt();
 
+	//scale 
+	float scale = GetSubsystem<UI>()->GetScale();
+	x = x / scale;
+	y = y / scale;
+
 	//use delta and object transform to move object
 	Viewport* activeViewport = (Viewport*)GetGlobalVar("activeViewport").GetVoidPtr();
 	Camera* currentCamera = activeViewport->GetCamera();
@@ -310,20 +315,24 @@ bool Input_GeometryEdit::DoRaycast()
 
 	UI* ui = GetSubsystem<UI>();
 	IntVector2 pos = ui->GetCursorPosition();
+
+	float scale = ui->GetScale();
+	IntVector2 sPos(pos.x_ / scale, pos.y_ / scale);;
+
 	Graphics* graphics = GetSubsystem<Graphics>();
 	Camera* currentCamera = activeViewport->GetCamera();
 
 	//remap mouse pos by ui rect
 	UIElement* element = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
 
-	Ray cameraRay = activeViewport->GetScreenRay(pos.x_, pos.y_);
+	Ray cameraRay = activeViewport->GetScreenRay(sPos.x_, sPos.y_);
 
 	if (element)
 	{
 		IntVector2 ePos = element->GetScreenPosition();
 		IntVector2 eSize = element->GetSize();
-		float x = (pos.x_ - ePos.x_) / (float)eSize.x_;
-		float y = (pos.y_ - ePos.y_) / (float)eSize.y_;
+		float x = (sPos.x_ - ePos.x_) / (float)eSize.x_;
+		float y = (sPos.y_ - ePos.y_) / (float)eSize.y_;
 
 		cameraRay = currentCamera->GetScreenRay(x, y);
 	}
