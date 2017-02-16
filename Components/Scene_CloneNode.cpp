@@ -50,7 +50,7 @@ Scene_CloneNode::Scene_CloneNode(Urho3D::Context* context) : IoComponentBase(con
 
 Scene_CloneNode::~Scene_CloneNode()
 {
-	PreLocalSolve();
+	//PreLocalSolve();
 }
 
 void Scene_CloneNode::SolveInstance(
@@ -122,16 +122,20 @@ void Scene_CloneNode::SolveInstance(
 void Scene_CloneNode::PreLocalSolve()
 {
 	//delete old nodes
-	Scene* scene = GetSubsystem<IoGraph>()->scene;
-	for (int i = 0; i < trackedNodes.Size(); i++)
+	Scene* scene = (Scene*)GetGlobalVar("Scene").GetPtr();
+	if (scene)
 	{
-		Node* oldNode = scene->GetNode(trackedNodes[i]);
-		if (oldNode)
+		for (int i = 0; i < trackedNodes.Size(); i++)
 		{
-			oldNode->Remove();
-		}
+			Node* oldNode = scene->GetNode(trackedNodes[i]);
+			if (oldNode)
+			{
+				oldNode->Remove();
+			}
 
+		}
 	}
+
 
 	trackedNodes.Clear();
 }

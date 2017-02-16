@@ -306,6 +306,9 @@ void IogramPlayer::SetupViewport()
 	//IntRect* rect = new IntRect(0, 0, width, height);
 	SharedPtr<Viewport> viewport(new Viewport(context_, scene_, cameraNode_->GetComponent<OrbitCamera>()->camera_));
 	SetGlobalVar("activeViewport", viewport.Get());
+	VariantVector vpList;
+	vpList.Push(viewport.Get());
+	SetGlobalVar("ViewportVector", vpList);
 	//viewport->SetRect(*rect);
 
 	renderer->SetViewport(0, viewport);

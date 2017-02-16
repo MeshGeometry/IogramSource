@@ -65,12 +65,12 @@ void Mesh_DecimateMesh::SolveInstance(
 		return;
 	}
 	// Verify input slot 1
-	Variant type1 = inSolveInstance[1].GetType();
-	if (type1 != VariantType::VAR_INT) {
-		URHO3D_LOGWARNING("C must be a valid integer.");
-		outSolveInstance[0] = Variant();
-		return;
-	}
+	//Variant type1 = inSolveInstance[1].GetType();
+	//if (type1 != VariantType::VAR_INT) {
+	//	URHO3D_LOGWARNING("C must be a valid integer.");
+	//	outSolveInstance[0] = Variant();
+	//	return;
+	//}
 	int faceTarget = inSolveInstance[1].GetInt();
 	if (faceTarget <= 0) {
 		URHO3D_LOGWARNING("C must be > 0.");

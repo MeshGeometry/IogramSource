@@ -53,7 +53,8 @@ Scene_AppendRenderPath::Scene_AppendRenderPath(Urho3D::Context* context) : IoCom
 void Scene_AppendRenderPath::PreLocalSolve()
 {
 	Renderer* renderer = GetSubsystem<Renderer>();
-	int numVP = renderer->GetNumViewports();
+	VariantVector vpList = GetGlobalVar("ViewportVector").GetVariantVector();
+	int numVP = vpList.Size();
 
 	for (int i = 0; i < trackedItems.Size(); i++)
 	{
@@ -62,9 +63,14 @@ void Scene_AppendRenderPath::PreLocalSolve()
 
 		if (vpID < numVP)
 		{
-			RenderPath* renderPath = renderer->GetViewport(vpID)->GetRenderPath();
-			renderPath->RemoveCommands(rpCommand);
-			renderPath->RemoveRenderTargets(rpCommand);
+			Viewport* vp = (Viewport*)vpList[vpID].GetPtr();
+			if (vp)
+			{
+				RenderPath* renderPath =vp->GetRenderPath();
+				renderPath->RemoveCommands(rpCommand);
+				renderPath->RemoveRenderTargets(rpCommand);
+			}
+
 		}
 
 	}
@@ -80,7 +86,9 @@ void Scene_AppendRenderPath::SolveInstance(
 	int vId = inSolveInstance[1].GetInt();
 	
 	Renderer* renderer = GetSubsystem<Renderer>();
-	int numVP = renderer->GetNumViewports();
+
+	VariantVector vpList = GetGlobalVar("ViewportVector").GetVariantVector();
+	int numVP = vpList.Size();
 
 	if (vId >= numVP)
 	{
@@ -90,7 +98,7 @@ void Scene_AppendRenderPath::SolveInstance(
 	}
 
 	//Viewport* vp = (Viewport*)GetGlobalVar("activeViewport").GetPtr();
-	Viewport* vp = renderer->GetViewport(vId);
+	Viewport* vp = (Viewport*)vpList[vId].GetPtr();
 
 	if (!vp)
 	{
