@@ -83,6 +83,7 @@ void Mesh_DeconstructFace::SolveInstance(
 		VariantVector faceList = TriMesh_GetFaceList(inMesh);
 		VariantVector normalList = TriMesh_GetNormalList(inMesh);
 		Vector3 normal = normalList[vertID].GetVector3();
+		normal = normal.Normalized();
 
 		VariantVector faceVertexIDs;
 		VariantVector faceVertexVectors;
