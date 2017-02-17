@@ -195,6 +195,7 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Mesh_VertexTopology.h"
 #include "Mesh_FaceTopology.h"
 #include "Mesh_BoundaryVertices.h"
+#include "Mesh_DeconstructFace.h"
 #include "Spatial_ReadOSM.h"
 //#include "Offsets_NgonMeshReader.h"
 
@@ -416,7 +417,8 @@ void RegisterCoreComponents(Context* context)
     RegisterIogramType<Mesh_FaceTopology>(context);
     RegisterIogramType<Mesh_VertexTopology>(context);
 	RegisterIogramType<Mesh_BoundaryVertices>(context);
-    
+	RegisterIogramType<Mesh_DeconstructFace>(context);
+
 	//RegisterIogramType<Offsets_NgonMeshReader>(context);
 
 	RegisterIogramType<ShapeOp_Solve>(context);
