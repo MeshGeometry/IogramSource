@@ -14,6 +14,7 @@
 
 #include "TriMesh.h"
 #include "Polyline.h"
+#include "NMesh.h"
 
 #pragma warning(disable : 4244)
 
@@ -381,4 +382,73 @@ Urho3D::Variant MakeRegularPolygon(int n)
 	vertex_list.Push(Variant(v0));
 
 	return Polyline_Make(vertex_list);
+}
+
+Urho3D::Variant MakeSuperTorus(float outer_radius, float inner_radius, float first_power, float second_power, int res)
+{
+	// regard the torus as a rectangle, with opposite sides identified. 
+	// res gives the number of divisions in each direction. So the rectangle will be divded into res*res quads
+	// to create the vertex list, we create the vertices row by row.
+	// example: res = 4
+	// v_03, v_13, v_23, v_33
+	// v_02, v_12, v_22, v_32
+	// v_01, v_11, v_21, v_31
+	// v_00, v_10, v_20, v_30
+
+
+	// so the translation to vertex IDs is 
+	// 12 13 14 15
+	// 8 9 10 11
+	// 4 5 6 7
+	// 0 1 2 3 
+
+
+	// the faces may then be created from this list. 
+	// see http://paulbourke.net/geometry/torus/source2.c
+
+	float DTOR = 0.01745329252;
+	int n1 = first_power;
+	int n2 = second_power;
+	float r0 = outer_radius;
+	float r1 = inner_radius;
+
+	// make the vertex list
+	VariantVector vertex_list;
+
+	int dx = (int)360 / res;
+	for (int u = 0; u < 360; u += dx) {
+		for (int v = 0; v < 360; v += dx) {
+			float theta = u*DTOR;
+			float phi = v*DTOR;
+
+			Vector3 curVert;
+			curVert.x_ = pow(cos(theta), n1) * (r0 + r1 * pow(cos(phi), n2));
+			curVert.y_ = pow(sin(theta), n1) * (r0 + r1 * pow(cos(phi), n2));
+			curVert.z_ = r1 * pow(sin(phi), n2);
+			vertex_list.Push(Variant(curVert));
+		}
+	}
+
+	VariantVector face_list;
+	// make the face list
+	for (int i = 0; i < res; ++i) {
+		for (int j = 0; j < res; ++j) {
+			// all faces are quads:
+			face_list.Push(4);
+
+			int lower_left = res*i + j;
+			int lower_right = res*i + ((j + 1) % res);
+			int upper_right = res*(i+1)%(res*res) + ((j + 1) % res);
+			int upper_left = res*(i + 1) % (res*res) + j;
+
+			face_list.Push(lower_left);
+			face_list.Push(lower_right);
+			face_list.Push(upper_right);
+			face_list.Push(upper_left);
+		}
+	}
+
+	Urho3D::Variant superTorus = NMesh_Make(vertex_list, face_list);
+
+	return superTorus;
 }

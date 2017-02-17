@@ -45,25 +45,32 @@ Mesh_Torus::Mesh_Torus(Context* context) : IoComponentBase(context, 5, 1)
 	inputSlots_[2]->SetName("FirstPower");
 	inputSlots_[2]->SetVariableName("P1");
 	inputSlots_[2]->SetDescription("FirstPower");
-	inputSlots_[2]->SetVariantType(VariantType::VAR_INT);
+	inputSlots_[2]->SetVariantType(VariantType::VAR_FLOAT);
 	inputSlots_[2]->SetDataAccess(DataAccess::ITEM);
-	inputSlots_[2]->SetDefaultValue(Variant(1));
+	inputSlots_[2]->SetDefaultValue(Variant(1.0f));
 	inputSlots_[2]->DefaultSet();
 
 	inputSlots_[3]->SetName("SecondPower");
 	inputSlots_[3]->SetVariableName("P2");
 	inputSlots_[3]->SetDescription("SecondPower");
-	inputSlots_[3]->SetVariantType(VariantType::VAR_INT);
+	inputSlots_[3]->SetVariantType(VariantType::VAR_FLOAT);
 	inputSlots_[3]->SetDataAccess(DataAccess::ITEM);
-	inputSlots_[3]->SetDefaultValue(Variant(1));
+	inputSlots_[3]->SetDefaultValue(Variant(1.0f));
 	inputSlots_[3]->DefaultSet();
 
-	inputSlots_[4]->SetName("Transformation");
-	inputSlots_[4]->SetVariableName("T");
-	inputSlots_[4]->SetDescription("Transformation to apply to cube");
-	inputSlots_[4]->SetVariantType(VariantType::VAR_MATRIX3X4);
-	inputSlots_[4]->SetDefaultValue(Matrix3x4::IDENTITY);
+	inputSlots_[4]->SetName("MeshResolution");
+	inputSlots_[4]->SetVariableName("R");
+	inputSlots_[4]->SetDescription("Integer (>3) describing mesh resolution");
+	inputSlots_[4]->SetVariantType(VariantType::VAR_INT);
+	inputSlots_[4]->SetDefaultValue(Variant(8));
 	inputSlots_[4]->DefaultSet();
+
+	//inputSlots_[4]->SetName("Transformation");
+	//inputSlots_[4]->SetVariableName("T");
+	//inputSlots_[4]->SetDescription("Transformation to apply to cube");
+	//inputSlots_[4]->SetVariantType(VariantType::VAR_MATRIX3X4);
+	//inputSlots_[4]->SetDefaultValue(Matrix3x4::IDENTITY);
+	//inputSlots_[4]->DefaultSet();
 
 	outputSlots_[0]->SetName("Mesh");
 	outputSlots_[0]->SetVariableName("M");
@@ -104,7 +111,7 @@ void Mesh_Torus::SolveInstance(
 		outSolveInstance[0] = Variant();
 		return;
 	}
-	float inner = inSolveInstance[0].GetFloat();
+	float inner = inSolveInstance[1].GetFloat();
 	if (inner <= 0.0f) {
 		URHO3D_LOGWARNING("Inner radius must be > 0.");
 		outSolveInstance[0] = Variant();
@@ -113,49 +120,62 @@ void Mesh_Torus::SolveInstance(
 
 	// Verify input slot 2
 	VariantType type2 = inSolveInstance[2].GetType();
-	if (!(type2 == VariantType::VAR_INT)) {
-		URHO3D_LOGWARNING("First power must be a valid integer.");
+	if (!(type2 == VariantType::VAR_INT || type2 == VariantType::VAR_FLOAT)) {
+		URHO3D_LOGWARNING("First power must be a valid integer or float.");
 		outSolveInstance[0] = Variant();
 		return;
 	}
-	float p_1 = inSolveInstance[0].GetInt();
-	if (p_1 <= 0 || p_1 > 5) {
-		URHO3D_LOGWARNING("First power must be between 1 and 5");
+	int p_1 = inSolveInstance[2].GetFloat();
+	if (p_1 <= 0.2f || p_1 > 4.0f) {
+		URHO3D_LOGWARNING("First power must be between 0.2 and 4.0");
 		outSolveInstance[0] = Variant();
 		return;
 	}
 
 	// Verify input slot 3
 	VariantType type3 = inSolveInstance[3].GetType();
-	if (!(type3 == VariantType::VAR_INT)) {
-		URHO3D_LOGWARNING("Second power must be a valid integer.");
+	if (!(type3 == VariantType::VAR_INT || type3 == VariantType::VAR_FLOAT)) {
+		URHO3D_LOGWARNING("Second power must be a valid integer or float.");
 		outSolveInstance[0] = Variant();
 		return;
 	}
-	float p_2 = inSolveInstance[0].GetInt();
-	if (p_2 <= 0 || p_2 > 5) {
-		URHO3D_LOGWARNING("Second power must be between 1 and 5");
+	int p_2 = inSolveInstance[3].GetFloat();
+	if (p_2 <= 0.2f || p_2 > 4.0f) {
+		URHO3D_LOGWARNING("Second power must be between 0.2 and 4.0");
 		outSolveInstance[0] = Variant();
 		return;
 	}
 
+	//// Verify input slot 4
+	//VariantType type4 = inSolveInstance[4].GetType();
+	//if (type4 != VariantType::VAR_MATRIX3X4) {
+	//	URHO3D_LOGWARNING("T must be a valid transform.");
+	//	outSolveInstance[0] = Variant();
+	//	return;
+	//}
+	//Matrix3x4 tr = inSolveInstance[4].GetMatrix3x4();
+
 	// Verify input slot 4
 	VariantType type4 = inSolveInstance[4].GetType();
-	if (type1 != VariantType::VAR_MATRIX3X4) {
-		URHO3D_LOGWARNING("T must be a valid transform.");
+	if (type4 != VariantType::VAR_INT) {
+		URHO3D_LOGWARNING("R must be a valid int!");
 		outSolveInstance[0] = Variant();
 		return;
 	}
-	Matrix3x4 tr = inSolveInstance[4].GetMatrix3x4();
+	int res = inSolveInstance[4].GetInt();
+	if (res < 3) {
+		URHO3D_LOGWARNING("R must be larger than 3");
+		outSolveInstance[0] = Variant();
+		return;
+	}
 
 	///////////////////
 	// COMPONENT'S WORK
 
-	Variant baseCubeMesh = MakeCubeMesh(outer);
-	Variant cubeMesh = TriMesh_ApplyTransform(baseCubeMesh, tr);
+	Variant torusMesh = MakeSuperTorus(outer, inner, p_1, p_2, res);
 
 	/////////////////
 	// ASSIGN OUTPUTS
 
-	outSolveInstance[0] = cubeMesh;
+	outSolveInstance[0] = torusMesh;
 }
