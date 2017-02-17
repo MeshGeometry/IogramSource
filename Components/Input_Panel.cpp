@@ -86,6 +86,11 @@ void Input_Panel::HandleCustomInterface(UIElement* customElement)
 	textArea_->GetCursor()->SetOpacity(0.7f);
 	textArea_->GetCursor()->SetBlendMode(BLEND_ALPHA);
 
+	
+	Text* t = customElement->CreateChild<Text>("CastAs");
+	t->SetStyleAuto();
+	t->SetText("Force Data Type: ");
+
 	targetType_ = customElement->CreateChild<LineEdit>("TargetType");
 	targetType_->SetStyleAuto();
 	targetType_->SetMaxHeight(24);
