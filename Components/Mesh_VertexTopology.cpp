@@ -31,14 +31,6 @@ Mesh_VertexTopology::Mesh_VertexTopology(Context* context) : IoComponentBase(con
     inputSlots_[1]->SetDefaultValue(0);
     inputSlots_[1]->DefaultSet();
     
-//    inputSlots_[2]->SetName("StarDepth");
-//    inputSlots_[2]->SetVariableName("N");
-//    inputSlots_[2]->SetDescription("Radius of vertex star ring");
-//    inputSlots_[2]->SetVariantType(VariantType::VAR_INT);
-//    inputSlots_[2]->SetDataAccess(DataAccess::ITEM);
-//    inputSlots_[2]->SetDefaultValue(1);
-//    inputSlots_[2]->DefaultSet();
-    
     outputSlots_[0]->SetName("VertexStarIDs");
     outputSlots_[0]->SetVariableName("V_ID");
     outputSlots_[0]->SetDescription("Indices of vertices adjacent to V");
@@ -72,16 +64,34 @@ void Mesh_VertexTopology::SolveInstance(
     Variant inMesh = inSolveInstance[0];
     if (!TriMesh_HasAdjacencyData(inMesh)) {
         URHO3D_LOGWARNING("M must be a valid mesh with adjacency data.");
-        outSolveInstance[0] = Variant();
+		SetAllOutputsNull(outSolveInstance);
         return;
     }
     
+<<<<<<< HEAD
+=======
+    // Verify input slot 1
+    VariantType type = inSolveInstance[1].GetType();
+    if (!(type == VariantType::VAR_INT)) {
+        URHO3D_LOGWARNING("ID must be a valid integer.");
+		SetAllOutputsNull(outSolveInstance);
+        return;
+    }
+    
+>>>>>>> a0d9a91110c4aecce0d03e96bfd6178eb9196510
     int vertID = inSolveInstance[1].GetInt();
     
     VariantMap meshWithData = inMesh.GetVariantMap();
     VariantMap triMesh = meshWithData["mesh"].GetVariantMap();
     
     Urho3D::VariantVector vertexList = TriMesh_GetVertexList(Variant(triMesh));
+
+	// check that vertID is within range:
+	if (vertID < 0 || vertID > vertexList.Size()-1) {
+		URHO3D_LOGWARNING("VertexID is out of range");
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
     
     ///////////////////
     // COMPONENT'S WORK

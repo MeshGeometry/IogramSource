@@ -70,48 +70,64 @@ void Mesh_DeconstructFace::SolveInstance(
 	Variant inMesh = inSolveInstance[0];
 	if (!TriMesh_Verify(inMesh)) {
 		URHO3D_LOGWARNING("M must be a valid mesh.");
-		outSolveInstance[0] = Variant();
+		SetAllOutputsNull(outSolveInstance);
 		return;
 	}
 
-	int vertID = inSolveInstance[1].GetInt();
+	// Verify input slot 1
+	VariantType type1 = inSolveInstance[1].GetType();
+	if (!(type1 == VariantType::VAR_INT)) {
+		URHO3D_LOGWARNING("FaceID must be a valid integer.");
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
+
+	int faceID = inSolveInstance[1].GetInt();
+
+	VariantVector vertexList = TriMesh_GetVertexList(inMesh);
+	VariantVector faceList = TriMesh_GetFaceList(inMesh);
+	VariantVector normalList = TriMesh_GetNormalList(inMesh);
+
+	// check that faceID is within range:
+	if (faceID < 0 || faceID > normalList.Size()-1) {
+		URHO3D_LOGWARNING("FaceID is out of range");
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
 
 	///////////////////
 	// COMPONENT'S WORK
 
-		VariantVector vertexList = TriMesh_GetVertexList(inMesh);
-		VariantVector faceList = TriMesh_GetFaceList(inMesh);
-		VariantVector normalList = TriMesh_GetNormalList(inMesh);
-		Vector3 normal = normalList[vertID].GetVector3();
-		normal = normal.Normalized();
+	Vector3 normal = normalList[faceID].GetVector3();
+	normal = normal.Normalized();
 
-		VariantVector faceVertexIDs;
-		VariantVector faceVertexVectors;
-		Vector3 centroid = Vector3::ZERO;
+	VariantVector faceVertexIDs;
+	VariantVector faceVertexVectors;
+	Vector3 centroid = Vector3::ZERO;
 
 
-		// get the vert IDs
-		for (int i = 0; i < 3; ++i)
-		{
-			faceVertexIDs.Push(faceList[3 * vertID + i].GetInt());
-		}
+	// get the vert IDs
+	for (int i = 0; i < 3; ++i)
+	{
+		faceVertexIDs.Push(faceList[3 * faceID + i].GetInt());
+	}
 
-		// get the vertex vectors
-		for (int i = 0; i < faceVertexIDs.Size(); ++i) {
-			int vertID = faceVertexIDs[i].GetInt();
-			Vector3 curVert = vertexList[vertID].GetVector3();
-			faceVertexVectors.Push(curVert);
-			centroid += curVert;
-		}
+	// get the vertex vectors
+	for (int i = 0; i < faceVertexIDs.Size(); ++i) {
+		int vertID = faceVertexIDs[i].GetInt();
+		Vector3 curVert = vertexList[vertID].GetVector3();
+		faceVertexVectors.Push(curVert);
+		centroid += curVert;
+	}
 
-		// find the actual centroid
-		centroid = centroid / 3;
+	// find the actual centroid
+	centroid = centroid / 3;
 
 
-		outSolveInstance[0] = Variant(faceVertexIDs);
-		outSolveInstance[1] = Variant(faceVertexVectors);
-		outSolveInstance[2] = Variant(normal);
-		outSolveInstance[3] = Variant(centroid);
+	outSolveInstance[0] = Variant(faceVertexIDs);
+	outSolveInstance[1] = Variant(faceVertexVectors);
+	outSolveInstance[2] = Variant(normal);
+	outSolveInstance[3] = Variant(centroid);
 
 
 }

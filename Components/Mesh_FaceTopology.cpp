@@ -81,7 +81,14 @@ void Mesh_FaceTopology::SolveInstance(
     VariantMap triMesh = meshWithData["mesh"].GetVariantMap();
     
     Urho3D::VariantVector vertexList = TriMesh_GetVertexList(Variant(triMesh));
-    
+	Urho3D::VariantVector normalList = TriMesh_GetNormalList(Variant(triMesh));
+
+    //check that faceID is within range
+	if (faceID < 0 || faceID > normalList.Size() - 1) {
+		URHO3D_LOGWARNING("FaceID is out of range");
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
     
     
     ///////////////////

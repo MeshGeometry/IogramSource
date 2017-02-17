@@ -4,6 +4,12 @@
 #include <Urho3D/Graphics/Model.h>
 
 
+// vertex_list is a list of Vector3's
+// face_list has a list of integers with the following format: 
+// entry 0 : number of indices in first face, say = 4
+// entries 1, 2, 3, 4 : indices of first face
+// entry 5 : number of indices in second face
+// etc.
 
 Urho3D::Variant NMesh_Make(const Urho3D::VariantVector& vertex_list, const Urho3D::VariantVector& face_list);
 

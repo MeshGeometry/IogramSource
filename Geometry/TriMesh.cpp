@@ -10,6 +10,7 @@
 #include <igl/bfs_orient.h>
 #include <igl/edges.h>
 #include <igl/is_boundary_edge.h>
+
 //#include <igl/is_border_vertex.h>
 #pragma warning(pop)
 
@@ -615,6 +616,27 @@ Urho3D::Variant TriMesh_UnifyNormals(const Urho3D::Variant& tri_mesh)
 	igl::bfs_orient(F, FF, C);
 
 	return TriMesh_Make(V, FF);
+}
+
+Urho3D::Variant TriMesh_FlipNormals(const Urho3D::Variant& tri_mesh)
+{
+    if (!TriMesh_Verify(tri_mesh)) {
+        return Variant();
+    }
+    
+    VariantVector vertex_list = TriMesh_GetVertexList(tri_mesh);
+    VariantVector face_list = TriMesh_GetFaceList(tri_mesh);
+    
+    VariantVector reverse_face_list;
+    
+    for (int i = 0; i < face_list.Size(); i+=3)
+    {
+        reverse_face_list.Push(face_list[i+2].GetInt());
+        reverse_face_list.Push(face_list[i+1].GetInt());
+        reverse_face_list.Push(face_list[i].GetInt());
+    }
+    
+    return TriMesh_Make(vertex_list, reverse_face_list);
 }
 
 void TriMeshToMatrices(const Variant& triMesh, Eigen::MatrixXf& V, Eigen::MatrixXi& F)
