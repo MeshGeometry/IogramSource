@@ -138,7 +138,6 @@ void Input_Panel::HandleDefocus(Urho3D::StringHash eventType, Urho3D::VariantMap
 		}
 	}
 
-	URHO3D_LOGINFO("Cursor width: " + String(textArea_->GetCursor()->GetWidth()));
 }
 
 void Input_Panel::HandleFocus(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
