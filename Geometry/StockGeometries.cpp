@@ -441,10 +441,12 @@ Urho3D::Variant MakeSuperTorus(float outer_radius, float inner_radius, float fir
 			int upper_right = res*(i+1)%(res*res) + ((j + 1) % res);
 			int upper_left = res*(i + 1) % (res*res) + j;
 
+            
+            face_list.Push(upper_left);
+            face_list.Push(upper_right);
+            face_list.Push(lower_right);
 			face_list.Push(lower_left);
-			face_list.Push(lower_right);
-			face_list.Push(upper_right);
-			face_list.Push(upper_left);
+
 		}
 	}
 

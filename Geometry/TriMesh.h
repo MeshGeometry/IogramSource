@@ -46,6 +46,8 @@ Urho3D::Variant TriMesh_BoundingBox(const Urho3D::Variant& tri_mesh);
 
 Urho3D::Variant TriMesh_UnifyNormals(const Urho3D::Variant& tri_mesh);
 
+Urho3D::Variant TriMesh_FlipNormals(const Urho3D::Variant& tri_mesh);
+
 void TriMeshToMatrices(const Urho3D::Variant& triMesh, Eigen::MatrixXf& V, Eigen::MatrixXi& F);
 void TriMeshToDoubleMatrices(const Urho3D::Variant& triMesh, Eigen::MatrixXd& V, Eigen::MatrixXi& F);
 //Display functions
