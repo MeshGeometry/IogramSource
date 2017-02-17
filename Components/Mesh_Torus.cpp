@@ -125,7 +125,7 @@ void Mesh_Torus::SolveInstance(
 		outSolveInstance[0] = Variant();
 		return;
 	}
-	int p_1 = inSolveInstance[2].GetFloat();
+	float p_1 = inSolveInstance[2].GetFloat();
 	if (p_1 <= 0.2f || p_1 > 4.0f) {
 		URHO3D_LOGWARNING("First power must be between 0.2 and 4.0");
 		outSolveInstance[0] = Variant();
@@ -139,7 +139,7 @@ void Mesh_Torus::SolveInstance(
 		outSolveInstance[0] = Variant();
 		return;
 	}
-	int p_2 = inSolveInstance[3].GetFloat();
+	float p_2 = inSolveInstance[3].GetFloat();
 	if (p_2 <= 0.2f || p_2 > 4.0f) {
 		URHO3D_LOGWARNING("Second power must be between 0.2 and 4.0");
 		outSolveInstance[0] = Variant();
