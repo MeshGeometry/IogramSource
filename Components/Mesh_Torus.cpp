@@ -89,85 +89,14 @@ void Mesh_Torus::SolveInstance(
 
 	///////////////////
 	// VERIFY & EXTRACT
-
-	// Verify input slot 0
-	VariantType type0 = inSolveInstance[0].GetType();
-	if (!(type0 == VariantType::VAR_FLOAT || type0 == VariantType::VAR_INT)) {
-		URHO3D_LOGWARNING("Outer radius must be a valid float or integer.");
-		outSolveInstance[0] = Variant();
-		return;
-	}
 	float outer = inSolveInstance[0].GetFloat();
-	if (outer <= 0.0f) {
-		URHO3D_LOGWARNING("Outer radius must be > 0.");
-		outSolveInstance[0] = Variant();
-		return;
-	}
-
-	//verify input slot 1
-	VariantType type1 = inSolveInstance[1].GetType();
-	if (!(type1 == VariantType::VAR_FLOAT || type1 == VariantType::VAR_INT)) {
-		URHO3D_LOGWARNING("Inner radius must be a valid float or integer.");
-		outSolveInstance[0] = Variant();
-		return;
-	}
+	outer = Max(0.0f, outer);
 	float inner = inSolveInstance[1].GetFloat();
-	if (inner <= 0.0f) {
-		URHO3D_LOGWARNING("Inner radius must be > 0.");
-		outSolveInstance[0] = Variant();
-		return;
-	}
-
-	// Verify input slot 2
-	VariantType type2 = inSolveInstance[2].GetType();
-	if (!(type2 == VariantType::VAR_INT || type2 == VariantType::VAR_FLOAT)) {
-		URHO3D_LOGWARNING("First power must be a valid integer or float.");
-		outSolveInstance[0] = Variant();
-		return;
-	}
+	inner = Max(0.0f, inner);
 	float p_1 = inSolveInstance[2].GetFloat();
-	if (p_1 <= 0.2f || p_1 > 4.0f) {
-		URHO3D_LOGWARNING("First power must be between 0.2 and 4.0");
-		outSolveInstance[0] = Variant();
-		return;
-	}
-
-	// Verify input slot 3
-	VariantType type3 = inSolveInstance[3].GetType();
-	if (!(type3 == VariantType::VAR_INT || type3 == VariantType::VAR_FLOAT)) {
-		URHO3D_LOGWARNING("Second power must be a valid integer or float.");
-		outSolveInstance[0] = Variant();
-		return;
-	}
 	float p_2 = inSolveInstance[3].GetFloat();
-	if (p_2 <= 0.2f || p_2 > 4.0f) {
-		URHO3D_LOGWARNING("Second power must be between 0.2 and 4.0");
-		outSolveInstance[0] = Variant();
-		return;
-	}
-
-	//// Verify input slot 4
-	//VariantType type4 = inSolveInstance[4].GetType();
-	//if (type4 != VariantType::VAR_MATRIX3X4) {
-	//	URHO3D_LOGWARNING("T must be a valid transform.");
-	//	outSolveInstance[0] = Variant();
-	//	return;
-	//}
-	//Matrix3x4 tr = inSolveInstance[4].GetMatrix3x4();
-
-	// Verify input slot 4
-	VariantType type4 = inSolveInstance[4].GetType();
-	if (type4 != VariantType::VAR_INT) {
-		URHO3D_LOGWARNING("R must be a valid int!");
-		outSolveInstance[0] = Variant();
-		return;
-	}
 	int res = inSolveInstance[4].GetInt();
-	if (res < 3) {
-		URHO3D_LOGWARNING("R must be larger than 3");
-		outSolveInstance[0] = Variant();
-		return;
-	}
+	res = Max(3, res);
 
 	///////////////////
 	// COMPONENT'S WORK

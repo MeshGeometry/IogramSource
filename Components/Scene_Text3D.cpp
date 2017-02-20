@@ -128,7 +128,7 @@ void Scene_Text3D::SolveInstance(
 	text->SetAlignment(HorizontalAlignment::HA_CENTER, VerticalAlignment::VA_CENTER);
 
 	text->SetAttribute("Face Camera Mode", options);
-	trackedItems.Push(text->GetID());
+	trackedItems.Push(node->GetID());
 	
 	outSolveInstance[0] = node->GetID();
 	outSolveInstance[1] = text;

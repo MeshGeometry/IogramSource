@@ -50,7 +50,10 @@ list(APPEND SOURCE_FILES
 file(GLOB SHAPEOP_SRC
     "../ThirdParty/ShapeOp/ShapeOp_*")
 
-list(APPEND SOURCE_FILES ${SHAPEOP_SRC})
+file(GLOB SHERKCOLLINS_SRC
+    "../ThirdParty/SherkCollins/*.*")
+
+list(APPEND SOURCE_FILES ${SHAPEOP_SRC} ${SHERKCOLLINS_SRC})
 
 #get rid of resource copying
 set(RESOURCE_DIRS "")
