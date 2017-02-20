@@ -415,6 +415,7 @@ Urho3D::Variant MakeSuperTorus(float outer_radius, float inner_radius, float fir
 	// make the vertex list
 	VariantVector vertex_list;
 
+    /*
 	int dx = (int)360 / res;
 	for (int u = 0; u < 360; u += dx) {
 		for (int v = 0; v < 360; v += dx) {
@@ -428,6 +429,21 @@ Urho3D::Variant MakeSuperTorus(float outer_radius, float inner_radius, float fir
 			vertex_list.Push(Variant(curVert));
 		}
 	}
+     */
+    
+    float dx = 360 / res;
+    for (int u = 0; u < res; ++u) {
+        for (int v = 0; v < res; ++v) {
+            float theta = u*dx*DTOR;
+            float phi = v*dx*DTOR;
+            
+            Vector3 curVert;
+            curVert.x_ = pow(cos(theta), n1) * (r0 + r1 * pow(cos(phi), n2));
+            curVert.y_ = pow(sin(theta), n1) * (r0 + r1 * pow(cos(phi), n2));
+            curVert.z_ = r1 * pow(sin(phi), n2);
+            vertex_list.Push(Variant(curVert));
+        }
+    }
 
 	VariantVector face_list;
 	// make the face list
