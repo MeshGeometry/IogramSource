@@ -407,14 +407,15 @@ Urho3D::Variant MakeSuperTorus(float outer_radius, float inner_radius, float fir
 	// see http://paulbourke.net/geometry/torus/source2.c
 
 	float DTOR = 0.01745329252;
-	int n1 = first_power;
-	int n2 = second_power;
+	float n1 = first_power;
+	float n2 = second_power;
 	float r0 = outer_radius;
 	float r1 = inner_radius;
 
 	// make the vertex list
 	VariantVector vertex_list;
 
+    /*
 	int dx = (int)360 / res;
 	for (int u = 0; u < 360; u += dx) {
 		for (int v = 0; v < 360; v += dx) {
@@ -428,8 +429,45 @@ Urho3D::Variant MakeSuperTorus(float outer_radius, float inner_radius, float fir
 			vertex_list.Push(Variant(curVert));
 		}
 	}
+     
+     float dx = 360.0f / res;
+     for (int u = 0; u < res; ++u) {
+     for (int v = 0; v < res; ++v) {
+     float theta = u*dx*DTOR;
+     float phi = v*dx*DTOR;
+     
+     Vector3 curVert;
+     curVert.x_ = pow(cos(theta), n1) * (r0 + r1 * pow(cos(phi), n2));
+     curVert.y_ = pow(sin(theta), n1) * (r0 + r1 * pow(cos(phi), n2));
+     curVert.z_ = r1 * pow(sin(phi), n2);
+     vertex_list.Push(Variant(curVert));
+     }
+     }
+     
+     
+     */
+    
+    float dx = 360.0f / res;
+    for (int u = 0; u < res; ++u) {
+        for (int v = 0; v < res; ++v) {
+            float theta = u*dx*DTOR;
+            float phi = v*dx*DTOR;
+            
+            float C_theta = copysignf(1.0f, cos(theta))*(pow(std::abs(cos(theta)), n1));
+            float C_phi = copysignf(1.0f, cos(phi))*(pow(std::abs(cos(phi)), n2));
+            float S_theta = copysignf(1.0f, sin(theta))*(pow(std::abs(sin(theta)), n1));
+            float S_phi = copysignf(1.0f, sin(phi))*(pow(std::abs(sin(phi)), n2));
+            
+            Vector3 curVert;
+            curVert.x_ = (r0 + C_theta) * C_phi;
+            curVert.y_ = (r1 + C_theta) * S_phi;
+            curVert.z_ = S_theta;
+            vertex_list.Push(Variant(curVert));
+        }
+    }
 
 	VariantVector face_list;
+    VariantVector tri_face_list;
 	// make the face list
 	for (int i = 0; i < res; ++i) {
 		for (int j = 0; j < res; ++j) {
@@ -441,16 +479,39 @@ Urho3D::Variant MakeSuperTorus(float outer_radius, float inner_radius, float fir
 			int upper_right = res*(i+1)%(res*res) + ((j + 1) % res);
 			int upper_left = res*(i + 1) % (res*res) + j;
 
-            
+/*
             face_list.Push(upper_left);
             face_list.Push(upper_right);
             face_list.Push(lower_right);
 			face_list.Push(lower_left);
+            
+ */
+            face_list.Push(lower_left);
+            face_list.Push(lower_right);
+            face_list.Push(upper_right);
+            face_list.Push(upper_left);
+            
+            
+           
+            
+            
+            // making tri_face 1
+            tri_face_list.Push(lower_left);
+            tri_face_list.Push(lower_right);
+            tri_face_list.Push(upper_right);
+            
+            // making tri_face 2
+            tri_face_list.Push(lower_left);
+            tri_face_list.Push(upper_right);
+            tri_face_list.Push(upper_left);
 
 		}
 	}
 
 	Urho3D::Variant superTorus = NMesh_Make(vertex_list, face_list);
+    
+    Urho3D::Variant torus = TriMesh_Make(vertex_list, tri_face_list);
 
 	return superTorus;
+    //return torus;
 }
