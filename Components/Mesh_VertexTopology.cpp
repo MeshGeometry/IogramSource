@@ -68,17 +68,7 @@ void Mesh_VertexTopology::SolveInstance(
         return;
     }
     
-<<<<<<< HEAD
-=======
-    // Verify input slot 1
-    VariantType type = inSolveInstance[1].GetType();
-    if (!(type == VariantType::VAR_INT)) {
-        URHO3D_LOGWARNING("ID must be a valid integer.");
-		SetAllOutputsNull(outSolveInstance);
-        return;
-    }
-    
->>>>>>> a0d9a91110c4aecce0d03e96bfd6178eb9196510
+
     int vertID = inSolveInstance[1].GetInt();
     
     VariantMap meshWithData = inMesh.GetVariantMap();
