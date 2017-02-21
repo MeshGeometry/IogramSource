@@ -20,7 +20,7 @@ Scene_ScreenPointToRay::Scene_ScreenPointToRay(Urho3D::Context* context) : IoCom
 
 	inputSlots_[0]->SetName("ScreenPoint");
 	inputSlots_[0]->SetVariableName("SP");
-	inputSlots_[0]->SetDescription("Point in screen coordinates");
+	inputSlots_[0]->SetDescription("Point in normalized screen coordinates");
 	inputSlots_[0]->SetVariantType(VariantType::VAR_VECTOR3);
 	inputSlots_[0]->SetDataAccess(DataAccess::ITEM);
 
@@ -51,46 +51,22 @@ void Scene_ScreenPointToRay::SolveInstance(
 {
 	Scene* scene = (Scene*)GetGlobalVar("Scene").GetPtr();
 	Camera* cam = scene->GetComponent<Camera>(true);
-	Graphics* graphics = GetSubsystem<Graphics>();
 	Vector3 sp = inSolveInstance[0].GetVector3();
-	Ray sr = cam->GetScreenRay(sp.x_ / graphics->GetWidth(), sp.y_ / graphics->GetHeight());
 
 	//handle active viewport case
 	Viewport* activeViewport = (Viewport*)GetGlobalVar("activeViewport").GetVoidPtr();
 	if (activeViewport && cam)
 	{
-		IntRect viewRect = activeViewport->GetRect();
-
-		float width = graphics->GetWidth();
-		float height = graphics->GetHeight();
-		
-		if (viewRect != IntRect::ZERO)
-		{
-			width = viewRect.Width();
-			height = viewRect.Height();
-		}
-
-
-		float x = (float)(sp.x_ - viewRect.left_) / width;
-		float y = (float)(sp.y_ - viewRect.top_) / height;
-
-	
-
-		sr = cam->GetScreenRay(x, y);
-
-
+		Ray sr = cam->GetScreenRay(sp.x_, sp.y_);
 		outSolveInstance[0] = sr.origin_;
 		outSolveInstance[1] = sr.direction_;
 
 		return;
 	}
-
-	if (!cam || !activeViewport)
+	else
 	{
 		URHO3D_LOGINFO("could not get active camera or viewport!");
+		SetAllOutputsNull(outSolveInstance);
+		return;
 	}
-
-
-	outSolveInstance[0] = Variant();
-	outSolveInstance[1] = Variant();
 }

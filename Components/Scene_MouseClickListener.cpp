@@ -72,10 +72,23 @@ void Scene_MouseClickListener::HandleMouseClick(StringHash eventType, VariantMap
 	mPos = Vector3(pos.x_, pos.y_, 0);
 
 	Viewport* activeViewport = (Viewport*)GetGlobalVar("activeViewport").GetVoidPtr();
-	if (activeViewport)
+	//remap mouse pos by ui rect
+	UIElement* element = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
+
+
+	if (element)
+	{
+		IntVector2 ePos = element->GetScreenPosition();
+		IntVector2 eSize = element->GetSize();
+		float x = (mPos.x_ - ePos.x_) / (float)eSize.x_;
+		float y = (mPos.y_ - ePos.y_) / (float)eSize.y_;
+		mPos = Vector3(x, y, 0);
+	}
+	else if (activeViewport)
 	{
 		IntRect viewRect = activeViewport->GetRect();
-		mPos = Vector3(pos.x_ - viewRect.left_, pos.y_ - viewRect.top_, 0);
+		mPos = Vector3((float)(pos.x_ - viewRect.left_)/viewRect.Width(), 
+			(float)(pos.y_ - viewRect.top_)/viewRect.Height(), 0);
 	}
 
 	solvedFlag_ = 0;
