@@ -3,6 +3,7 @@
 #include <Urho3D/Graphics/Viewport.h>
 #include <Urho3D/Input/Input.h>
 #include <Urho3D/Resource/ResourceCache.h>
+#include <Urho3D/UI/UI.h>
 #include "IoGraph.h"
 
 #include "Urho3D/Physics/PhysicsWorld.h"
@@ -68,7 +69,7 @@ void Scene_MouseClickListener::HandleMouseClick(StringHash eventType, VariantMap
 {
 	using namespace MouseButtonDown;
 	
-	IntVector2 pos = GetSubsystem<Input>()->GetMousePosition();
+	IntVector2 pos = GetSubsystem<UI>()->GetCursorPosition();
 	mPos = Vector3(pos.x_, pos.y_, 0);
 
 	Viewport* activeViewport = (Viewport*)GetGlobalVar("activeViewport").GetVoidPtr();

@@ -6,6 +6,7 @@
 #include "Urho3D/Graphics/Viewport.h"
 #include "Urho3D/Physics/PhysicsWorld.h"
 #include <Urho3D/Input/Input.h>
+#include <Urho3D/UI/UI.h>
 
 using namespace Urho3D;
 
@@ -79,20 +80,35 @@ void Input_MouseDownListener::HandleMouseMove(StringHash eventType, VariantMap& 
 	Input* input = GetSubsystem<Input>();
 	if (input->GetMouseButtonDown(mButton))
 	{
-		IntVector2 pos = input->GetMousePosition();
+		IntVector2 pos = GetSubsystem<UI>()->GetCursorPosition();
 		mPos = Vector3(pos.x_, pos.y_, 0);
 
 		Viewport* activeViewport = (Viewport*)GetGlobalVar("activeViewport").GetVoidPtr();
-		if (activeViewport)
+		//remap mouse pos by ui rect
+		UIElement* element = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
+
+
+		if (element)
+		{
+			IntVector2 ePos = element->GetScreenPosition();
+			IntVector2 eSize = element->GetSize();
+			float x = (mPos.x_ - ePos.x_) / (float)eSize.x_;
+			float y = (mPos.y_ - ePos.y_) / (float)eSize.y_;
+			mPos = Vector3(x, y, 0);
+		}
+		else if (activeViewport)
 		{
 			IntRect viewRect = activeViewport->GetRect();
-			mPos = Vector3(pos.x_ - viewRect.left_, pos.y_ - viewRect.top_, 0);
+			mPos = Vector3((float)(pos.x_ - viewRect.left_) / viewRect.Width(),
+				(float)(pos.y_ - viewRect.top_) / viewRect.Height(), 0);
 		}
 
 
 		int X = eventData[P_DX].GetInt();
 		int Y = eventData[P_DY].GetInt();
 		mDelta = Vector3(X, Y, 0);
+
+
 		solvedFlag_ = 0;
 		GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
 	}
