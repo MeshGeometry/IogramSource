@@ -92,7 +92,7 @@ private:
 	Urho3D::String description_ = "";
 	Urho3D::VariantType typeHint_ = Urho3D::VariantType::VAR_NONE;
 	Urho3D::Variant defaultValue_ = Urho3D::Variant();
-	bool isProtected_;
+	bool isProtected_ = true;
 
 public:
 	Urho3D::String GetName() const { return name_; }

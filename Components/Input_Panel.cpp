@@ -137,7 +137,17 @@ void Input_Panel::HandleDefocus(Urho3D::StringHash eventType, Urho3D::VariantMap
 
 		}
 	}
+	if (el == targetType_)
+	{
+		String newType = targetType_->GetText();
+		if (Variant::GetTypeFromName(newType) != VAR_NONE)
+		{
 
+			SetGenericData("TargetType", newType);
+			VariantMap emptyMap;
+			HandleLineEditCommit("", emptyMap);
+		}
+	}
 }
 
 void Input_Panel::HandleFocus(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
@@ -204,10 +214,15 @@ void Input_Panel::HandleTargetTypeChange(Urho3D::StringHash eventType, Urho3D::V
 	if (targetType_.NotNull())
 	{
 		String newType = targetType_->GetText();
-		SetGenericData("TargetType", newType);
 
-		VariantMap emptyMap;
-		HandleLineEditCommit("", emptyMap);
+		if (Variant::GetTypeFromName(newType) != VAR_NONE)
+		{
+
+			SetGenericData("TargetType", newType);
+			VariantMap emptyMap;
+			HandleLineEditCommit("", emptyMap);
+		}
+
 	}
 }
 
