@@ -59,11 +59,12 @@ void Physics_PhysicsWorld::SolveInstance(
 	)
 {
 
-	Scene* scene = GetSubsystem<IoGraph>()->scene;
+	Scene* scene = (Scene*)GetGlobalVar("Scene").GetPtr();
 	
 	if (scene == NULL)
 	{
 		URHO3D_LOGERROR("Null scene encountered.");
+		SetAllOutputsNull(outSolveInstance);
 		return;
 	}
 

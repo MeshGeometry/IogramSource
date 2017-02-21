@@ -80,11 +80,12 @@ void Physics_RigidBody::SolveInstance(
 	)
 {
 
-	Scene* scene = GetSubsystem<IoGraph>()->scene;
+	Scene* scene = (Scene*)GetGlobalVar("Scene").GetPtr();
 
 	if (scene == NULL)
 	{
 		URHO3D_LOGERROR("Null scene encountered.");
+		SetAllOutputsNull(outSolveInstance);
 		return;
 	}
 
@@ -94,6 +95,7 @@ void Physics_RigidBody::SolveInstance(
 	if (!node)
 	{
 		URHO3D_LOGERROR("Could not find node: " + String(id));
+		SetAllOutputsNull(outSolveInstance);
 		return;
 	}
 
@@ -109,12 +111,12 @@ void Physics_RigidBody::SolveInstance(
 	}
 	if (shapeTypeName == "Box")
 	{
-		cs->SetBox(size); //TODO need to find bounding box
+		cs->SetBox(sm->GetBoundingBox().Size()); //TODO need to find bounding box
 	}
 
 	if (shapeTypeName == "Sphere")
 	{
-		cs->SetSphere(size.x_);
+		cs->SetSphere(sm->GetBoundingBox().HalfSize().Length());
 	}
 
 	if (shapeTypeName == "Convex")

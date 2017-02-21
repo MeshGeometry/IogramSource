@@ -199,6 +199,7 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Mesh_Torus.h"
 #include "Mesh_FlipNormals.h"
 #include "Spatial_ReadOSM.h"
+#include "Spatial_Terrain.h"
 //#include "Offsets_NgonMeshReader.h"
 
 #include "Widget_Base.h"
@@ -414,6 +415,7 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Mesh_MeanCurvatureFlow>(context);
 	RegisterIogramType<Mesh_PerVertexEval>(context);
 	RegisterIogramType<Spatial_ReadOSM>(context);
+	RegisterIogramType<Spatial_Terrain>(context);
 	RegisterIogramType<Mesh_SplitLongEdges>(context); //Disabled! Crashes on bad meshes like Hexayurt
     RegisterIogramType<Mesh_ComputeAdjacencyData>(context);
     RegisterIogramType<Mesh_FaceTopology>(context);
