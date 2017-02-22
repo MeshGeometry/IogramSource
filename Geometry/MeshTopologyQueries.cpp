@@ -116,6 +116,23 @@ Urho3D::VariantVector TriMesh_VertexToVertices(Urho3D::Variant& triMeshWithData,
 	return VariantVector();
 }
 
+Urho3D::Vector<Urho3D::Variant> TriMesh_VertexToVertices(Urho3D::Variant& triMeshWithData)
+{
+    if (!TriMesh_HasAdjacencyData(triMeshWithData))
+        return Vector<Urho3D::Variant> ();
+    
+    VariantMap* triMeshWith = triMeshWithData.GetVariantMapPtr();
+    VariantVector* vertex_vertex_list = (*triMeshWith)["vertex-vertex"].GetVariantVectorPtr();
+    Vector<Urho3D::Variant> vertex_stars;
+    int num = vertex_vertex_list->Size();
+    for (int i = 0; i < num-1; ++i)
+    {
+        vertex_stars.Push(vertex_vertex_list->At(i));
+    }
+    return vertex_stars;
+
+}
+
 
 Urho3D::VariantVector TriMesh_VertexToFaces(Urho3D::Variant& triMeshWithData, int vertID)
 {

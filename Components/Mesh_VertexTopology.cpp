@@ -1,5 +1,5 @@
 #include "Mesh_VertexTopology.h"
-
+#include "IoDataTree.h"
 
 #include "TriMesh.h"
 #include "MeshTopologyQueries.h"
@@ -9,11 +9,11 @@ using namespace Urho3D;
 
 String Mesh_VertexTopology::iconTexture = "Textures/Icons/Mesh_VertexTopology.png";
 
-Mesh_VertexTopology::Mesh_VertexTopology(Context* context) : IoComponentBase(context, 2, 3)
+Mesh_VertexTopology::Mesh_VertexTopology(Context* context) : IoComponentBase(context, 1, 3)
 {
     SetName("VertexTopology");
     SetFullName("Compute Mesh Vertex Topology");
-    SetDescription("Computes Mesh Topology Data for a given vertex");
+    SetDescription("Computes Mesh Topology Data for vertices");
     SetGroup(IoComponentGroup::MESH);
     SetSubgroup("Analysis");
     
@@ -22,14 +22,6 @@ Mesh_VertexTopology::Mesh_VertexTopology(Context* context) : IoComponentBase(con
     inputSlots_[0]->SetDescription("TriMeshWithAdjacencyData");
     inputSlots_[0]->SetVariantType(VariantType::VAR_VARIANTMAP);
     inputSlots_[0]->SetDataAccess(DataAccess::ITEM);
-    
-    inputSlots_[1]->SetName("VertexID");
-    inputSlots_[1]->SetVariableName("ID");
-    inputSlots_[1]->SetDescription("ID of vertex of interest");
-    inputSlots_[1]->SetVariantType(VariantType::VAR_INT);
-    inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
-    inputSlots_[1]->SetDefaultValue(0);
-    inputSlots_[1]->DefaultSet();
     
     outputSlots_[0]->SetName("VertexStarIDs");
     outputSlots_[0]->SetVariableName("V_ID");
@@ -51,57 +43,102 @@ Mesh_VertexTopology::Mesh_VertexTopology(Context* context) : IoComponentBase(con
     
 }
 
-void Mesh_VertexTopology::SolveInstance(
-                                              const Vector<Variant>& inSolveInstance,
-                                              Vector<Variant>& outSolveInstance
-                                              )
+int Mesh_VertexTopology::LocalSolve()
 {
+    assert(inputSlots_.Size() >= 1);
+    assert(outputSlots_.Size() == 3);
     
-    ///////////////////
-    // VERIFY & EXTRACT
-    
-    // Verify input slot 0
-    Variant inMesh = inSolveInstance[0];
-    if (!TriMesh_HasAdjacencyData(inMesh)) {
-        URHO3D_LOGWARNING("M must be a valid mesh with adjacency data.");
-		SetAllOutputsNull(outSolveInstance);
-        return;
+    if (inputSlots_[0]->HasNoData()) {
+        solvedFlag_ = 0;
+        return 0;
     }
     
+    IoDataTree inputMeshTree = inputSlots_[0]->GetIoDataTree();
 
-    int vertID = inSolveInstance[1].GetInt();
+    Variant inMesh;
+    Urho3D::Vector<int> path;
+    path.Push(0);
     
-    VariantMap meshWithData = inMesh.GetVariantMap();
-    VariantMap triMesh = meshWithData["mesh"].GetVariantMap();
-    
-    Urho3D::VariantVector vertexList = TriMesh_GetVertexList(Variant(triMesh));
+    // for some reason the component was crashing on initialization without this:
+    inputMeshTree.GetItem(inMesh, path, 0);
+    if (inMesh.GetType() == VAR_NONE)
+    {
+        solvedFlag_ = 0;
+        return 0;
+    }
 
-	// check that vertID is within range:
-	if (vertID < 0 || vertID > vertexList.Size()-1) {
-		URHO3D_LOGWARNING("VertexID is out of range");
-		SetAllOutputsNull(outSolveInstance);
-		return;
+	
+	if (!TriMesh_HasAdjacencyData(inMesh)) {
+		URHO3D_LOGWARNING("M must be a TriMesh WITH DATA (use Mesh_ComputeAdjacencyData)!");
+		solvedFlag_ = 0;
+		return 0;
 	}
     
-    ///////////////////
-    // COMPONENT'S WORK
+    IoDataTree vertex_star_vectors(GetContext());
+    IoDataTree vertex_stars = ComputeVertexStars(inMesh, vertex_star_vectors);
+    IoDataTree adjacent_faces = ComputeAdjacentFaces(inMesh);
     
-    VariantVector vertex_star = TriMesh_VertexToVertices(inMesh, vertID);
-    VariantVector adj_faces = TriMesh_VertexToFaces(inMesh, vertID);
+    outputSlots_[0]->SetIoDataTree(vertex_stars);
+    outputSlots_[1]->SetIoDataTree(vertex_star_vectors);
+    outputSlots_[2]->SetIoDataTree(adjacent_faces);
     
-    VariantVector vertexVectors;
-    for (int i = 0; i < vertex_star.Size(); ++i)
-    {
-        int v_ID = vertex_star[i].GetInt();
-        Vector3 curVert = vertexList[v_ID].GetVector3();
-        vertexVectors.Push(Variant(curVert));
+    solvedFlag_ = 1;
+    return 1;
+}
+
+IoDataTree Mesh_VertexTopology::ComputeVertexStars(Urho3D::Variant inMeshWithData, IoDataTree& starVectorsTree)
+{
+    IoDataTree vertex_stars_tree(GetContext());
+    
+    VariantMap* meshWithData = inMeshWithData.GetVariantMapPtr();
+    VariantMap* triMesh = (*meshWithData)["mesh"].GetVariantMapPtr();
+    
+    Urho3D::VariantVector vertexList = TriMesh_GetVertexList(Variant(*triMesh));
+    
+    for (int i = 0; i < vertexList.Size(); ++i){
+        Vector<int> path;
+        path.Push(i);
+        
+        VariantVector* vertex_vertex_list = (*meshWithData)["vertex-vertex"].GetVariantVectorPtr();
+        int num = vertex_vertex_list->Size();
+        if (i < num ){
+            VariantVector vertex_star = (*vertex_vertex_list)[i].GetVariantVector();
+            vertex_stars_tree.Add(path, vertex_star);
+            
+            // compute the vectors of these verts at the same time.
+            VariantVector star_vectors;
+            for (int j = 0; j < vertex_star.Size(); ++j){
+                int curVert = vertex_star[j].GetInt();
+                star_vectors.Push(Variant(vertexList[curVert].GetVector3()));
+            }
+            starVectorsTree.Add(path, star_vectors);
+        }
+    }
+
+    return vertex_stars_tree;
+}
+
+IoDataTree Mesh_VertexTopology::ComputeAdjacentFaces(Urho3D::Variant inMeshWithData)
+{
+    IoDataTree adjacent_faces_tree(GetContext());
+    
+    VariantMap* meshWithData = inMeshWithData.GetVariantMapPtr();
+    VariantMap* triMesh = (*meshWithData)["mesh"].GetVariantMapPtr();
+    
+    Urho3D::VariantVector vertexList = TriMesh_GetVertexList(Variant(*triMesh));
+    
+    for (int i = 0; i < vertexList.Size(); ++i){
+        Vector<int> path;
+        path.Push(i);
+        
+        VariantVector* vertex_face_list = (*meshWithData)["vertex-face"].GetVariantVectorPtr();
+        int num = vertex_face_list->Size();
+        if (i < num){
+            VariantVector adj_faces = (*vertex_face_list)[i].GetVariantVector();
+            adjacent_faces_tree.Add(path, adj_faces);
+        }
+        
     }
     
-    /////////////////
-    // ASSIGN OUTPUTS
-    
-    outSolveInstance[0] = vertex_star;
-    outSolveInstance[1] = vertexVectors;
-    outSolveInstance[2] = adj_faces;
-    
+    return adjacent_faces_tree;
 }
