@@ -5,6 +5,7 @@
 #include <Urho3D/UI/Button.h>
 #include <Urho3D/UI/UIEvents.h>
 #include <Urho3D/Graphics/Graphics.h>
+#include <Urho3D/Resource/ResourceCache.h>
 
 #include "Polyline.h"
 #include "IoGraph.h"
@@ -109,6 +110,7 @@ void Curve_SketchPlane::Initialize(int x, int y)
 	sketchSurface_->SetMipsToSkip(QUALITY_LOW, 0);
 	sketchSurface_->SetNumLevels(1);
 	sketchSurface_->SetSize(textureSize_.x_, textureSize_.y_, Graphics::GetRGBAFormat(), TEXTURE_DYNAMIC);
+
 
 	colorMap_ = new ColorMap(context_);
 	colorMap_->SetSource(sketchSurface_);
@@ -293,6 +295,16 @@ void Curve_SketchPlane::SolveInstance(
 		SetAllOutputsNull(outSolveInstance);
 		return;
 	}
+
+	
+
+	//add to resource cache
+	ResourceCache* rc = GetSubsystem<ResourceCache>();
+	sketchSurface_->SetName("tmp/textures/SketchPlane_0");
+	//rc->ReleaseResource<Image>(colorMap_->GetName());
+	String name = sketchSurface_->GetName();
+	bool res = rc->AddManualResource(sketchSurface_);
+	res = rc->Exists(name);
 
 	outSolveInstance[0] = polysOut;
 	outSolveInstance[1] = sketchSurface_;

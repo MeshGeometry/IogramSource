@@ -99,18 +99,21 @@ bool TriMesh_HasAdjacencyData(const Urho3D::Variant& triMesh)
 // VERTEX QUERIES
 Urho3D::VariantVector TriMesh_VertexToVertices(Urho3D::Variant& triMeshWithData, int vertID)
 {
-    if (!TriMesh_HasAdjacencyData(triMeshWithData))
-        return VariantVector();
-    
-    VariantMap* triMeshWith = triMeshWithData.GetVariantMapPtr();
-    VariantVector* vertex_vertex_list = (*triMeshWith)["vertex-vertex"].GetVariantVectorPtr();
-	int num = vertex_vertex_list->Size();
-    if (vertID < num && vertID > -1)
-        return (*vertex_vertex_list)[vertID].GetVariantVector();
-    else{
-        URHO3D_LOGWARNING("vertex ID out of range");
-        return VariantVector();
-    }
+ //   if (!TriMesh_HasAdjacencyData(triMeshWithData))
+ //       return VariantVector();
+ //   
+ //   VariantMap* triMeshWith = triMeshWithData.GetVariantMapPtr();
+ //   VariantVector* vertex_vertex_list = (*triMeshWith)["vertex-vertex"].GetVariantVectorPtr();
+	//int num = vertex_vertex_list->Size();
+ //   if (vertID < num && vertID > -1)
+ //       return (*vertex_vertex_list)[vertID].GetVariantVector();
+ //   else{
+ //       URHO3D_LOGWARNING("vertex ID out of range");
+ //       return VariantVector();
+ //   }
+	
+
+	return VariantVector();
 }
 
 Urho3D::Vector<Urho3D::Variant> TriMesh_VertexToVertices(Urho3D::Variant& triMeshWithData)
