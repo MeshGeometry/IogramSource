@@ -23,13 +23,13 @@ Mesh_VertexTopology::Mesh_VertexTopology(Context* context) : IoComponentBase(con
     inputSlots_[0]->SetVariantType(VariantType::VAR_VARIANTMAP);
     inputSlots_[0]->SetDataAccess(DataAccess::ITEM);
     
-    inputSlots_[1]->SetName("VertexID");
-    inputSlots_[1]->SetVariableName("ID");
-    inputSlots_[1]->SetDescription("ID of vertex of interest");
-    inputSlots_[1]->SetVariantType(VariantType::VAR_INT);
-    inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
-    inputSlots_[1]->SetDefaultValue(0);
-    inputSlots_[1]->DefaultSet();
+//    inputSlots_[1]->SetName("VertexID");
+//    inputSlots_[1]->SetVariableName("ID");
+//    inputSlots_[1]->SetDescription("ID of vertex of interest");
+//    inputSlots_[1]->SetVariantType(VariantType::VAR_INT);
+//    inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
+//    inputSlots_[1]->SetDefaultValue(0);
+//    inputSlots_[1]->DefaultSet();
     
     outputSlots_[0]->SetName("VertexStarIDs");
     outputSlots_[0]->SetVariableName("V_ID");
@@ -69,39 +69,42 @@ void Mesh_VertexTopology::SolveInstance(
     }
     
 
-    int vertID = inSolveInstance[1].GetInt();
+ //   int vertID = inSolveInstance[1].GetInt();
     
     VariantMap meshWithData = inMesh.GetVariantMap();
     VariantMap triMesh = meshWithData["mesh"].GetVariantMap();
     
     Urho3D::VariantVector vertexList = TriMesh_GetVertexList(Variant(triMesh));
 
-	// check that vertID is within range:
-	if (vertID < 0 || vertID > vertexList.Size()-1) {
-		URHO3D_LOGWARNING("VertexID is out of range");
-		SetAllOutputsNull(outSolveInstance);
-		return;
-	}
+//	// check that vertID is within range:
+//	if (vertID < 0 || vertID > vertexList.Size()-1) {
+//		URHO3D_LOGWARNING("VertexID is out of range");
+//		SetAllOutputsNull(outSolveInstance);
+//		return;
+//	}
     
     ///////////////////
     // COMPONENT'S WORK
     
-    VariantVector vertex_star = TriMesh_VertexToVertices(inMesh, vertID);
-    VariantVector adj_faces = TriMesh_VertexToFaces(inMesh, vertID);
+    VariantVector vertex_stars = meshWithData["vertex-vertex"].GetVariantVector();
+    VariantVector adj_face_lists = meshWithData["vertex-face"].GetVariantVector();
     
-    VariantVector vertexVectors;
-    for (int i = 0; i < vertex_star.Size(); ++i)
-    {
-        int v_ID = vertex_star[i].GetInt();
-        Vector3 curVert = vertexList[v_ID].GetVector3();
-        vertexVectors.Push(Variant(curVert));
-    }
+//    VariantVector vertex_star = TriMesh_VertexToVertices(inMesh, vertID);
+//    VariantVector adj_faces = TriMesh_VertexToFaces(inMesh, vertID);
+//    
+//    VariantVector vertexVectors;
+//    for (int i = 0; i < vertex_star.Size(); ++i)
+//    {
+//        int v_ID = vertex_star[i].GetInt();
+//        Vector3 curVert = vertexList[v_ID].GetVector3();
+//        vertexVectors.Push(Variant(curVert));
+//    }
     
     /////////////////
     // ASSIGN OUTPUTS
     
-    outSolveInstance[0] = vertex_star;
-    outSolveInstance[1] = vertexVectors;
-    outSolveInstance[2] = adj_faces;
+    outSolveInstance[0] = vertex_stars;
+//    outSolveInstance[1] = vertexVectors;
+    outSolveInstance[2] = adj_face_lists;
     
 }
