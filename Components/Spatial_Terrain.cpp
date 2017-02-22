@@ -8,6 +8,7 @@
 #include <Urho3D/Graphics/Terrain.h>
 #include <Urho3D/Physics/RigidBody.h>
 #include <Urho3D/Physics/CollisionShape.h>
+#include <Urho3D/Graphics/Texture2D.h>
 #include "IoGraph.h"
 #include "Geomlib_ConstructTransform.h"
 
@@ -119,12 +120,28 @@ void Spatial_Terrain::SolveInstance(
 
 	Node* tNode = scene->CreateChild("TerrainNode");
 
+	SharedPtr<Image> terrainImage(cache->GetResource<Image>(imagePath));
+	bool exists = cache->Exists(imagePath);
+
+	if (!terrainImage)
+	{
+		Texture2D* tex = cache->GetResource<Texture2D>(imagePath);
+		if (!tex)
+		{
+			SetAllOutputsNull(outSolveInstance);
+			return;
+		}
+
+		terrainImage = tex->GetImage();
+
+	}
+
 
 	Terrain* terrain = tNode->CreateComponent<Terrain>();
 	terrain->SetPatchSize(64);
 	terrain->SetSpacing(spacing); // Spacing between vertices and vertical resolution of the height map
 	terrain->SetSmoothing(false);
-	terrain->SetHeightMap(cache->GetResource<Image>(imagePath));
+	terrain->SetHeightMap(terrainImage);
 	terrain->SetMaterial(cache->GetResource<Material>(matPath));
 	terrain->SetOccluder(true);
 
