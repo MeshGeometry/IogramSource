@@ -66,6 +66,13 @@ int Mesh_VertexTopology::LocalSolve()
         solvedFlag_ = 0;
         return 0;
     }
+
+	
+	if (!TriMesh_HasAdjacencyData(inMesh)) {
+		URHO3D_LOGWARNING("M must be a TriMesh WITH DATA (use Mesh_ComputeAdjacencyData)!");
+		solvedFlag_ = 0;
+		return 0;
+	}
     
     IoDataTree vertex_star_vectors(GetContext());
     IoDataTree vertex_stars = ComputeVertexStars(inMesh, vertex_star_vectors);
