@@ -100,10 +100,14 @@ void Mesh_VertexTopology::SolveInstance(
 //        vertexVectors.Push(Variant(curVert));
 //    }
     
+//    Urho3D::Vector<Variant> vertex_stars;
+//    vertex_stars = TriMesh_VertexToVertices(inMesh);
+    
     /////////////////
     // ASSIGN OUTPUTS
     
-    outSolveInstance[0] = vertex_stars;
+//    outSolveInstance[0] = vertex_stars;
+    outSolveInstance[0] = Variant(vertex_stars);
 //    outSolveInstance[1] = vertexVectors;
     outSolveInstance[2] = adj_face_lists;
     

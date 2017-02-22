@@ -28,6 +28,7 @@ bool TriMesh_HasAdjacencyData(const Urho3D::Variant& triMeshWithData);
 
 /// VERTEX QUERIES
 Urho3D::VariantVector TriMesh_VertexToVertices(Urho3D::Variant& triMeshWithData, int vertID);
+Urho3D::Vector<Urho3D::Variant> TriMesh_VertexToVertices(Urho3D::Variant& triMeshWithData);
 Urho3D::VariantVector TriMesh_VertexToFaces(Urho3D::Variant& triMeshWithData, int vertID);
 //Urho3D::VariantVector TriMesh_VertexToLabels(const Urho3D::Variant& triMesh, int vertID);
 
