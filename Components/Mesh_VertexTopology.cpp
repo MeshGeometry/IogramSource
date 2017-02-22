@@ -47,30 +47,43 @@ int Mesh_VertexTopology::LocalSolve()
 {
     assert(inputSlots_.Size() >= 1);
     assert(outputSlots_.Size() == 3);
+
+	Urho3D::Vector<int> path;
+	path.Push(0);
+
+	IoDataTree nullTree(GetContext());
+	nullTree.Add(path, Variant());
     
     if (inputSlots_[0]->HasNoData()) {
         solvedFlag_ = 0;
-        return 0;
+		outputSlots_[0]->SetIoDataTree(nullTree);
+		outputSlots_[1]->SetIoDataTree(nullTree);
+		outputSlots_[2]->SetIoDataTree(nullTree);
+		return 0;
     }
     
     IoDataTree inputMeshTree = inputSlots_[0]->GetIoDataTree();
 
     Variant inMesh;
-    Urho3D::Vector<int> path;
-    path.Push(0);
     
     // for some reason the component was crashing on initialization without this:
     inputMeshTree.GetItem(inMesh, path, 0);
     if (inMesh.GetType() == VAR_NONE)
     {
         solvedFlag_ = 0;
-        return 0;
+		outputSlots_[0]->SetIoDataTree(nullTree);
+		outputSlots_[1]->SetIoDataTree(nullTree);
+		outputSlots_[2]->SetIoDataTree(nullTree);
+		return 0;
     }
 
 	
 	if (!TriMesh_HasAdjacencyData(inMesh)) {
 		URHO3D_LOGWARNING("M must be a TriMesh WITH DATA (use Mesh_ComputeAdjacencyData)!");
 		solvedFlag_ = 0;
+		outputSlots_[0]->SetIoDataTree(nullTree);
+		outputSlots_[1]->SetIoDataTree(nullTree);
+		outputSlots_[2]->SetIoDataTree(nullTree);
 		return 0;
 	}
     
