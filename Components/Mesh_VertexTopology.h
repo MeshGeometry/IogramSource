@@ -21,7 +21,8 @@ public:
     
     int LocalSolve();
     
-    IoDataTree ComputeVertexStars(Urho3D::Variant meshWithData);
+    IoDataTree ComputeVertexStars(Urho3D::Variant inMeshWithData, IoDataTree& starVectorsTree);
+    IoDataTree ComputeAdjacentFaces(Urho3D::Variant inMeshWithData);
     
     static Urho3D::String iconTexture;
 };
