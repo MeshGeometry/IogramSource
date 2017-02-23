@@ -15,7 +15,7 @@ using namespace Urho3D;
 
 String Spatial_ReadOSM::iconTexture = "Textures/Icons/Spatial_ReadOSM.png";
 
-Spatial_ReadOSM::Spatial_ReadOSM(Context* context) : IoComponentBase(context, 3, 2)
+Spatial_ReadOSM::Spatial_ReadOSM(Context* context) : IoComponentBase(context, 3, 3)
 {
 	SetName("ReadOSM");
 	SetFullName("Read OSM File");
@@ -54,6 +54,12 @@ Spatial_ReadOSM::Spatial_ReadOSM(Context* context) : IoComponentBase(context, 3,
 	outputSlots_[1]->SetDescription("Buildings");
 	outputSlots_[1]->SetDataAccess(DataAccess::LIST);
 	outputSlots_[1]->SetVariantType(VariantType::VAR_VARIANTMAP);
+
+	outputSlots_[2]->SetName("BuildingHeight");
+	outputSlots_[2]->SetVariableName("BH");
+	outputSlots_[2]->SetDescription("Building Height");
+	outputSlots_[2]->SetDataAccess(DataAccess::LIST);
+	outputSlots_[2]->SetVariantType(VariantType::VAR_FLOAT);
 }
 
 void Spatial_ReadOSM::SolveInstance(
@@ -109,6 +115,7 @@ void Spatial_ReadOSM::SolveInstance(
 		XMLElement currWay = root.GetChild("way");
 		VariantVector waysOut;
 		VariantVector buildingsOut;
+		VariantVector heightsOut;
 		while (currWay)
 		{
 			int type = -1;
@@ -116,7 +123,7 @@ void Spatial_ReadOSM::SolveInstance(
 			//get the tags
 			Vector<Pair<String, String>> tags;
 			XMLElement currTag = currWay.GetChild("tag");
-
+			float currHeight = 0.0f;
 			while (currTag)
 			{
 				String k = currTag.GetAttribute("k");
@@ -126,8 +133,13 @@ void Spatial_ReadOSM::SolveInstance(
 
 				if (k == "building")
 					type = 2;
-				else if (k == "highway")
+				else if (k == "highway" )
 					type = 1;
+
+				if (k == "height" || k == "max_height" || k == "building:height")
+				{
+					currHeight = scale * Abs(ToFloat(v));
+				}
 
 				currTag = currTag.GetNext("tag");
 			}
@@ -156,8 +168,13 @@ void Spatial_ReadOSM::SolveInstance(
 			//poly["vertices"] = wayPts;
 			if (type == 1)
 				waysOut.Push(Polyline_Make(wayPts));
-			else if(type == 2)
+			else if (type == 2)
+			{
+				//get height
+				heightsOut.Push(currHeight);				
 				buildingsOut.Push(Polyline_Make(wayPts));
+			}
+
 
 			//iterate
 			currWay = currWay.GetNext("way");
@@ -165,12 +182,11 @@ void Spatial_ReadOSM::SolveInstance(
 
 		outSolveInstance[0] = waysOut;
 		outSolveInstance[1] = buildingsOut;
+		outSolveInstance[2] = heightsOut;
 	}
 	else
 	{
-		outSolveInstance[0] = Variant(VAR_NONE);
-		outSolveInstance[1] = Variant(VAR_NONE);
-
-		URHO3D_LOGERROR("error");
+		SetAllOutputsNull(outSolveInstance);
+		return;
 	}
 }

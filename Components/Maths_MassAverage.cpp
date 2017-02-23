@@ -41,15 +41,38 @@ void Maths_MassAverage::SolveInstance(
 	Variant variant = inSolveInstance[0];
 	VariantVector argsToAverage = variant.GetVariantVector();
 
-	/////////////////////////////////////////////////////////
-	float result = 0.0f;
-	for (unsigned i = 0; i < argsToAverage.Size(); ++i) {
-		result += argsToAverage[i].GetFloat();
+	if (argsToAverage.Empty())
+	{
+		SetAllOutputsNull(outSolveInstance);
+		return;
 	}
-	if (argsToAverage.Size() > 0) {
-		result = result / argsToAverage.Size();
+
+	VariantType type = argsToAverage.At(0).GetType();
+	Variant result(0.0f);
+
+	if (type == VAR_FLOAT || type == VAR_DOUBLE || type == VAR_INT)
+	{
+		float tmpResult = 0.0f;
+		for (unsigned i = 0; i < argsToAverage.Size(); ++i) {
+			tmpResult += argsToAverage[i].GetFloat();
+		}
+		if (argsToAverage.Size() > 0) {
+			result = tmpResult / argsToAverage.Size();
+		}
 	}
+	else if (type == VAR_VECTOR3)
+	{
+		Vector3 tmpResult(0, 0, 0);
+		for (unsigned i = 0; i < argsToAverage.Size(); ++i) {
+			tmpResult += argsToAverage[i].GetVector3();
+		}
+		if (argsToAverage.Size() > 0) {
+			result = tmpResult / argsToAverage.Size();
+		}
+	}
+
+
 	/////////////////////////////////////////////////////////
 
-	outSolveInstance[0] = Variant(result);
+	outSolveInstance[0] = result;
 }

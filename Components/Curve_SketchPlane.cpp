@@ -7,6 +7,7 @@
 #include <Urho3D/Graphics/Graphics.h>
 #include <Urho3D/Resource/ResourceCache.h>
 
+#include "Geomlib_ConstructTransform.h"
 #include "Polyline.h"
 #include "IoGraph.h"
 
@@ -273,7 +274,7 @@ void Curve_SketchPlane::SolveInstance(
 )
 {
 	//get transform
-	Matrix3x4 xform = inSolveInstance[3].GetMatrix3x4();
+	Matrix3x4 xform = Geomlib::ConstructTransform(inSolveInstance[3]);
 	bool reset = inSolveInstance[1].GetBool();
 
 	if (reset)

@@ -107,8 +107,9 @@ void Graphics_CurveRenderer::SolveInstance(
 	}
 
 	BillboardSet* curveDisplay = node->CreateComponent<BillboardSet>();
+	SharedPtr<Material> firstMat = mat->Clone();
 	curveDisplay->SetNumBillboards(verts.Size());
-	curveDisplay->SetMaterial(mat);
+	curveDisplay->SetMaterial(firstMat);
 	curveDisplay->SetSorted(true);
 	curveDisplay->SetFaceCameraMode(FaceCameraMode::FC_DIRECTION);
 	//curveDisplay->SetFixedScreenSize(true);
@@ -125,7 +126,7 @@ void Graphics_CurveRenderer::SolveInstance(
 	float width = inSolveInstance[1].GetFloat();
 	Color col = inSolveInstance[2].GetColor();
 
-	mat->SetShaderParameter("MatDiffColor", col);
+	firstMat->SetShaderParameter("MatDiffColor", col);
 	clonedMat->SetShaderParameter("MatDiffColor", col);
 
 	for (int i = 0; i < verts.Size() - 1; i++)
