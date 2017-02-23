@@ -384,7 +384,7 @@ Urho3D::Variant MakeRegularPolygon(int n)
 	return Polyline_Make(vertex_list);
 }
 
-Urho3D::Variant MakeSuperTorus(float outer_radius, float inner_radius, float first_power, float second_power, int res)
+Urho3D::Variant MakeSuperTorus(Urho3D::Variant& triMesh, float outer_radius, float inner_radius, float first_power, float second_power, int res)
 {
 	// regard the torus as a rectangle, with opposite sides identified. 
 	// res gives the number of divisions in each direction. So the rectangle will be divded into res*res quads
@@ -510,7 +510,7 @@ Urho3D::Variant MakeSuperTorus(float outer_radius, float inner_radius, float fir
 
 	Urho3D::Variant superTorus = NMesh_Make(vertex_list, face_list);
     
-    Urho3D::Variant torus = TriMesh_Make(vertex_list, tri_face_list);
+    triMesh = TriMesh_Make(vertex_list, tri_face_list);
 
 	return superTorus;
     //return torus;

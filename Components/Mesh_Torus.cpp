@@ -18,7 +18,7 @@ using namespace Urho3D;
 
 String Mesh_Torus::iconTexture = "Textures/Icons/Mesh_Torus.png";
 
-Mesh_Torus::Mesh_Torus(Context* context) : IoComponentBase(context, 5, 1)
+Mesh_Torus::Mesh_Torus(Context* context) : IoComponentBase(context, 5, 2)
 {
 	SetName("Torus");
 	SetFullName("ConstructTorusMesh");
@@ -72,11 +72,17 @@ Mesh_Torus::Mesh_Torus(Context* context) : IoComponentBase(context, 5, 1)
 	//inputSlots_[4]->SetDefaultValue(Matrix3x4::IDENTITY);
 	//inputSlots_[4]->DefaultSet();
 
-	outputSlots_[0]->SetName("Mesh");
+	outputSlots_[0]->SetName("QuadMesh");
 	outputSlots_[0]->SetVariableName("M");
-	outputSlots_[0]->SetDescription("Torus Mesh");
+	outputSlots_[0]->SetDescription("Torus QuadMesh");
 	outputSlots_[0]->SetVariantType(VariantType::VAR_VARIANTMAP);
 	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
+    
+    outputSlots_[1]->SetName("TriMesh");
+    outputSlots_[1]->SetVariableName("T");
+    outputSlots_[1]->SetDescription("Torus TriMesh");
+    outputSlots_[1]->SetVariantType(VariantType::VAR_VARIANTMAP);
+    outputSlots_[1]->SetDataAccess(DataAccess::ITEM);
 }
 
 void Mesh_Torus::SolveInstance(
@@ -172,10 +178,12 @@ void Mesh_Torus::SolveInstance(
 	///////////////////
 	// COMPONENT'S WORK
 
-	Variant torusMesh = MakeSuperTorus(outer, inner, p_1, p_2, res);
+    Variant torusTriMesh;
+	Variant torusMesh = MakeSuperTorus(torusTriMesh, outer, inner, p_1, p_2, res);
 
 	/////////////////
 	// ASSIGN OUTPUTS
 
 	outSolveInstance[0] = torusMesh;
+    outSolveInstance[1] = torusTriMesh;
 }
