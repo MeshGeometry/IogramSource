@@ -226,7 +226,7 @@ void IogramPlayer::CreateScene()
 	skybox->SetMaterial(cache->GetResource<Material>("Materials/Skybox.xml"));
 
 	//create a light node
-	Node* lightNode = scene_->CreateChild("Light");
+	Node* lightNode = scene_->CreateChild("SunLight");
 	lightNode->SetDirection(Vector3(0.2, -1, 0.2));
 	Light* light = lightNode->CreateComponent<Light>();
 	light->SetLightType(LIGHT_DIRECTIONAL);
