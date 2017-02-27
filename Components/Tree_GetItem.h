@@ -31,10 +31,10 @@ public:
 
 	int LocalSolve();
 
-	void SolveInstance(
-		const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,
-		Urho3D::Vector<Urho3D::Variant>& outSolveInstance
-	);
+//	void SolveInstance(
+//		const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,
+//		Urho3D::Vector<Urho3D::Variant>& outSolveInstance
+//	);
 
 	static Urho3D::String iconTexture;
 private:

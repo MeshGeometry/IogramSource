@@ -106,6 +106,7 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Graphics_CurveRenderer.h"
 #include "Graphics_MeshEdges.h"
 #include "Graphics_RenderTexture.h"
+#include "Graphics_Light.h"
 #include "Physics_PhysicsWorld.h"
 #include "Physics_RigidBody.h"
 #include "Physics_ApplyForce.h"
@@ -222,6 +223,7 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Mesh_FlipNormals.h"
 #include "Spatial_ReadOSM.h"
 #include "Spatial_Terrain.h"
+#include "Spatial_Sun.h"
 //#include "Offsets_NgonMeshReader.h"
 
 #include "Widget_Base.h"
@@ -330,6 +332,7 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Graphics_CurveToModel>(context);
 	RegisterIogramType<Graphics_CurveRenderer>(context);
 	RegisterIogramType<Graphics_RenderTexture>(context);
+	RegisterIogramType<Graphics_Light>(context);
 	RegisterIogramType<Physics_ApplyForce>(context);
 	RegisterIogramType<Physics_CollisionShape>(context);
 	RegisterIogramType<Physics_Constraint>(context);
@@ -438,6 +441,7 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Mesh_PerVertexEval>(context);
 	RegisterIogramType<Spatial_ReadOSM>(context);
 	RegisterIogramType<Spatial_Terrain>(context);
+	RegisterIogramType<Spatial_Sun>(context);
 	RegisterIogramType<Mesh_SplitLongEdges>(context); //Disabled! Crashes on bad meshes like Hexayurt
     RegisterIogramType<Mesh_ComputeAdjacencyData>(context);
     RegisterIogramType<Mesh_FaceTopology>(context);

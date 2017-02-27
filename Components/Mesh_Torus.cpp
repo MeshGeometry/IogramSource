@@ -53,7 +53,7 @@ Mesh_Torus::Mesh_Torus(Context* context) : IoComponentBase(context, 5, 2)
 	inputSlots_[0]->SetDescription("Outer radius");
 	inputSlots_[0]->SetVariantType(VariantType::VAR_FLOAT);
 	inputSlots_[0]->SetDataAccess(DataAccess::ITEM);
-	inputSlots_[0]->SetDefaultValue(Variant(4.0f));
+	inputSlots_[0]->SetDefaultValue(Variant(2.0f));
 	inputSlots_[0]->DefaultSet();
 
 	inputSlots_[1]->SetName("InnerRadius");
@@ -61,7 +61,7 @@ Mesh_Torus::Mesh_Torus(Context* context) : IoComponentBase(context, 5, 2)
 	inputSlots_[1]->SetDescription("Inner radius");
 	inputSlots_[1]->SetVariantType(VariantType::VAR_FLOAT);
 	inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
-	inputSlots_[1]->SetDefaultValue(Variant(1.0f));
+	inputSlots_[1]->SetDefaultValue(Variant(2.0f));
 	inputSlots_[1]->DefaultSet();
 
 	inputSlots_[2]->SetName("FirstPower");
