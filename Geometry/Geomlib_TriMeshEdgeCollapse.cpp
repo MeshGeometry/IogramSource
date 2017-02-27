@@ -8,6 +8,8 @@
 #include <igl/collapse_edge.h>
 #include <igl/is_edge_manifold.h>
 #include <igl/is_vertex_manifold.h>
+#include <igl/is_boundary_edge.h>
+#include <igl/is_border_vertex.h>
 #pragma warning(pop)
 
 #include <Eigen/Core>
@@ -35,6 +37,10 @@ void collapse_edges_below_length(
 	Eigen::MatrixXi E, EF, EI;
 	igl::edge_flaps(F, E, EMAP, EF, EI);
 
+	Eigen::VectorXi B;
+	std::vector<bool> border_vertices = igl::is_border_vertex(V, F);
+	assert(border_vertices.size() == V.rows());
+
 	Eigen::RowVector3d mid;
 	double len;
 	bool b;
@@ -43,8 +49,18 @@ void collapse_edges_below_length(
 	while (numc != 0) {
 		numc = 0;
 		for (int e = 0; e < E.rows(); ++e) {
+
+			bool edge_totally_inside = false;
+			if (
+				border_vertices[E(e, 0)] == false &&
+				border_vertices[E(e, 1)] == false
+				)
+			{
+				edge_totally_inside = true;
+			}
+
 			len = (V.row(E(e, 0)) - V.row(E(e, 1))).norm();
-			if (len < L) {
+			if (len < L && edge_totally_inside) {
 				mid = 0.5 * (V.row(E(e, 0)) + V.row(E(e, 1)));
 				b = igl::collapse_edge(e, mid, V, F, E, EMAP, EF, EI);
 				if (b) {
