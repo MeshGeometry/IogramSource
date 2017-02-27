@@ -67,6 +67,15 @@ Spatial_Sun::Spatial_Sun(Urho3D::Context* context) : IoComponentBase(context, 0,
 		11.5f
 	);
 
+	AddInputSlot(
+		"Color",
+		"C",
+		"Color",
+		VAR_COLOR,
+		ITEM,
+		Color::GRAY
+	);
+
 	AddOutputSlot(
 		"NodeID",
 		"ID",
@@ -132,6 +141,7 @@ void Spatial_Sun::SolveInstance(
 	float day = inSolveInstance[3].GetFloat();
 	float hour = inSolveInstance[4].GetFloat();
 	int tzone = -4;
+	Color col = inSolveInstance[5].GetColor();
 
 	//clamp ranges
 	lat = Clamp(lat, -180.f, 180.f);
@@ -165,8 +175,8 @@ void Spatial_Sun::SolveInstance(
 	if (!light)
 	{
 		Light* light = node->CreateComponent<Light>();
-		light->SetColor(Color::WHITE);
-		light->SetBrightness(1.0f);
+		light->SetColor(col);
+		light->SetBrightness(col.a_);
 		light->SetLightType(LIGHT_DIRECTIONAL);
 		light->SetCastShadows(true);
 		light->SetRange(1000.0f);

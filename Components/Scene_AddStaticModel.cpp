@@ -117,6 +117,7 @@ void Scene_AddStaticModel::SolveInstance(
 	StaticModel* sm = node->CreateComponent<StaticModel>();
 	sm->SetModel(model->Clone());
 	sm->SetMaterial(mat->Clone());
+	sm->SetCastShadows(true);
 
 	trackedItems.Push(sm->GetID());
 

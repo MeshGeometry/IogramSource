@@ -84,6 +84,7 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Graphics_CurveRenderer.h"
 #include "Graphics_MeshEdges.h"
 #include "Graphics_RenderTexture.h"
+#include "Graphics_Light.h"
 #include "Physics_PhysicsWorld.h"
 #include "Physics_RigidBody.h"
 #include "Physics_ApplyForce.h"
@@ -309,6 +310,7 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Graphics_CurveToModel>(context);
 	RegisterIogramType<Graphics_CurveRenderer>(context);
 	RegisterIogramType<Graphics_RenderTexture>(context);
+	RegisterIogramType<Graphics_Light>(context);
 	RegisterIogramType<Physics_ApplyForce>(context);
 	RegisterIogramType<Physics_CollisionShape>(context);
 	RegisterIogramType<Physics_Constraint>(context);
