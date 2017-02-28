@@ -22,6 +22,7 @@
 
 #include "Geomlib_TriMeshEdgeSplit.h"
 
+#include <iostream>
 #include <vector>
 
 #include <Eigen/Core>
@@ -30,7 +31,10 @@
 #include <igl/edge_flaps.h>
 #include <igl/is_edge_manifold.h>
 #include <igl/is_vertex_manifold.h>
+#include <igl/is_border_vertex.h>
 #pragma warning(pop)
+
+#include <Urho3D/IO/Log.h>
 
 #include "TriMesh.h"
 #include "ConversionUtilities.h"
@@ -164,15 +168,28 @@ void split_edges_above_length(
 	NV = OV;
 	NF = OF;
 
+	/***********************/
+
+	std::vector<bool> border_verts = igl::is_border_vertex(NV, NF);
 
 	/***********************/
 
 	std::vector<int> edges_to_split;
 
 	for (int e = 0; e < OE.rows(); ++e) {
+
+		bool totally_interior_edge = false;
+		if (
+			border_verts[OE(e, 0)] == false &&
+			border_verts[OE(e, 1)] == false
+			)
+		{
+			totally_interior_edge = true;
+		}
+
 		// after we see if this is faster, convert to SQUAREDNORM!
 		float len = (OV.row(OE(e, 0)) - OV.row(OE(e, 1))).norm();
-		if (len > L) {
+		if (len > L && totally_interior_edge) {
 			edges_to_split.push_back(e);
 		}
 	}
@@ -233,11 +250,13 @@ Urho3D::Variant Geomlib::TriMesh_SplitLongEdges(
 	}
 
 	if (!igl::is_edge_manifold(V, F)) {
+		URHO3D_LOGINFO("TriMeshEdgeSplit --- not an edge manifold, exiting");
 		return Variant();
 	}
 
 	Eigen::VectorXi B;
 	if (!igl::is_vertex_manifold(F, B)) {
+		URHO3D_LOGINFO("TriMeshEdgeSplit --- not a vertex manifold, exiting");
 		return Variant();
 	}
 
