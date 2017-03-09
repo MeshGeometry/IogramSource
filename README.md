@@ -29,7 +29,7 @@ file's name to "cmake_vs2015.bat" and run the script. The folder Build/Win64/
 will be created in IogramSource, with a Visual Studio 2015 solution. Use this to
 compile IogramSource with Visual Studio 2015.
 
-### Linux
+### Linux (tested on Ubuntu 16.04 LTS)
 
 Find the file "cmake_generic.sh.txt" at the top level of IogramSource and modify
 
