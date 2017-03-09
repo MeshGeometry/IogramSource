@@ -25,6 +25,25 @@ Find the file "cmake_vs2015.bat.txt" at the top level of IogramSource and modify
 * -DURHO3D_HOME="path/to/Urho3D/build"
 
 to the location in which you have compiled Urho3D on your machine. Change this
-file's name to "cmake_vs2015.bat" and run the script. The folder Build/Win64
+file's name to "cmake_vs2015.bat" and run the script. The folder Build/Win64/
 will be created in IogramSource, with a Visual Studio 2015 solution. Use this to
 compile IogramSource with Visual Studio 2015.
+
+### Linux
+
+Find the file "cmake_generic.sh.txt" at the top level of IogramSource and modify
+
+* -DURHO3D_HOME="path/to/Urho3D/build"
+
+to the location in which you have compiled Urho3D on your machine. Change this
+file's name to "cmake_generic.sh" and do
+```
+chmod +x cmake_generic.sh
+```
+on the command line to make it executable. Then do
+```
+./cmake_generic.sh
+cd build
+make
+```
+The IogramSource library will be compiled in the newly created build/ folder.
