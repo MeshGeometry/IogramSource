@@ -1,1 +1,0 @@
-cmake -B/home/mesh/Downloads/geometryapp-build -H/home/mesh/Downloads/geometryapp -DCMAKE_INSTALL_PREFIX="./" -DURHO3D_HOME="/home/mesh/Downloads/Urho3D-build" -DURHO3D_64BIT=1 -G "Eclipse CDT4 - Unix Makefiles"
