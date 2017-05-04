@@ -1,0 +1,9 @@
+<cubemap>
+    <face name="DarkGradSide.png" />
+    <face name="DarkGradSide.png" />
+    <face name="DarkGradTop.png" />
+    <face name="DarkGradBottom.png" />
+    <face name="DarkGradSide.png" />
+    <face name="DarkGradSide.png" />
+    <quality low="5" />
+</cubemap>
