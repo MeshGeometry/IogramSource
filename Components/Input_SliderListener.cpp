@@ -89,6 +89,7 @@ void Input_SliderListener::SolveInstance(
 	if (slider && typeName == Slider::GetTypeNameStatic())
 	{
 		SubscribeToEvent(slider, E_SLIDERCHANGED, URHO3D_HANDLER(Input_SliderListener, HandleSliderChanged));
+
 		val = slider->GetValue();
 	}
 

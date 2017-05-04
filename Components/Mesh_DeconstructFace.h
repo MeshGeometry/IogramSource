@@ -32,15 +32,22 @@ public:
 	Mesh_DeconstructFace(Urho3D::Context* context);
 public:
 
-	void SolveInstance(
-		const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,
-		Urho3D::Vector<Urho3D::Variant>& outSolveInstance
-		);
+    int LocalSolve();
+    
+//	void SolveInstance(
+//		const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,
+//		Urho3D::Vector<Urho3D::Variant>& outSolveInstance
+//		);
 
 	void AddInputSlot() = delete;
 	void AddOutputSlot() = delete;
 	void DeleteInputSlot(int index) = delete;
 	void DeleteOutputSlot(int index) = delete;
+    
+    
+    IoDataTree GetVerticesOnFaces(Urho3D::Variant inMesh, IoDataTree& vertexVectorsTree, IoDataTree& centroid_tree);
+    IoDataTree GetFaceNormals(Urho3D::Variant inMesh);
+
 
 	static Urho3D::String iconTexture;
 };

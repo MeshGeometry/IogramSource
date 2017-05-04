@@ -27,7 +27,7 @@
 #include "Geomlib_BestFitPlane.h"
 
 #pragma warning(push, 0)
-#include "../contrib/poly2tri/poly2tri/poly2tri.h"
+#include "poly2tri.h"
 #pragma warning(pop)
 
 #include <vector>
@@ -39,6 +39,8 @@ using Urho3D::VariantMap;
 using Urho3D::VariantType;
 using Urho3D::VariantVector;
 using Urho3D::Vector3;
+using Urho3D::Vector;
+using Urho3D::Pair;
 
 namespace {
 
@@ -60,8 +62,8 @@ int LargestMagnitudeIndex(Vector3 v)
 
 }; // namespace
 
-// Inputs:
-//   P, N: point and unit normal on best fit plane
+   // Inputs:
+   //   P, N: point and unit normal on best fit plane
 void GetP2TPointsFromVariant(
 	const Urho3D::Variant& polyIn,
 	const Urho3D::Vector3& P,
@@ -70,23 +72,15 @@ void GetP2TPointsFromVariant(
 	bool isHole)
 {
 	//get the data
-	VariantMap polyMap = polyIn.GetVariantMap();
-	VariantVector verts = polyMap["vertices"].GetVariantVector();
-	VariantVector faces = polyMap["faces"].GetVariantVector();
+	//VariantMap polyMap = polyIn.GetVariantMap();
+	VariantVector verts = Polyline_ComputeSequentialVertexList(polyIn);
+	//VariantVector faces = polyMap["faces"].GetVariantVector();
 
 	Vector3 lP, lN;
 	Geomlib::BestFitPlane(verts, lP, lN);
 	int max_index = LargestMagnitudeIndex(lN);
 
 	int numVerts = verts.Size();
-
-	//check if closed
-	float endPointDistance = (verts[0].GetVector3() - verts[numVerts - 1].GetVector3()).Length();
-	bool isClosed = (endPointDistance < 1.0f / Urho3D::M_LARGE_VALUE) ? true : false;
-
-	//exit if not closed
-	if (!isClosed)
-		return;
 
 	//erase the duplicate at end
 	verts.Erase(numVerts - 1, 1);
@@ -130,20 +124,12 @@ void AddPointsToMap(std::map<p2t::Point*, int>& ptIndexMap, const std::vector<p2
 
 bool Geomlib::TriangulatePolygon(const Urho3D::Variant& polyIn, const Urho3D::VariantVector& holes, Urho3D::Variant& meshOut)
 {
-	//data check
-	bool dataCheck = false;
-	if (polyIn.GetType() == VariantType::VAR_VARIANTMAP)
-	{
-		if (polyIn.GetVariantMap().Keys().Contains("vertices"))
-			dataCheck = true;
-	}
 
-	if (!dataCheck)
-	{
+	if (!Polyline_Verify(polyIn))
 		return false;
-	}
 
-
+	if (!Polyline_IsClosed(polyIn))
+		return false;
 
 	//container for p2t points
 	std::vector<p2t::Point*> p2tPoints;
@@ -159,8 +145,8 @@ bool Geomlib::TriangulatePolygon(const Urho3D::Variant& polyIn, const Urho3D::Va
 	}
 
 	//track the verts of the mesh
-	VariantMap polyMap = polyIn.GetVariantMap();
-	VariantVector verts = polyMap["vertices"].GetVariantVector();
+	//VariantMap polyMap = polyIn.GetVariantMap();
+	VariantVector verts = Polyline_ComputeSequentialVertexList(polyIn);
 
 	bool closed = Polyline_IsClosed(polyIn);
 
@@ -194,7 +180,7 @@ bool Geomlib::TriangulatePolygon(const Urho3D::Variant& polyIn, const Urho3D::Va
 	}
 
 
-	
+
 
 	try {
 		//submit this poly to poly2tri
@@ -204,20 +190,14 @@ bool Geomlib::TriangulatePolygon(const Urho3D::Variant& polyIn, const Urho3D::Va
 		//add the holes
 		for (unsigned i = 0; i < holes.Size(); i++)
 		{
-			VariantMap holeMap = holes[i].GetVariantMap();
-			if (!holeMap.Keys().Contains("vertices"))
+			if (!Polyline_Verify(holes[i]))
 				continue;
 
-			VariantVector holeVerts = holeMap["vertices"].GetVariantVector();
+			if (!Polyline_IsClosed(holes[i]))
+				continue;
+
+			VariantVector holeVerts = Polyline_ComputeSequentialVertexList(holes[i]);
 			int numHVerts = holeVerts.Size();
-
-			//check if closed
-			float endPointDistance = (holeVerts[0].GetVector3() - holeVerts[numHVerts - 1].GetVector3()).Length();
-			bool isClosed = (endPointDistance < 1.0f / Urho3D::M_LARGE_VALUE) ? true : false;
-
-			//exit if not closed
-			if (!isClosed)
-				continue;
 
 			//otherwise proceed
 			std::vector<p2t::Point*> holePts;
@@ -385,7 +365,7 @@ bool Geomlib::TriangulateFace(const Urho3D::Variant & NMeshIn, int faceIndex, Ur
 		int c = ptIndexMap[pc];
 
 		faces.Push(a); faces.Push(c); faces.Push(b);
-        //faces.Push(a); faces.Push(b); faces.Push(c);
+		//faces.Push(a); faces.Push(b); faces.Push(c);
 	}
 
 	// remap to global vertex indices
@@ -518,4 +498,12 @@ bool Geomlib::TriangulatePolygon(const Urho3D::Variant& polyIn, Urho3D::Variant&
 
 	meshOut = TriMesh_Make(verts, faces);
 	return true;
+}
+
+bool Geomlib::TriangulatePolygonB(const Urho3D::Variant& polyIn,
+	const Urho3D::VariantVector& holes,
+	Urho3D::Variant& meshOut)
+{
+
+	return false;
 }

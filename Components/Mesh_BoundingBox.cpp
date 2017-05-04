@@ -30,7 +30,7 @@ using namespace Urho3D;
 
 String Mesh_BoundingBox::iconTexture = "";
 
-Mesh_BoundingBox::Mesh_BoundingBox(Context* context) : IoComponentBase(context, 1, 1)
+Mesh_BoundingBox::Mesh_BoundingBox(Context* context) : IoComponentBase(context, 1, 5)
 {
 	SetName("BoundingBox");
 	SetFullName("Bounding Box");
@@ -49,6 +49,30 @@ Mesh_BoundingBox::Mesh_BoundingBox(Context* context) : IoComponentBase(context, 
 	outputSlots_[0]->SetDescription("Meshed bounding box of input mesh");
 	outputSlots_[0]->SetVariantType(VariantType::VAR_VARIANTMAP);
 	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
+
+	outputSlots_[1]->SetName("BoxMin");
+	outputSlots_[1]->SetVariableName("min");
+	outputSlots_[1]->SetDescription("Minimum corner");
+	outputSlots_[1]->SetVariantType(VariantType::VAR_VECTOR3);
+	outputSlots_[1]->SetDataAccess(DataAccess::ITEM);
+
+	outputSlots_[2]->SetName("BoxMax");
+	outputSlots_[2]->SetVariableName("max");
+	outputSlots_[2]->SetDescription("maximum corner");
+	outputSlots_[2]->SetVariantType(VariantType::VAR_VECTOR3);
+	outputSlots_[2]->SetDataAccess(DataAccess::ITEM);
+
+	outputSlots_[3]->SetName("BoxCenter");
+	outputSlots_[3]->SetVariableName("C");
+	outputSlots_[3]->SetDescription("Centre of box");
+	outputSlots_[3]->SetVariantType(VariantType::VAR_VECTOR3);
+	outputSlots_[3]->SetDataAccess(DataAccess::ITEM);
+
+	outputSlots_[4]->SetName("Diagonal");
+	outputSlots_[4]->SetVariableName("D");
+	outputSlots_[4]->SetDescription("Length of box diagonal");
+	outputSlots_[4]->SetVariantType(VariantType::VAR_FLOAT);
+	outputSlots_[4]->SetDataAccess(DataAccess::ITEM);
 }
 
 void Mesh_BoundingBox::SolveInstance(
@@ -65,5 +89,26 @@ void Mesh_BoundingBox::SolveInstance(
 
 	Variant box_mesh = TriMesh_BoundingBox(mesh_in);
 
+	// find the min and max
+
+	VariantVector vertexList = TriMesh_GetVertexList(box_mesh);
+	Vector3 min = vertexList[0].GetVector3();
+	Vector3 max = vertexList[0].GetVector3();
+	for (int i = 0; i < vertexList.Size(); ++i) {
+		Vector3 curVert = vertexList[i].GetVector3();
+		if (curVert.x_ <= min.x_ && curVert.y_ <= min.y_ && curVert.z_ <= min.z_)
+			min = curVert;
+		if (curVert.x_ >= max.x_ && curVert.y_ >= max.y_ && curVert.z_ >= max.z_)
+			max = curVert;
+	}
+
+	Vector3 centre = (max + min) / 2;
+	float diag = (max - min).Length();
+
 	outSolveInstance[0] = box_mesh;
+	outSolveInstance[1] = Variant(min);
+	outSolveInstance[2] = Variant(max);
+	outSolveInstance[3] = Variant(centre);
+	outSolveInstance[4] = Variant(diag);
+
 }

@@ -51,6 +51,8 @@ you must include it here and follow the registration pattern in RegisterComponen
 //#include "Geometry_Transform.h"
 #include "Geometry_AffineTransformation.h"
 #include "Geometry_LookAt.h"
+#include "Geometry_ReadDxf.h"
+#include "Geometry_WriteDxf.h"
 #include "Sets_Series.h"
 #include "Sets_LogisticGrowthSeries.h"
 #include "Sets_ListItem.h"
@@ -61,17 +63,20 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Sets_LoopBegin.h"
 #include "Sets_LoopEnd.h"
 #include "Sets_DataRecorder.h"
+#include "Sets_NamedPair.h"
 #include "Sets_AddKeyValue.h"
 #include "Sets_GetValueByKey.h"
 #include "Sets_ExportViewData.h"
 #include "Sets_ImportViewData.h"
+#include "Sets_DivideRange.h"
+#include "Sets_DivideDomain3D.h"
 #include "Maths_MassAverage.h"
 #include "Maths_MassAddition.h"
 #include "Input_Slider.h"
 #include "Input_Panel.h"
 #include "Input_Int.h"
 #include "Input_Float.h"
-#include "Input_Label.h"
+//#include "Input_Label.h"
 #include "Input_Toggle.h"
 #include "Input_ScreenToggle.h"
 #include "Input_ScreenContainer.h"
@@ -93,20 +98,33 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Input_EditGeometryListener.h"
 #include "Interop_SystemCommand.h"
 #include "Interop_AsyncSystemCommand.h"
+#include "Interop_JsonSchema.h"
 #ifdef URHO3D_NETWORK
 #include "Interop_SendData.h"
 #include "Interop_ReceiveData.h"
 #endif
-#include "Resource_LoadResource.h"
-#include "Resource_CreateMaterial.h"
-#include "Graphics_BaseSettings.h"
+#include "Graphics_LoadResource.h"
+#include "Graphics_SaveResource.h"
+#include "Graphics_CreateMaterial.h"
+#include "Graphics_StandardMaterial.h"
+#include "Graphics_ModifyMaterial.h"
+#include "Graphics_Zone.h"
 #include "Graphics_Viewport.h"
 #include "Graphics_MeshRenderer.h"
+#include "Graphics_PointRenderer.h"
 #include "Graphics_CurveToModel.h"
 #include "Graphics_CurveRenderer.h"
 #include "Graphics_MeshEdges.h"
 #include "Graphics_RenderTexture.h"
+#include "Graphics_Texture2D.h"
+#include "Graphics_Texture3D.h"
+#include "Graphics_LayersToImage.h"
+#include "Graphics_SampleTexture.h"
 #include "Graphics_Light.h"
+#include "Graphics_VertexColors.h"
+#include "Graphics_Skybox.h"
+#include "Graphics_Grid.h"
+#include "Graphics_ReflectionProbe.h"
 #include "Physics_PhysicsWorld.h"
 #include "Physics_RigidBody.h"
 #include "Physics_ApplyForce.h"
@@ -155,7 +173,7 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Tree_FlipMatrix.h"
 #include "Sets_ListLength.h"
 #include "Sets_VariantMap.h"
-#include "Mesh_ReadTriangleMesh.h"
+//#include "Mesh_ReadTriangleMesh.h"
 #include "Mesh_DeconstructTriangleMesh.h"
 #include "Mesh_ConstructTriangleMesh.h"
 #include "Mesh_ClosestPoint.h"
@@ -163,12 +181,19 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Mesh_CubeMesh.h"
 #include "Mesh_Icosahedron.h"
 #include "Mesh_Sphere.h"
+#include "Mesh_Plane.h"
 #include "Mesh_FieldRemesh.h"
 #include "Mesh_SaveMesh.h"
 #include "Mesh_CleanMesh.h"
 #include "Mesh_BoundingBox.h"
 #include "Mesh_HarmonicDeformation.h"
 #include "Mesh_HausdorffDistance.h"
+#include "Mesh_ReadOBJ.h"
+#include "Mesh_ReadOFF.h"
+#include "Mesh_ReadPLY.h"
+#include "Mesh_WriteOBJ.h"
+#include "Mesh_WriteOFF.h"
+#include "Mesh_WritePLY.h"
 #include "Curve_ZigZagPolyline.h"
 #include "Curve_Polyline.h"
 #include "Curve_OffsetPolyline.h"
@@ -183,7 +208,7 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Curve_SketchPlane.h"
 #include "Curve_Rebuild.h"
 #include "Curve_Length.h"
-#include "Curve_ReadBagOfEdges.h"
+//#include "Curve_ReadBagOfEdges.h"
 #include "Mesh_SubdivideMesh.h"
 #include "Input_SliderListener.h"
 #include "Vector_DeconstructVector.h"
@@ -220,10 +245,15 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Mesh_BoundaryVertices.h"
 #include "Mesh_DeconstructFace.h"
 #include "Mesh_Torus.h"
+#include "Mesh_SuperEllipsoid.h"
 #include "Mesh_FlipNormals.h"
 #include "Spatial_ReadOSM.h"
 #include "Spatial_Terrain.h"
 #include "Spatial_Sun.h"
+#include "Spatial_NavigationMesh.h"
+#include "Spatial_CrowdAgent.h"
+#include "Spatial_CrowdManager.h"
+#include "Spatial_AlignedDimension.h"
 //#include "Offsets_NgonMeshReader.h"
 
 #include "Widget_Base.h"
@@ -232,7 +262,6 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Widget_TextLabel.h"
 #include "Widget_Vector3Slider.h"
 #include "Widget_ColorSlider.h"
-#include "CurveRenderer.h"
 
 #include "ShapeOp_Solve.h"
 #include "ShapeOp_EdgeStrain.h"
@@ -241,6 +270,11 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "ShapeOp_GeometryStrain.h"
 #include "ShapeOp_MeshTriangleStrain.h"
 #include "ShapeOp_GenericConstraint.h"
+
+#include "ReflectionProbe.h"
+#include "ColorSlider.h"
+#include "MultiSlider.h"
+#include "TransformEdit.h"
 
 using namespace Urho3D;
 
@@ -253,7 +287,11 @@ void RegisterCoreComponents(Context* context)
 	context->RegisterFactory<Widget_TextLabel>();
 	context->RegisterFactory<Widget_Vector3Slider>();
 	context->RegisterFactory<Widget_ColorSlider>();
-	context->RegisterFactory<CurveRenderer>();
+
+	context->RegisterFactory<ReflectionProbe>();
+	context->RegisterFactory<ColorSlider>();
+	context->RegisterFactory<MultiSlider>();
+	context->RegisterFactory<TransformEdit>();
 
 	RegisterIogramType<Maths_Addition>(context);
 	RegisterIogramType<Maths_Subtraction>(context);
@@ -274,6 +312,8 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Maths_RhodoLattice>(context);
 	RegisterIogramType<Geometry_Rotation>(context);
 	RegisterIogramType<Geometry_LookAt>(context);
+	RegisterIogramType<Geometry_ReadDXF>(context);
+	RegisterIogramType<Geometry_WriteDXF>(context);
 	//RegisterIogramType<Geometry_Transform>(context);
 	RegisterIogramType<Geometry_AffineTransformation>(context);
 	RegisterIogramType<Sets_Series>(context);
@@ -286,6 +326,7 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Sets_LoopBegin>(context);
 	RegisterIogramType<Sets_LoopEnd>(context);
 	RegisterIogramType<Sets_DataRecorder>(context);
+	RegisterIogramType<Sets_NamedPair>(context);
 	RegisterIogramType<Sets_AddKeyValue>(context);
 	RegisterIogramType<Sets_GetValueByKey>(context);
 	RegisterIogramType<Sets_ExportViewData>(context);
@@ -296,7 +337,7 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Input_Panel>(context);
 	RegisterIogramType<Input_Float>(context);
 	RegisterIogramType<Input_Int>(context);
-	RegisterIogramType<Input_Label>(context);
+//	RegisterIogramType<Input_Label>(context);
 	RegisterIogramType<Input_Toggle>(context);
 	RegisterIogramType<Input_ScreenToggle>(context);
 	RegisterIogramType<Input_ScreenContainer>(context);
@@ -319,24 +360,37 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Input_EditGeometryListener>(context);
 	RegisterIogramType<Interop_SystemCommand>(context);
 	RegisterIogramType<Interop_AsyncSystemCommand>(context);
+	RegisterIogramType<Interop_JsonSchema>(context);
 #ifdef URHO3D_NETWORK
 	RegisterIogramType<Interop_SendData>(context);
 	RegisterIogramType<Interop_ReceiveData>(context);
 #endif
-	RegisterIogramType<Resource_LoadResource>(context);
-	RegisterIogramType<Resource_CreateMaterial>(context);
-	RegisterIogramType<Graphics_BaseSettings>(context);
+	RegisterIogramType<Graphics_LoadResource>(context);
+	RegisterIogramType<Graphics_SaveResource>(context);
+	RegisterIogramType<Graphics_CreateMaterial>(context);
+	RegisterIogramType<Graphics_StandardMaterial>(context);
+	RegisterIogramType<Graphics_ModifyMaterial>(context);
+	RegisterIogramType<Graphics_Zone>(context);
 	RegisterIogramType<Graphics_Viewport>(context);
 	RegisterIogramType<Graphics_MeshRenderer>(context);
+	RegisterIogramType<Graphics_PointRenderer>(context);
 	RegisterIogramType<Graphics_MeshEdges>(context);
 	RegisterIogramType<Graphics_CurveToModel>(context);
 	RegisterIogramType<Graphics_CurveRenderer>(context);
 	RegisterIogramType<Graphics_RenderTexture>(context);
+	RegisterIogramType<Graphics_Texture2D>(context);
+	RegisterIogramType<Graphics_Texture3D>(context);
+	RegisterIogramType<Graphics_LayersToImage>(context);
+	RegisterIogramType<Graphics_SampleTexture>(context);
 	RegisterIogramType<Graphics_Light>(context);
+	RegisterIogramType<Graphics_VertexColors>(context);
+	RegisterIogramType<Graphics_Skybox>(context);
+	RegisterIogramType<Graphics_Grid>(context);
+	RegisterIogramType<Graphics_ReflectionProbe>(context);
 	RegisterIogramType<Physics_ApplyForce>(context);
 	RegisterIogramType<Physics_CollisionShape>(context);
 	RegisterIogramType<Physics_Constraint>(context);
-	RegisterIogramType<Scene_Display>(context);
+	//RegisterIogramType<Scene_Display>(context);
 	RegisterIogramType<Scene_DeconstructModel>(context);
 	RegisterIogramType<Scene_AddNode>(context);
 	RegisterIogramType<Scene_CloneNode>(context);
@@ -380,8 +434,10 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Tree_GetItem>(context);
 	RegisterIogramType<Tree_FlipMatrix>(context);
 	RegisterIogramType<Sets_ListLength>(context);
+	RegisterIogramType<Sets_DivideRange>(context);
+	RegisterIogramType<Sets_DivideDomain3D>(context);
 	RegisterIogramType<Sets_VariantMap>(context);
-	RegisterIogramType<Mesh_ReadTriangleMesh>(context);
+	//RegisterIogramType<Mesh_ReadTriangleMesh>(context);
 	RegisterIogramType<Mesh_DeconstructTriangleMesh>(context);
 	RegisterIogramType<Mesh_ConstructTriangleMesh>(context);
 	RegisterIogramType<Mesh_ClosestPoint>(context);
@@ -389,6 +445,7 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Mesh_CubeMesh>(context);
 	RegisterIogramType<Mesh_Icosahedron>(context);
 	RegisterIogramType<Mesh_Sphere>(context);
+	RegisterIogramType<Mesh_Plane>(context);
 	RegisterIogramType<Mesh_SaveMesh>(context);
 	RegisterIogramType<Mesh_CleanMesh>(context);
 	RegisterIogramType<Mesh_BoundingBox>(context);
@@ -409,7 +466,7 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Curve_SketchPlane>(context);
 	RegisterIogramType<Curve_Rebuild>(context);
 	RegisterIogramType<Curve_Length>(context);
-	RegisterIogramType<Curve_ReadBagOfEdges>(context);
+	//RegisterIogramType<Curve_ReadBagOfEdges>(context);
 	RegisterIogramType<Mesh_SubdivideMesh>(context);
 	RegisterIogramType<Input_SliderListener>(context);
 	RegisterIogramType<Vector_DeconstructVector>(context);
@@ -442,6 +499,10 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Spatial_ReadOSM>(context);
 	RegisterIogramType<Spatial_Terrain>(context);
 	RegisterIogramType<Spatial_Sun>(context);
+	RegisterIogramType<Spatial_NavigationMesh>(context);
+	RegisterIogramType<Spatial_CrowdManager>(context);
+	RegisterIogramType<Spatial_CrowdAgent>(context);
+	RegisterIogramType<Spatial_AlignedDimension>(context);
 	RegisterIogramType<Mesh_SplitLongEdges>(context); //Disabled! Crashes on bad meshes like Hexayurt
     RegisterIogramType<Mesh_ComputeAdjacencyData>(context);
     RegisterIogramType<Mesh_FaceTopology>(context);
@@ -449,8 +510,14 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Mesh_BoundaryVertices>(context);
 	RegisterIogramType<Mesh_DeconstructFace>(context);
 	RegisterIogramType<Mesh_Torus>(context);
+    RegisterIogramType<Mesh_SuperEllipsoid>(context);
     RegisterIogramType<Mesh_FlipNormals>(context);
-
+	RegisterIogramType<Mesh_ReadOBJ>(context);
+	RegisterIogramType<Mesh_ReadOFF>(context);
+	RegisterIogramType<Mesh_ReadPLY>(context);
+	RegisterIogramType<Mesh_WriteOFF>(context);
+	RegisterIogramType<Mesh_WriteOBJ>(context);
+	RegisterIogramType<Mesh_WritePLY>(context);
 	//RegisterIogramType<Offsets_NgonMeshReader>(context);
 
 	RegisterIogramType<ShapeOp_Solve>(context);

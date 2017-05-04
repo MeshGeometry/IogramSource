@@ -1,3 +1,4 @@
+
 //
 // Copyright (c) 2016 - 2017 Mesh Consultants Inc.
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -130,7 +131,7 @@ Urho3D::Variant Geomlib::TriMesh_CollapseShortEdges(
 	Eigen::MatrixXi F;
 	IglMeshToMatrices(tri_mesh, V, F);
 
-	if (!igl::is_edge_manifold(V, F)) {
+	if (!igl::is_edge_manifold(F)) {
 		return Variant();
 	}
 

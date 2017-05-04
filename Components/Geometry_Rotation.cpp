@@ -51,7 +51,7 @@ Geometry_Rotation::Geometry_Rotation(Urho3D::Context* context) : IoComponentBase
 
 	inputSlots_[1]->SetName("Angle");
 	inputSlots_[1]->SetVariableName("R");
-	inputSlots_[1]->SetDescription("Angle of rotation (in radians)");
+	inputSlots_[1]->SetDescription("Angle of rotation (in degrees)");
 	inputSlots_[1]->SetVariantType(VariantType::VAR_FLOAT);
 	inputSlots_[1]->SetDefaultValue(0.0f);
 	inputSlots_[1]->DefaultSet();

@@ -41,7 +41,7 @@ namespace igl
       {
         // Check if file exists
         tinyxml2::XMLError error = doc->LoadFile(filename.c_str());
-        if(error != tinyxml2::XML_NO_ERROR)
+        if(error != tinyxml2::XML_SUCCESS)
         {
           doc->Clear();
         }
@@ -58,7 +58,7 @@ namespace igl
   
       // Save
       tinyxml2::XMLError error = doc->SaveFile(filename.c_str());
-      if(error != tinyxml2::XML_NO_ERROR)
+      if(error != tinyxml2::XML_SUCCESS)
       {
         doc->PrintError();
       }
@@ -120,7 +120,7 @@ namespace igl
       tinyxml2::XMLDocument* doc = new tinyxml2::XMLDocument();
   
       tinyxml2::XMLError error = doc->LoadFile(filename.c_str());
-      if(error != tinyxml2::XML_NO_ERROR)
+      if(error != tinyxml2::XML_SUCCESS)
       {
         std::cerr << "File not found!" << std::endl;
         doc->PrintError();
@@ -906,7 +906,7 @@ namespace igl
 }
 
 #ifdef IGL_STATIC_LIBRARY
-// Explicit template specialization
+// Explicit template instantiation
 template void igl::xml::serialize_xml<std::vector<float, std::allocator<float> > >(std::vector<float, std::allocator<float> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, bool, bool);
 template void igl::xml::deserialize_xml<std::vector<float, std::allocator<float> > >(std::vector<float, std::allocator<float> >&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&);
 #endif

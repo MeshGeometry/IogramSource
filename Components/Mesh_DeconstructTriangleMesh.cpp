@@ -21,12 +21,13 @@
 
 
 #include "Mesh_DeconstructTriangleMesh.h"
+#include "TriMesh.h"
 
 using namespace Urho3D;
 
 String Mesh_DeconstructTriangleMesh::iconTexture = "Textures/Icons/Mesh_DeconstructTriangleMesh.png";
 
-Mesh_DeconstructTriangleMesh::Mesh_DeconstructTriangleMesh(Context* context) :IoComponentBase(context, 1, 4)
+Mesh_DeconstructTriangleMesh::Mesh_DeconstructTriangleMesh(Context* context) :IoComponentBase(context, 1, 5)
 {
 	SetName("DeconstructMesh");
 	SetFullName("Deconstruct Mesh");
@@ -63,6 +64,12 @@ Mesh_DeconstructTriangleMesh::Mesh_DeconstructTriangleMesh(Context* context) :Io
 	outputSlots_[3]->SetDescription("Faces counts");
 	outputSlots_[3]->SetVariantType(VariantType::VAR_INT);
 	outputSlots_[3]->SetDataAccess(DataAccess::LIST);
+
+	outputSlots_[4]->SetName("FaceNormals");
+	outputSlots_[4]->SetVariableName("FN");
+	outputSlots_[4]->SetDescription("Faces normals");
+	outputSlots_[4]->SetVariantType(VariantType::VAR_VECTOR3);
+	outputSlots_[4]->SetDataAccess(DataAccess::LIST);
 }
 
 void Mesh_DeconstructTriangleMesh::SolveInstance(
@@ -93,6 +100,13 @@ void Mesh_DeconstructTriangleMesh::SolveInstance(
 
 		outSolveInstance[2] = mData["normals"];
 		outSolveInstance[3] = faceCounts;
+
+		//get face normals if tri-mesh
+		if (TriMesh_Verify(inSolveInstance[0]))
+		{
+			VariantVector fn = TriMesh_ComputeFaceNormals(inSolveInstance[0], true);
+			outSolveInstance[4] = fn;
+		}
 	}
 	else
 	{

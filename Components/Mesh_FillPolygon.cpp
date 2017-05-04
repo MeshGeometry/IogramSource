@@ -112,7 +112,7 @@ void Mesh_FillPolygon::SolveInstance(
 		}
 
 
-		bool success = Geomlib::TriangulatePolygon(newPoly, holes, meshOut);
+		bool success = Geomlib::TriangulatePolygon(polyIn, holes, meshOut);
 	}
 	else
 	{

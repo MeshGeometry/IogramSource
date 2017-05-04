@@ -63,6 +63,23 @@ Scene_PlayAnimation::Scene_PlayAnimation(Urho3D::Context* context) : IoComponent
 	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
 }
 
+void Scene_PlayAnimation::PreLocalSolve()
+{
+	Scene* scene = (Scene*)GetGlobalVar("Scene").GetPtr();
+	if (scene)
+	{
+		for (int i = 0; i < trackedItems.Size(); i++)
+		{
+			AnimationController* ac = (AnimationController*)scene->GetComponent(trackedItems[i]);
+			if (ac)
+			{
+				ac->StopAll();
+			}
+		}
+	}
+
+}
+
 
 void Scene_PlayAnimation::SolveInstance(
 	const Vector<Variant>& inSolveInstance,
@@ -80,5 +97,5 @@ void Scene_PlayAnimation::SolveInstance(
 	String ani = inSolveInstance[2].GetString();
 	ac->PlayExclusive(ani, 0, true, 0.2f);
 
-
+	trackedItems.Push(ac->GetID());
 }

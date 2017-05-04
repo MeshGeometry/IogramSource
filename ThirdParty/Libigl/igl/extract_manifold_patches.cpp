@@ -1,18 +1,27 @@
+// This file is part of libigl, a simple c++ geometry processing library.
+// 
+// Copyright (C) 2016 Alec Jacobson <alecjacobson@gmail.com>
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public License 
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can 
+// obtain one at http://mozilla.org/MPL/2.0/.
 #include "extract_manifold_patches.h"
+#include "unique_edge_map.h"
 #include <cassert>
 #include <limits>
 #include <queue>
 
 template<
-typename DerivedF,
-typename DerivedEMAP,
-typename uE2EType,
-typename DerivedP>
+  typename DerivedF,
+  typename DerivedEMAP,
+  typename uE2EType,
+  typename DerivedP>
 IGL_INLINE size_t igl::extract_manifold_patches(
-        const Eigen::PlainObjectBase<DerivedF>& F,
-        const Eigen::PlainObjectBase<DerivedEMAP>& EMAP,
-        const std::vector<std::vector<uE2EType> >& uE2E,
-        Eigen::PlainObjectBase<DerivedP>& P) {
+  const Eigen::PlainObjectBase<DerivedF>& F,
+  const Eigen::PlainObjectBase<DerivedEMAP>& EMAP,
+  const std::vector<std::vector<uE2EType> >& uE2E,
+  Eigen::PlainObjectBase<DerivedP>& P)
+{
     assert(F.cols() == 3);
     const size_t num_faces = F.rows();
 
@@ -67,6 +76,22 @@ IGL_INLINE size_t igl::extract_manifold_patches(
     return num_patches;
 }
 
+template<
+  typename DerivedF,
+  typename DerivedP>
+IGL_INLINE size_t igl::extract_manifold_patches(
+  const Eigen::PlainObjectBase<DerivedF>& F,
+  Eigen::PlainObjectBase<DerivedP>& P)
+{
+  Eigen::MatrixXi E, uE;
+  Eigen::VectorXi EMAP;
+  std::vector<std::vector<size_t> > uE2E;
+  igl::unique_edge_map(F, E, uE, EMAP, uE2E);
+  return igl::extract_manifold_patches(F, EMAP, uE2E, P);
+}
+
 #ifdef IGL_STATIC_LIBRARY
+#ifndef WIN32
 template unsigned long igl::extract_manifold_patches<Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, unsigned long, Eigen::Matrix<int, -1, 1, 0, -1, 1> >(Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> > const&, std::vector<std::vector<unsigned long, std::allocator<unsigned long> >, std::allocator<std::vector<unsigned long, std::allocator<unsigned long> > > > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&);
+#endif
 #endif

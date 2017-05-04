@@ -38,19 +38,38 @@ set (TARGET_NAME Geometry)
 
 #define includes
 include_directories("./")
-include_directories("../ThirdParty/Assimp/include")
+include_directories(
+    "../ThirdParty/poly2tri/poly2tri"
+    "../ThirdParty/poly2tri/poly2tri/common"
+    "../ThirdParty/poly2tri/poly2tri/sweep"
+    )
 
 # Define source files
 define_source_files ()
 
-list(APPEND SOURCE_FILES 
+#put all the geometry files in a group
+source_group("Geomlib" FILES ${SOURCE_FILES})
+
+#configure tetgen
+file(GLOB TETGEN_SRC
     "../ThirdParty/TetGen/tetgen.cxx"
     "../ThirdParty/TetGen/predicates.cxx")
+list(APPEND SOURCE_FILES ${TETGEN_SRC})
+source_group("Tetgen" FILES ${TETGEN_SRC})
 
+#configure shapeOp
 file(GLOB SHAPEOP_SRC
     "../ThirdParty/ShapeOp/ShapeOp_*")
-
 list(APPEND SOURCE_FILES ${SHAPEOP_SRC})
+source_group("ShapeOp" FILES ${SHAPEOP_SRC})
+
+#configure poly2tri
+file(GLOB POLY2TRI_SRC
+    "../ThirdParty/poly2tri/poly2tri/*.*"
+    "../ThirdParty/poly2tri/poly2tri/common/*.*"
+    "../ThirdParty/poly2tri/poly2tri/sweep/*.*")
+list(APPEND SOURCE_FILES ${POLY2TRI_SRC})
+source_group("poly2tri" FILES ${POLY2TRI_SRC})
 
 #get rid of resource copying
 set(RESOURCE_DIRS "")

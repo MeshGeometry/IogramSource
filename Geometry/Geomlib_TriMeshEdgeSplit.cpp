@@ -249,8 +249,7 @@ Urho3D::Variant Geomlib::TriMesh_SplitLongEdges(
 		return Variant();
 	}
 
-	if (!igl::is_edge_manifold(V, F)) {
-		URHO3D_LOGINFO("TriMeshEdgeSplit --- not an edge manifold, exiting");
+	if (!igl::is_edge_manifold(F)) {
 		return Variant();
 	}
 

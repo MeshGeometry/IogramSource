@@ -11,7 +11,6 @@
 #include "verbose.h"
 #include "polar_dec.h"
 #include "polar_svd.h"
-#include "matlab_format.h"
 #include "C_STR.h"
 #include <iostream>
 
@@ -71,7 +70,7 @@ IGL_INLINE void igl::fit_rotations_planar(
   using namespace std;
   const int dim = S.cols();
   const int nr = S.rows()/dim;
-  assert(dim == 2 && "_planar input should be 2D");
+  //assert(dim == 2 && "_planar input should be 2D");
   assert(nr * dim == S.rows());
 
   // resize output
@@ -105,6 +104,7 @@ IGL_INLINE void igl::fit_rotations_planar(
 #endif  
 
     // Not sure why polar_dec computes transpose...
+    R.block(0,r*dim,dim,dim).setIdentity();
     R.block(0,r*dim,2,2) = ri.transpose();
   }
 }
@@ -217,7 +217,7 @@ IGL_INLINE void igl::fit_rotations_AVX(
 #endif
 
 #ifdef IGL_STATIC_LIBRARY
-// Explicit template specialization
+// Explicit template instantiation
 template void igl::fit_rotations<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, bool, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&);
 template void igl::fit_rotations_planar<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&);
 template void igl::fit_rotations_planar<Eigen::Matrix<float, -1, -1, 0, -1, -1>, Eigen::Matrix<float, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<float, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<float, -1, -1, 0, -1, -1> >&);

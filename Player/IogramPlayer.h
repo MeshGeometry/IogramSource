@@ -25,6 +25,7 @@
 #include <Urho3D/Engine/Application.h>
 #include <Urho3D/Scene/Node.h>
 #include <Urho3D/Scene/Scene.h>
+#include <Urho3D/Graphics/Viewport.h>
 
 class IogramPlayer : public Urho3D::Application {
 	URHO3D_OBJECT(IogramPlayer, Urho3D::Application)
@@ -42,6 +43,7 @@ public:
 	//the scene
 	static IogramPlayer* instance_; //singleton to app instance
 	Urho3D::Scene* scene_;
+	Urho3D::Viewport* viewport_;
 	Urho3D::SharedPtr<Urho3D::Node> cameraNode_;
 	Urho3D::SharedPtr<Urho3D::Node> lightNode_;
 

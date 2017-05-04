@@ -33,10 +33,12 @@ public:
 
 	static Urho3D::String iconTexture;
 
+	virtual void PreLocalSolve();
+
 	void SolveInstance(
 		const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,
 		Urho3D::Vector<Urho3D::Variant>& outSolveInstance
 		);
 
-
+	Urho3D::Vector<int> trackedItems;
 };

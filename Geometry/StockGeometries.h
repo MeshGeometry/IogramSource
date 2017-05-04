@@ -38,3 +38,5 @@ Urho3D::Variant MakeRegularPolygon(int n);
 
 Urho3D::Variant MakeSuperTorus(Urho3D::Variant& triMesh,
                                float outer_radius, float inner_radius, float first_power, float second_power, int res);
+
+Urho3D::Variant MakePlane(float y_coord);

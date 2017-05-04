@@ -6,6 +6,8 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at http://mozilla.org/MPL/2.0/.
 
+// Must defined this before including Viewer.h
+#define IGL_VIEWER_VIEWER_CPP
 #include "Viewer.h"
 
 #ifdef _WIN32
@@ -31,10 +33,13 @@
 
 #include <Eigen/LU>
 
-#define GLFW_INCLUDE_GLU
-#ifndef _WIN32
-  #define GLFW_INCLUDE_GLCOREARB
+//#define GLFW_INCLUDE_GLU
+#if defined(__APPLE__)
+#define GLFW_INCLUDE_GLCOREARB
+#else
+#define GL_GLEXT_PROTOTYPES
 #endif
+
 #include <GLFW/glfw3.h>
 
 #include <cmath>
@@ -78,11 +83,10 @@ static igl::viewer::Viewer * __viewer;
 static double highdpi = 1;
 static double scroll_x = 0;
 static double scroll_y = 0;
-static int global_KMod = 0;
 
 static void glfw_mouse_press(GLFWwindow* window, int button, int action, int modifier)
 {
-  bool tw_used = 
+  bool tw_used =
 #ifdef IGL_VIEWER_WITH_NANOGUI
     __viewer->screen->mouseButtonCallbackEvent(button,action,modifier);
 #else
@@ -259,6 +263,7 @@ namespace viewer
     ngui->addVariable("Show vertex labels", core.show_vertid);
     ngui->addVariable("Show faces labels", core.show_faceid);
 
+    screen->setVisible(true);
     screen->performLayout();
 #endif
 
@@ -311,16 +316,21 @@ namespace viewer
     const std::string usage(R"(igl::viewer::Viewer usage:
   [drag]  Rotate scene
   A,a     Toggle animation (tight draw loop)
+  F,f     Toggle face based
   I,i     Toggle invert normals
   L,l     Toggle wireframe
   O,o     Toggle orthographic/perspective projection
   T,t     Toggle filled faces
   Z       Snap to canonical view
   [,]     Toggle between rotation control types (e.g. trackball, two-axis
-          valuator with fixed up)
-
-)");
-    std::cout<<usage;
+          valuator with fixed up))"
+#ifdef IGL_VIEWER_WITH_NANOGUI
+		R"(
+  ;       Toggle vertex labels
+  :       Toggle face labels)"
+#endif
+);
+    std::cout<<usage<<std::endl;
 #endif
   }
 
@@ -487,6 +497,12 @@ namespace viewer
         core.is_animating = !core.is_animating;
         return true;
       }
+      case 'F':
+      case 'f':
+      {
+        data.set_face_based(!data.face_based);
+        return true;
+      }
       case 'I':
       case 'i':
       {
@@ -530,6 +546,14 @@ namespace viewer
         }
         return true;
       }
+#ifdef IGL_VIEWER_WITH_NANOGUI
+      case ';':
+        core.show_vertid = !core.show_vertid;
+        return true;
+      case ':':
+        core.show_faceid = !core.show_faceid;
+        return true;
+#endif
       default: break;//do nothing
     }
     return false;
@@ -561,6 +585,10 @@ namespace viewer
 
   IGL_INLINE bool Viewer::mouse_down(MouseButton button,int modifier)
   {
+    // Remember mouse location at down even if used by callback/plugin
+    down_mouse_x = current_mouse_x;
+    down_mouse_y = current_mouse_y;
+
     if (callback_mouse_down)
       if (callback_mouse_down(*this,static_cast<int>(button),modifier))
         return true;
@@ -571,8 +599,6 @@ namespace viewer
 
     down = true;
 
-    down_mouse_x = current_mouse_x;
-    down_mouse_y = current_mouse_y;
     down_translation = core.model_translation;
 
 
@@ -586,11 +612,11 @@ namespace viewer
       center = data.V.colwise().sum()/data.V.rows();
     }
 
-    Eigen::Vector3f coord = 
+    Eigen::Vector3f coord =
       igl::project(
-        Eigen::Vector3f(center(0),center(1),center(2)), 
-        (core.view * core.model).eval(), 
-        core.proj, 
+        Eigen::Vector3f(center(0),center(1),center(2)),
+        (core.view * core.model).eval(),
+        core.proj,
         core.viewport);
     down_mouse_z = coord[2];
     down_rotation = core.trackball_angle;
@@ -762,8 +788,8 @@ namespace viewer
         break;
 
 #ifdef IGL_VIEWER_WITH_NANOGUI
-    ngui->refresh();
-    screen->drawWidgets();
+	screen->drawContents();
+	screen->drawWidgets();
 #endif
   }
 
@@ -854,7 +880,7 @@ namespace viewer
 
     glfwWindowHint(GLFW_SAMPLES, 8);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
     #ifdef __APPLE__
       glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);

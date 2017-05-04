@@ -23,23 +23,42 @@
 #pragma once
 
 #include "IoComponentBase.h"
+#include <Urho3D/Graphics/Model.h>
+
 
 class URHO3D_API Graphics_MeshEdges : public IoComponentBase {
-    
-    URHO3D_OBJECT(Graphics_MeshEdges, IoComponentBase)
-    
+
+	URHO3D_OBJECT(Graphics_MeshEdges, IoComponentBase)
+
 public:
-    Graphics_MeshEdges(Urho3D::Context* context);
-    
-    static Urho3D::String iconTexture;
-    
-    virtual void PreLocalSolve();
-    
-    void SolveInstance(
-                       const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,
-                       Urho3D::Vector<Urho3D::Variant>& outSolveInstance
-                       );
-    
-    Urho3D::Vector<int> trackedItems;
-    
+	Graphics_MeshEdges(Urho3D::Context* context);
+	~Graphics_MeshEdges();
+
+	static Urho3D::String iconTexture;
+
+	virtual void PreLocalSolve();
+
+	void SolveInstance(
+		const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,
+		Urho3D::Vector<Urho3D::Variant>& outSolveInstance
+	);
+
+	int TriMesh_Render(Urho3D::Variant trimesh,
+		Urho3D::Context* context,
+		float lineWidth,
+		Urho3D::Color mainColor,
+		Urho3D::Variant& model_pointer);
+
+	int NMesh_Render(Urho3D::Variant nmesh,
+		Urho3D::Context* context,
+		float lineWidth,
+		Urho3D::Color mainColor,
+		Urho3D::Variant& model_pointer);
+
+	Urho3D::String normalMat = "Materials/BasicEdges.xml";
+
+	Urho3D::Vector<int> trackedItems;
+	Urho3D::Vector<Urho3D::String> trackedResources;
+	int autoNameCounter = 0;
+
 };

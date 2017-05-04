@@ -190,8 +190,7 @@ makeFieldCCW(Eigen::MatrixXd &sol3D)
   {
     //take all 4 vectors (including opposites) and pick two that are in ccw order
     all << sol3D.row(fi), -sol3D.row(fi);
-	Eigen::VectorXi inv_order_unused;
-    igl::sort_vectors_ccw(all, FN.row(fi).eval(), order, true, t, false, inv_order_unused);
+	  igl::sort_vectors_ccw(all, FN.row(fi).eval(), order, t);
     //if we are in a constrained face, we need to make sure that the first vector is always the same vector as in the constraints
     if(is_constrained_face[fi])
     {
@@ -1170,7 +1169,7 @@ IGL_INLINE void igl::integrable_polyvector_fields_solve(igl::IntegrableFieldSolv
 };
 
 #ifdef IGL_STATIC_LIBRARY
-// Explicit template specialization
+// Explicit template instantiation
 template igl::IntegrableFieldSolverData<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >::IntegrableFieldSolverData();
 template void igl::integrable_polyvector_fields_solve<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(igl::IntegrableFieldSolverData<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, igl::integrable_polyvector_fields_parameters&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, bool);
 template void igl::integrable_polyvector_fields_precompute<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, igl::IntegrableFieldSolverData<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >&);

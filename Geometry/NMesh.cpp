@@ -205,6 +205,32 @@ Urho3D::Variant NMesh_ConvertToTriMesh(const Urho3D::Variant& nmesh)
 	return tri_mesh;
 }
 
+Urho3D::Variant NMesh_ConvertToTriMesh(const Urho3D::Variant& nmesh, Urho3D::VariantVector& faceTris)
+{
+    if (!NMesh_Verify(nmesh)) {
+        return Variant();
+    }
+    
+    VariantMap nmesh_map = nmesh.GetVariantMap();
+    VariantVector vertex_list = nmesh_map["vertices"].GetVariantVector();
+    VariantVector structured_face_list = nmesh_map["faces"].GetVariantVector();
+    
+    VariantVector tri_list;
+    for (unsigned i = 0; i < structured_face_list.Size(); ++i) {
+        int startID = tri_list.Size();
+        AddTris(structured_face_list[i], tri_list);
+        Urho3D::VariantVector currFaceTris;
+        for (int j = startID; j < tri_list.Size(); ++j){
+            currFaceTris.Push(tri_list[j].GetInt());
+        }
+        faceTris.Push(Variant(currFaceTris));
+    }
+    
+    Variant tri_mesh = TriMesh_Make(vertex_list, tri_list);
+    
+    return tri_mesh;
+}
+
 // faceTris is a vector<vector<int>> that keeps track of what triangles belong to what ngon face
 // It is effectively a vector of the face lists for each triangulated polygon 
 Urho3D::Variant NMesh_ConvertToTriMesh_P2T(const Urho3D::Variant& nmesh, Urho3D::VariantVector& faceTris)
@@ -273,6 +299,33 @@ Urho3D::Variant NMesh_GetFacePolyline(const Urho3D::Variant& nmesh, int face_ID,
 	Variant face_polyline = Polyline_Make(faceVertices);
 
 	return face_polyline;
+}
+
+Urho3D::Vector<Pair<int, int>> NMesh_ComputeEdges(const Urho3D::Variant& NMesh)
+{
+    bool ver = NMesh_Verify(NMesh);
+    if (!ver) {
+        return Vector<Pair<int, int>>();
+    }
+    
+    Urho3D::VariantVector structured_face_list = NMesh_GetFaceList(NMesh);
+    Urho3D::VariantVector vertex_list = NMesh_GetVertexList(NMesh);
+    
+    Vector<Pair<int, int>> edgesOut;
+    
+    for (unsigned i = 0; i < structured_face_list.Size(); ++i) {
+        VariantMap face = structured_face_list[i].GetVariantMap();
+        Urho3D::VariantVector face_indices = face["face_vertices"].GetVariantVector();
+        for (int j = 0; j < face_indices.Size(); ++j)
+        {
+            int curID = face_indices[j].GetInt();
+            int nextID = face_indices[(j+1) % face_indices.Size()].GetInt();
+            
+            edgesOut.Push(Pair<int, int>(curID, nextID));
+        }
+    }
+    
+    return edgesOut;
 }
 
 ////////////////////////////////////////////////////////////////////////////

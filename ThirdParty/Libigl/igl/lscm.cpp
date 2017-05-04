@@ -7,11 +7,10 @@
 // obtain one at http://mozilla.org/MPL/2.0/.
 #include "lscm.h"
 
-#include <igl/vector_area_matrix.h>
-#include <igl/cotmatrix.h>
-#include <igl/repdiag.h>
-#include <igl/min_quad_with_fixed.h>
-#include <igl/matlab_format.h>
+#include "vector_area_matrix.h"
+#include "cotmatrix.h"
+#include "repdiag.h"
+#include "min_quad_with_fixed.h"
 #include <iostream>
 
 IGL_INLINE bool igl::lscm(
@@ -63,11 +62,11 @@ IGL_INLINE bool igl::lscm(
   V_uv.resize(V.rows(),2);
   for (unsigned i=0;i<V_uv.cols();++i)
   {
-    V_uv.col(i) = W_flat.block(V_uv.rows()*i,0,V_uv.rows(),1);
+    V_uv.col(V_uv.cols()-i-1) = W_flat.block(V_uv.rows()*i,0,V_uv.rows(),1);
   }
   return true;
 }
 
 #ifdef IGL_STATIC_LIBRARY
-// Explicit template specialization
+// Explicit template instantiation
 #endif

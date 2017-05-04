@@ -829,5 +829,6 @@ Urho3D::Model* TriMesh_GetRenderMesh(const Urho3D::Variant& triMesh, Urho3D::Con
 	model->SetVertexBuffers(allVBuffers, morphStarts, morphRanges);
 	model->SetIndexBuffers(allIBuffers);
 
+
 	return model;
 }

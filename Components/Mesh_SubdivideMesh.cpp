@@ -86,17 +86,9 @@ void Mesh_SubdivideMesh::SolveInstance(
 		return;
 	}
 	// Verify input slot 1
-	VariantType type = inSolveInstance[1].GetType();
-	if (type != VariantType::VAR_INT) {
-		URHO3D_LOGWARNING("S must be a valid integer.");
-		outSolveInstance[0] = Variant();
-		return;
-	}
 	int steps = inSolveInstance[1].GetInt();
 	if (steps < 0) {
-		URHO3D_LOGWARNING("S must be a non-negative integer.");
-		outSolveInstance[0] = Variant();
-		return;
+		steps = 0;
 	}
 
 	///////////////////

@@ -83,8 +83,8 @@ void Maths_Division::SolveInstance(
 	// COMPONENT'S WORK
 
 	if (
-		type0 == VariantType::VAR_FLOAT &&
-		type1 == VariantType::VAR_FLOAT
+		(type0 == VariantType::VAR_FLOAT || type0 == VariantType::VAR_INT) &&
+		(type1 == VariantType::VAR_FLOAT || type1 == VariantType::VAR_INT)
 		)
 	{
 		// preserving original function logic in here
@@ -97,7 +97,7 @@ void Maths_Division::SolveInstance(
 		product = Variant(result);
 	}
 	else if (
-		type0 == VariantType::VAR_FLOAT &&
+		(type0 == VariantType::VAR_FLOAT || type0 == VariantType::VAR_INT) &&
 		type1 == VariantType::VAR_VECTOR3
 		)
 	{
@@ -110,7 +110,7 @@ void Maths_Division::SolveInstance(
 		}
 	}
 	else if (
-		type0 == VariantType::VAR_VECTOR3 &&
+		(type0 == VariantType::VAR_FLOAT || type0 == VariantType::VAR_INT) &&
 		type1 == VariantType::VAR_FLOAT
 		)
 	{

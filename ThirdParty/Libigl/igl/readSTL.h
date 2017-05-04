@@ -13,6 +13,7 @@
 #  include <Eigen/Core>
 #endif
 #include <string>
+#include <cstdio>
 #include <vector>
 
 namespace igl 
@@ -23,9 +24,9 @@ namespace igl
   //   Scalar  type for positions and vectors (will be read as double and cast
   //     to Scalar)
   // Inputs:
-  //   filename path to .obj file
+  //   filename path to .stl file
   // Outputs:
-  //   V  double matrix of vertex positions  #F*3 by 3
+  //   V  double matrix of vertex positions  #V*3 by 3
   //   F  index matrix of triangle indices #F by 3
   //   N  double matrix of vertex positions  #F by 3
   // Returns true on success, false on errors
@@ -41,6 +42,16 @@ namespace igl
     Eigen::PlainObjectBase<DerivedV> & V,
     Eigen::PlainObjectBase<DerivedF> & F,
     Eigen::PlainObjectBase<DerivedN> & N);
+  // Inputs:
+  //   stl_file  pointer to already opened .stl file 
+  // Outputs:
+  //   stl_file  closed file
+  template <typename TypeV, typename TypeF, typename TypeN>
+  IGL_INLINE bool readSTL(
+    FILE * stl_file, 
+    std::vector<std::vector<TypeV> > & V,
+    std::vector<std::vector<TypeF> > & F,
+    std::vector<std::vector<TypeN> > & N);
   template <typename TypeV, typename TypeF, typename TypeN>
   IGL_INLINE bool readSTL(
     const std::string & filename,

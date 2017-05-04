@@ -78,21 +78,30 @@ void Interop_AsyncSystemCommand::SolveInstance(
 	if (fs->FileExists(command))
 	{
 		StringVector argList;
-		for (int i = 0; i << args.Size(); i++)
+		for (int i = 0; i < args.Size(); i++)
 		{
 			argList.Push(args[i].GetString());
 		}
 
-		int res = fs->SystemRunAsync(command, argList);
+		int res = -1;
+		
+		if (argList.Size() > 0)
+		{
+			res = fs->SystemRunAsync(command, argList);
+		}
+		else
+		{
+			res = fs->SystemCommandAsync(command);
+		}
+		
+		
 		outSolveInstance[0] = res;
 		return;
 	}
 	else
 	{
-		int res = fs->SystemCommandAsync(command);
-		outSolveInstance[0] = res;
+		SetAllOutputsNull(outSolveInstance);
 		return;
 	}
 
-	outSolveInstance[0] = Variant();
 }

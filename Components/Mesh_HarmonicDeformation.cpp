@@ -124,6 +124,7 @@ void Mesh_HarmonicDeformation::SolveInstance(
 		return;
 	}
 
+
 	if (dispVecs.Size() != dispIdx.Size())
 	{
 		SetAllOutputsNull(outSolveInstance);

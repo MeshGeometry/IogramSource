@@ -104,9 +104,7 @@ void Mesh_SmoothMesh::SolveInstance(
 	}
 	int steps = inSolveInstance[1].GetInt();
 	if (steps < 0) {
-		URHO3D_LOGWARNING("S must be a non-negative integer.");
-		outSolveInstance[0] = Variant();
-		return;
+		steps = 0;
 	}
 	// Verify input slot 2
 	VariantType type2 = inSolveInstance[2].GetType();

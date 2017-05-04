@@ -296,7 +296,14 @@ String IoDataTree::ToString(bool truncate) const
 		for(int i = 0; i < numItems; i++)
 		{
 			Variant var = itr->second_->data[i];
-			out += "    " + var.ToString() + ", type: " + var.GetTypeName() + "\n";
+            String type = var.GetTypeName();
+            if (var.GetType() == VAR_VARIANTMAP){
+                VariantMap var_map = var.GetVariantMap();
+                if (var_map.Contains("type"))
+                    type = var_map["type"].GetString();
+            }
+                
+			out += "    " + var.ToString() + ", type: " + type + "\n";
 		}
 
 		if (truncate && itr->second_->data.Size() > 3)

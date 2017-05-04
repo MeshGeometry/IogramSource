@@ -184,17 +184,12 @@ void Mesh_Torus::SolveInstance(
 	//Matrix3x4 tr = inSolveInstance[4].GetMatrix3x4();
 
 	// Verify input slot 4
-	VariantType type4 = inSolveInstance[4].GetType();
-	if (type4 != VariantType::VAR_INT) {
-		URHO3D_LOGWARNING("R must be a valid int!");
-		outSolveInstance[0] = Variant();
-		return;
-	}
 	int res = inSolveInstance[4].GetInt();
 	if (res < 3) {
-		URHO3D_LOGWARNING("R must be larger than 3");
-		outSolveInstance[0] = Variant();
-		return;
+		//URHO3D_LOGWARNING("R must be larger than 3");
+		//outSolveInstance[0] = Variant();
+		//return;
+		res = 3;
 	}
 
 	///////////////////

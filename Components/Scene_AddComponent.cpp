@@ -21,6 +21,7 @@
 
 
 #include "Scene_AddComponent.h"
+#include <Urho3D/Scene/Component.h>
 
 using namespace Urho3D;
 
@@ -59,6 +60,24 @@ Scene_AddComponent::Scene_AddComponent(Context* context) : IoComponentBase(conte
 	);
 }
 
+void Scene_AddComponent::PreLocalSolve()
+{
+	Scene* scene = (Scene*)GetGlobalVar("Scene").GetPtr();
+	if (scene)
+	{
+		for (int i = 0; i < trackedItems.Size(); i++)
+		{
+			Component* sm = scene->GetComponent(trackedItems[i]);
+			if (sm != NULL)
+			{
+				sm->Remove();
+			}
+		}
+	}
+
+	trackedItems.Clear();
+}
+
 //work function
 void Scene_AddComponent::SolveInstance(
 	const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,
@@ -83,6 +102,7 @@ void Scene_AddComponent::SolveInstance(
 		Component* comp = node->CreateComponent(compTypeName);
 		if (comp)
 		{
+			trackedItems.Push(comp->GetID());
 			outSolveInstance[0] = Variant(comp);
 		}
 		else

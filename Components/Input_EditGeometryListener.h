@@ -41,4 +41,5 @@ public:
 		);
 	Urho3D::Variant currentGeometry;
 	void HandleEditGeometry(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
+	void HandleEditGeometryReset(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 };

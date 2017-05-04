@@ -1,2 +1,0 @@
-cmake -Bbuild -H. -DURHO3D_HOME="~/git-repos/Urho3D/Build" -G Xcode -DURHO3D_OPENGL=1 -DURHO3D_64BIT=1 -DURHO3D_MACOSX_BUNDLE=1
-

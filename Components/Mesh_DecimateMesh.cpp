@@ -87,17 +87,9 @@ void Mesh_DecimateMesh::SolveInstance(
 		return;
 	}
 	// Verify input slot 1
-	//Variant type1 = inSolveInstance[1].GetType();
-	//if (type1 != VariantType::VAR_INT) {
-	//	URHO3D_LOGWARNING("C must be a valid integer.");
-	//	outSolveInstance[0] = Variant();
-	//	return;
-	//}
 	int faceTarget = inSolveInstance[1].GetInt();
 	if (faceTarget <= 0) {
-		URHO3D_LOGWARNING("C must be > 0.");
-		outSolveInstance[0] = Variant();
-		return;
+		faceTarget = 1;
 	}
 
 	///////////////////
@@ -109,13 +101,15 @@ void Mesh_DecimateMesh::SolveInstance(
 
 	Eigen::MatrixXd Ud;
 	Eigen::MatrixXi G;
+	Eigen::VectorXi J;
 	bool decimateSuccess = false;
 	decimateSuccess = igl::decimate(
 		IglFloatToDouble(V),
 		F,
 		(size_t)faceTarget,
 		Ud,
-		G
+		G,
+		J
 	);
 	if (!decimateSuccess) {
 		URHO3D_LOGWARNING("Decimate operation failed.");

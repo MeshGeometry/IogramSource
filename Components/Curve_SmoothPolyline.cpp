@@ -80,16 +80,9 @@ void Curve_SmoothPolyline::SolveInstance(
 		return;
 	}
 	// Verify input slot 1
-	if (inSolveInstance[1].GetType() != VariantType::VAR_INT) {
-		URHO3D_LOGWARNING("I must be an integer.");
-		outSolveInstance[0] = Variant();
-		return;
-	}
 	int steps = inSolveInstance[1].GetInt();
 	if (steps < 0) {
-		URHO3D_LOGWARNING("I must be >= 0.");
-		outSolveInstance[0] = Variant();
-		return;
+		steps = 0;
 	}
 
 	///////////////////

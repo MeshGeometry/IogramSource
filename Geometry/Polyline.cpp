@@ -79,6 +79,28 @@ Urho3D::Variant Polyline_Make(const Urho3D::VariantVector& vertexList)
 	return Variant(var_map);
 }
 
+Urho3D::Variant Polyline_Make(const Urho3D::Vector<Urho3D::Vector3>& vertexList)
+{
+	Variant earlyRet;
+	if (vertexList.Size() < 2) {
+		std::cerr << "ERROR: Polyline_Make --- vertexList.Size() == 0\n";
+		return earlyRet;
+	}
+
+	Variant vertices;
+	Variant edges;
+	Geomlib::RemoveDuplicates(vertexList, vertices, edges);
+
+	VariantMap var_map;
+	var_map["type"] = Variant(String("Polyline"));
+	var_map["vertices"] = vertices;
+	var_map["edges"] = edges;
+
+	return Variant(var_map);
+}
+
+
+
 Urho3D::Variant Polyline_Make(const Urho3D::VariantVector& vertexList, const Urho3D::VariantVector& edgeList)
 {
 	Variant earlyRet;
@@ -138,6 +160,24 @@ bool Polyline_IsClosed(const Urho3D::Variant& polyline)
 	}
 	else
 		return false;
+}
+
+void Polyline_Close(Urho3D::Variant& polyline)
+{
+	if (!Polyline_Verify(polyline)) return;
+
+	if (!Polyline_IsClosed(polyline))
+	{
+		
+		VariantVector vertices = Polyline_ComputeSequentialVertexList(polyline);
+
+		//duplicate last vertex
+		vertices.Push(vertices[0]);
+		polyline = Polyline_Make(vertices);
+	}
+
+	return;
+
 }
 
 VariantVector Polyline_GetVertexList(const Urho3D::Variant& polyline)

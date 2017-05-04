@@ -77,11 +77,16 @@ bool Geomlib::PolylineOffset(
 	}
 
 	// Now treat the end points, depending on whether the polyline is closed or not.
-	if (isClosed) {
-		Vector3 averageVec = startVec + endVec;
-		averageVec.Normalize();
+	if (isClosed && (vertCount >= 4)) {
+
 		Vector3 curVert = verts[0].GetVector3();
-		Vector3 endOffsetVert = curVert + offset*averageVec;
+
+		Vector3 vecA = curVert - verts[1].GetVector3();
+		Vector3 vecB = curVert - verts[vertCount - 2].GetVector3();
+		Vector3 offsetVec = vecA + vecB;
+		offsetVec.Normalize();
+
+		Vector3 endOffsetVert = curVert + offset * offsetVec;
 		offsetVerts[0] = endOffsetVert; //start vert
 		offsetVerts.Push(endOffsetVert); //end vert
 	}

@@ -29,10 +29,14 @@ class URHO3D_API Scene_AddComponent : public IoComponentBase {
 public:
 	Scene_AddComponent(Urho3D::Context* context);
 
+	virtual void PreLocalSolve();
+
 	void SolveInstance(
 		const Urho3D::Vector<Urho3D::Variant>& inSolveInstance,
 		Urho3D::Vector<Urho3D::Variant>& outSolveInstance
 	);
+
+	Urho3D::Vector<int> trackedItems;
 
 	static Urho3D::String iconTexture;
 };

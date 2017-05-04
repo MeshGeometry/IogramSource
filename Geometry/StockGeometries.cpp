@@ -436,38 +436,6 @@ Urho3D::Variant MakeSuperTorus(Urho3D::Variant& triMesh, float outer_radius, flo
 
 	// make the vertex list
 	VariantVector vertex_list;
-
-    /*
-	int dx = (int)360 / res;
-	for (int u = 0; u < 360; u += dx) {
-		for (int v = 0; v < 360; v += dx) {
-			float theta = u*DTOR;
-			float phi = v*DTOR;
-
-			Vector3 curVert;
-			curVert.x_ = pow(cos(theta), n1) * (r0 + r1 * pow(cos(phi), n2));
-			curVert.y_ = pow(sin(theta), n1) * (r0 + r1 * pow(cos(phi), n2));
-			curVert.z_ = r1 * pow(sin(phi), n2);
-			vertex_list.Push(Variant(curVert));
-		}
-	}
-     
-     float dx = 360.0f / res;
-     for (int u = 0; u < res; ++u) {
-     for (int v = 0; v < res; ++v) {
-     float theta = u*dx*DTOR;
-     float phi = v*dx*DTOR;
-     
-     Vector3 curVert;
-     curVert.x_ = pow(cos(theta), n1) * (r0 + r1 * pow(cos(phi), n2));
-     curVert.y_ = pow(sin(theta), n1) * (r0 + r1 * pow(cos(phi), n2));
-     curVert.z_ = r1 * pow(sin(phi), n2);
-     vertex_list.Push(Variant(curVert));
-     }
-     }
-     
-     
-     */
     
     float dx = 360.0f / res;
     for (int u = 0; u < res; ++u) {
@@ -501,21 +469,10 @@ Urho3D::Variant MakeSuperTorus(Urho3D::Variant& triMesh, float outer_radius, flo
 			int upper_right = res*(i+1)%(res*res) + ((j + 1) % res);
 			int upper_left = res*(i + 1) % (res*res) + j;
 
-/*
-            face_list.Push(upper_left);
-            face_list.Push(upper_right);
-            face_list.Push(lower_right);
-			face_list.Push(lower_left);
-            
- */
             face_list.Push(lower_left);
             face_list.Push(lower_right);
             face_list.Push(upper_right);
             face_list.Push(upper_left);
-            
-            
-           
-            
             
             // making tri_face 1
             tri_face_list.Push(lower_left);
@@ -536,4 +493,43 @@ Urho3D::Variant MakeSuperTorus(Urho3D::Variant& triMesh, float outer_radius, flo
 
 	return superTorus;
     //return torus;
+}
+
+Urho3D::Variant MakePlane(float y_coord)
+{
+
+	VariantVector vertexList;
+	VariantVector faceList;
+
+	Vector3 v_0(-100, y_coord, -100);
+	Vector3 v_1(100, y_coord, -100);
+	Vector3 v_2(100, y_coord, 100);
+	Vector3 v_3(-100, y_coord, 100);
+
+	vertexList.Push(v_0);
+	vertexList.Push(v_1);
+	vertexList.Push(v_2);
+	vertexList.Push(v_3);
+
+	// add faces
+//	faceList.Push(0);
+//	faceList.Push(1);
+//	faceList.Push(2);
+//
+//	faceList.Push(0);
+//	faceList.Push(2);
+//	faceList.Push(3);
+
+	// add reversed faces to avoid backface shading issues.
+	faceList.Push(2);
+	faceList.Push(1);
+	faceList.Push(0);
+
+	faceList.Push(3);
+	faceList.Push(2);
+	faceList.Push(0);
+
+	Variant triMesh = TriMesh_Make(vertexList, faceList);
+
+	return triMesh;
 }

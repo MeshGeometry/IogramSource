@@ -26,6 +26,7 @@
 #include <Urho3D/Resource/ResourceCache.h>
 
 #include "IoGraph.h"
+#include "MultiSlider.h"
 
 using namespace Urho3D;
 
@@ -63,112 +64,38 @@ String Input_Vector3::GetNodeStyle() {
 
 void Input_Vector3::HandleCustomInterface(UIElement* customElement) {
 
-	mySlider = customElement->CreateChild<Widget_Vector3Slider>();
-	XMLFile* styleFile = GetSubsystem<ResourceCache>()->GetResource<XMLFile>("UI/IogramDefaultStyle.xml");
-	mySlider->SetStyle("Widget_Vector3Slider", styleFile);
-	mySlider->CustomInterface();
+	customElement->SetMinSize(120, 60);
+	mySlider = customElement->CreateChild<MultiSlider>();
+	mySlider->AddSlider();
+	mySlider->AddSlider();
 
-	customElement->SetMinSize(150, 120);
+	Vector3 lastVal = GetGenericData("Vector3").GetVector3();
 
-	Vector3 savedValue = Vector3(
-		GetGenericData("X").GetFloat(),
-		GetGenericData("Y").GetFloat(),
-		GetGenericData("Z").GetFloat());
-
-	float savedMinValue = GetGenericData("min").GetFloat();
-	float savedMaxValue = GetGenericData("max").GetFloat();
-	float range = Abs(savedMaxValue - savedMinValue);
-
-	mySlider->SetParams(savedMinValue, savedMaxValue, savedValue);
-	Slider* Slider_X = mySlider->GetSlider_X();
-	Slider* Slider_Y = mySlider->GetSlider_Y();
-	Slider* Slider_Z = mySlider->GetSlider_Z();
-	LineEdit* minEdit = mySlider->GetLineEditMin();
-	LineEdit* maxEdit = mySlider->GetLineEditMax();
-
-	if (Slider_X) {
-		SubscribeToEvent(Slider_X, E_SLIDERCHANGED, URHO3D_HANDLER(Input_Vector3, HandleSliderChanged_X));
-		
-		Slider_X->SetRange(range);
-		Slider_X->SetValue(GetGenericData("X").GetFloat());
-	}
-
-	if (Slider_Y) {
-		SubscribeToEvent(Slider_Y, E_SLIDERCHANGED, URHO3D_HANDLER(Input_Vector3, HandleSliderChanged_Y));
-		Slider_Y->SetRange(range);
-		Slider_Y->SetValue(GetGenericData("Y").GetFloat());
-	}
-
-	if (Slider_Z) {
-		SubscribeToEvent(Slider_Z, E_SLIDERCHANGED, URHO3D_HANDLER(Input_Vector3, HandleSliderChanged_Z));
-		Slider_Z->SetRange(range);
-		Slider_Z->SetValue(GetGenericData("Z").GetFloat());
-	}
+	mySlider->SetVector3(lastVal);
+	PushChange(lastVal, false);
 	
-	if (minEdit) {
-		SubscribeToEvent(minEdit, E_TEXTFINISHED, URHO3D_HANDLER(Input_Vector3, HandleLineEditMin));
-		minEdit->SetText(String(savedMinValue));
-	}
 
-	if (maxEdit) {
-		SubscribeToEvent(mySlider->GetLineEditMax(), E_TEXTFINISHED, URHO3D_HANDLER(Input_Vector3, HandleLineEditMax));
-		maxEdit->SetText(String(savedMaxValue));
-	}
+	SubscribeToEvent(mySlider, "MultiSliderChanged", URHO3D_HANDLER(Input_Vector3, HandleSliderChanged));
 }
 
-// ensure labels are saved to disk
-void Input_Vector3::HandleLineEditMin(StringHash eventType, VariantMap& eventData)
-{
-	using namespace TextFinished;
-	LineEdit* l = (LineEdit*)eventData[P_ELEMENT].GetPtr();
-	float min = Variant(VAR_FLOAT, l->GetText()).GetFloat();
-	SetGenericData("min", min);
-	PushChange(mySlider->GetCurrentValue());
-}
 
-void Input_Vector3::HandleLineEditMax(StringHash eventType, VariantMap& eventData)
-{
-	using namespace TextFinished;
-	LineEdit* l = (LineEdit*)eventData[P_ELEMENT].GetPtr();
-	float max = Variant(VAR_FLOAT, l->GetText()).GetFloat();
-	SetGenericData("max", max);
-	PushChange(mySlider->GetCurrentValue());
-}
 
-void Input_Vector3::HandleSliderChanged_X(StringHash eventType, VariantMap& eventData)
+void Input_Vector3::PushChange(Vector3 val, bool solve)
 {
-	using namespace SliderChanged;
-	float val = eventData[P_VALUE].GetFloat();
-	SetGenericData("X", val);
-	PushChange(mySlider->GetCurrentValue());
-}
-
-void Input_Vector3::HandleSliderChanged_Y(StringHash eventType, VariantMap& eventData)
-{
-	using namespace SliderChanged;
-	float val = eventData[P_VALUE].GetFloat();
-	SetGenericData("Y", val);
-	PushChange(mySlider->GetCurrentValue());
-}
-
-void Input_Vector3::HandleSliderChanged_Z(StringHash eventType, VariantMap& eventData)
-{
-	using namespace SliderChanged;
-	float val = eventData[P_VALUE].GetFloat();
-	SetGenericData("Z", val);
-	Vector3 test = mySlider->GetCurrentValue();
-	PushChange(mySlider->GetCurrentValue());
-}
-
-void Input_Vector3::PushChange(Vector3 val)
-{
+	
+	SetGenericData("Vector3", val);
+	
+	
 	Vector<int> path;
 	path.Push(0);
 	Variant var(val);
 	IoDataTree tree(GetContext());
 	tree.Add(path, var);
 	InputHardSet(0, tree);
-	GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
+	if (solve) {
+		GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
+	}
+
 }
 
 void Input_Vector3::SolveInstance(
@@ -177,5 +104,14 @@ void Input_Vector3::SolveInstance(
 	)
 {
 	outSolveInstance[0] = inSolveInstance[0];
+
+}
+
+void Input_Vector3::HandleSliderChanged(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
+{
+	if (mySlider) {
+		Vector3 newValue = mySlider->GetVector3();
+		PushChange(newValue);
+	}
 
 }

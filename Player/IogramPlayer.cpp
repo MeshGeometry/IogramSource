@@ -74,6 +74,12 @@
 #include <Urho3D/UI/View3D.h>
 #include <Urho3D/UI/UIEvents.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif
+
+#include <iostream>
+
 using namespace Urho3D;
 
 IogramPlayer* IogramPlayer::instance_;
@@ -96,13 +102,27 @@ IogramPlayer::IogramPlayer(Context* context) :
 
 void IogramPlayer::Setup()
 {
+	int width = 1200;
+	int height = 800;
+	int fullscreen = 0;
+
+#ifdef __EMSCRIPTEN__
+	emscripten_get_canvas_size(&width, &height, &fullscreen);
+	std::cout << "Canvas width: " << width << std::endl;
+	std::cout << "Canvas height: " << height << std::endl;
+#endif
+
+	width = Clamp(width, 600, 4096);
+	height = Clamp(height, 400, 4096);
+
+
 	// Modify engine startup parameters
 	engineParameters_["WindowTitle"] = GetTypeName();
 	engineParameters_["LogName"] = GetSubsystem<FileSystem>()->GetProgramDir() + GetTypeName() + ".log";
 	engineParameters_["FullScreen"] = false;
 	engineParameters_["Headless"] = false;
-	engineParameters_["WindowHeight"] = 800;
-	engineParameters_["WindowWidth"] = 1200;
+	engineParameters_["WindowHeight"] = height;
+	engineParameters_["WindowWidth"] = width;
 	engineParameters_["WindowResizable"] = true;
 	engineParameters_["HighDPI"] = true;
 
@@ -226,33 +246,27 @@ void IogramPlayer::CreateScene()
 {
 	ResourceCache* cache = GetSubsystem<ResourceCache>();
 	scene_ = new Scene(context_);
+	SetGlobalVar("Scene", scene_);
+
+
 	// Create the Octree component to the scene so that drawable objects can be rendered. Use default volume
 	// (-1000, -1000, -1000) to (1000, 1000, 1000)
 	scene_->CreateComponent<Octree>();
+
 	// Create a Zone for ambient light & fog control
 	Node* zoneNode = scene_->CreateChild("Zone");
 	Zone* zone = zoneNode->CreateComponent<Zone>();
 	zone->SetBoundingBox(BoundingBox(-1000.0f, 1000.0f));
-	//zone->SetFogColor(Color::CYAN);
 	zone->SetFogStart(300.0f);
 	zone->SetFogEnd(600.0f);
-	zone->SetAmbientColor(Color(0.1, 0.1, 0.1, 1));
+	zone->SetAmbientColor(Color(0.1, 0.1, 0.1, 0.9));
 	TextureCube* cubeTex = cache->GetResource<TextureCube>("Textures/ZoneCubeMap.xml");
 	zone->SetZoneTexture(cubeTex);
 
 	//create the background
-	Node* skyNode = scene_->CreateChild("Sky");
-	skyNode->SetScale(500.0f); // The scale actually does not matter
-	Skybox* skybox = skyNode->CreateComponent<Skybox>();
+	Skybox* skybox = scene_->CreateComponent<Skybox>();
 	skybox->SetModel(cache->GetResource<Model>("Models/Sphere.mdl"));
 	skybox->SetMaterial(cache->GetResource<Material>("Materials/Skybox.xml"));
-
-	//create a light node
-	Node* lightNode = scene_->CreateChild("SunLight");
-	lightNode->SetDirection(Vector3(0.2, -1, 0.2));
-	Light* light = lightNode->CreateComponent<Light>();
-	light->SetLightType(LIGHT_DIRECTIONAL);
-	light->SetCastShadows(true);
 
 	// Create the camera
 	cameraNode_ = scene_->CreateChild("OrbitCamera");
@@ -280,6 +294,7 @@ void IogramPlayer::CreateScene()
 	//Graphics* g = GetSubsystem<Graphics>();
 	Graphics* g = GetSubsystem<Graphics>();
 	g->Maximize();
+
 }
 
 void IogramPlayer::SetUIScale()
@@ -323,19 +338,12 @@ void IogramPlayer::SetupViewport()
 	renderer->SetHDRRendering(true);
 
 	// Set up a viewport to the Renderer subsystem so that the 3D scene can be seen
-	int width = GetSubsystem<Graphics>()->GetWidth();
-	int height = GetSubsystem<Graphics>()->GetHeight();
-	//IntRect* rect = new IntRect(0, 0, width, height);
-	SharedPtr<Viewport> viewport(new Viewport(context_, scene_, cameraNode_->GetComponent<OrbitCamera>()->camera_));
-	SetGlobalVar("activeViewport", viewport.Get());
+	viewport_ = new Viewport(context_, scene_, cameraNode_->GetComponent<OrbitCamera>()->camera_);
+	SetGlobalVar("activeViewport", viewport_);
 	VariantVector vpList;
-	vpList.Push(viewport.Get());
+	vpList.Push(viewport_);
 	SetGlobalVar("ViewportVector", vpList);
-	//viewport->SetRect(*rect);
-
-	renderer->SetViewport(0, viewport);
-	//renderer->SetShadowMapSize(2048);
-	//renderer->SetShadowQuality(2);
+	renderer->SetViewport(0, viewport_);
 
 	ResourceCache* cache = GetSubsystem<ResourceCache>();
 	RenderPath* render_path = new RenderPath();
@@ -343,14 +351,12 @@ void IogramPlayer::SetupViewport()
 
 	render_path->Load(cache->GetResource<XMLFile>("RenderPaths/ForwardDepth.xml"));
 
-#ifndef EMSCRIPTEN
-	render_path->Append(cache->GetResource<XMLFile>("PostProcess/FXAA3.xml"));
-	render_path->Append(cache->GetResource<XMLFile>("PostProcess/ColorCorrection.xml"));
+	//render_path->Append(cache->GetResource<XMLFile>("PostProcess/FXAA3.xml"));
+	//render_path->Append(cache->GetResource<XMLFile>("PostProcess/ColorCorrection.xml"));
 	render_path->Append(cache->GetResource<XMLFile>("PostProcess/Vibrance.xml"));
-#endif
 
 
-	viewport->SetRenderPath(render_path);
+	viewport_->SetRenderPath(render_path);
 
 	Graphics* graphics = GetSubsystem<Graphics>();
 	graphics->SetWindowTitle("Iogram: The Pre-Game Engine");
@@ -363,13 +369,31 @@ void IogramPlayer::SetupViewport()
 void IogramPlayer::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
 	//adjust ui scale if necessary
-	SetUIScale();
+	//SetUIScale();
 
-	Input* input = GetSubsystem<Input>();
-	if (input->GetKeyPress('g'))
-	{
-		GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
-	}
+	//adjust window size to canvas size on web
+#ifdef __EMSCRIPTEN__
+
+	// Graphics* g = GetSubsystem<Graphics>();
+	// int width, height, fullscreen = 0;
+	// int currWidth, currHeight;
+	// emscripten_get_canvas_size(&width, &height, &fullscreen);
+ //    //emscripten_set_canvas_size(1600, 1200);
+
+	// currWidth = g->GetWidth();
+	// currHeight = g->GetHeight();
+
+	// if (width != currWidth || height != currHeight) {
+	// 	g->SetMode(width, height);
+	// }
+
+#endif
+
+	//Input* input = GetSubsystem<Input>();
+	//if (input->GetKeyPress('g'))
+	//{
+	//	GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
+	//}
 }
 
 

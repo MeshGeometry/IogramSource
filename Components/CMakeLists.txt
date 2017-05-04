@@ -49,6 +49,48 @@ include_directories("../Geometry")
 #define_source_files (RECURSE GROUP)
 define_source_files ()
 
+#create some groups for sanity
+file(GLOB Mesh_SRC "./Mesh_*")
+source_group("Mesh" FILES ${Mesh_SRC})
+file(GLOB Math_SRC "./Maths_*")
+source_group("Maths" FILES ${Math_SRC})
+file(GLOB Input_SRC "./Input_*")
+source_group("Input" FILES ${Input_SRC})
+file(GLOB Graphics_SRC "./Graphics_*")
+source_group("Graphics" FILES ${Graphics_SRC})
+file(GLOB Curve_SRC "./Curve_*")
+source_group("Curve" FILES ${Curve_SRC})
+file(GLOB Geometry_SRC "./Geometry_*")
+source_group("Geometry" FILES ${Geometry_SRC})
+file(GLOB Interop_SRC "./Interop_*")
+source_group("Interop" FILES ${Interop_SRC})
+file(GLOB Scene_SRC "./Scene_*")
+source_group("Scene" FILES ${Scene_SRC})
+file(GLOB Sets_SRC "./Sets_*")
+source_group("Sets" FILES ${Sets_SRC})
+file(GLOB ShapeOp_SRC "./ShapeOp_*")
+source_group("ShapeOp" FILES ${ShapeOp_SRC})
+file(GLOB Spatial_SRC "./Spatial_*")
+source_group("Spatial" FILES ${Spatial_SRC})
+file(GLOB Tree_SRC "./Tree_*")
+source_group("Tree" FILES ${Tree_SRC})
+file(GLOB Vector_SRC "./Vector_*")
+source_group("Vector" FILES ${Vector_SRC})
+file(GLOB Widget_SRC "./Widget_*")
+source_group("Widget" FILES ${Widget_SRC})
+file(GLOB Physics_SRC "./Physics_*")
+source_group("Physics" FILES ${Physics_SRC})
+file(GLOB Misc_SRC 
+    "./ColorDefs.*"
+    "./RegisterCoreComponents.*"
+    "./OrbitCamera.*"
+    "./ReflectionProbe.*"
+    "./ColorSlider.*"
+    "./MultiSlider.*"
+    "./TransformEdit.*"
+    )
+source_group("Misc" FILES ${Misc_SRC})
+
 #get rid of resource copying
 set(RESOURCE_DIRS "")
 

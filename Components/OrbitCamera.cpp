@@ -79,8 +79,12 @@ void OrbitCamera::Start()
 void OrbitCamera::Update(float timeStep)
 {
 	// Do not move if the UI has a focused element (the console)
-	if (GetSubsystem<UI>()->GetFocusElement())
-		return;
+	//if (GetSubsystem<UI>()->GetFocusElement())
+	//	return;
+
+	// Do not move if the UI has a focused element (the console)
+	//if (GetSubsystem<UI>()->GetFocusElement())
+	//	return;
 
 	Input* input = GetSubsystem<Input>();
 
@@ -106,7 +110,7 @@ void OrbitCamera::Update(float timeStep)
 		if (input->GetKeyDown(KEY_LSHIFT))
 		{
 			//pan
-			Vector3 move_vec = 0.01 * d * (moveY * GetNode()->GetWorldUp() - moveX * GetNode()->GetWorldRight());
+			Vector3 move_vec = 0.01 * d * (moveY * cam_node_->GetWorldUp() - moveX * cam_node_->GetWorldRight());
 			GetNode()->Translate(move_vec, TS_WORLD);
 
 		}
@@ -115,41 +119,38 @@ void OrbitCamera::Update(float timeStep)
 		{
 			//zoom
 			float factor = 0.1f;
-			if (d < 1.0f)
+			if (camera_->IsOrthographic())
 			{
-				factor = factor * Pow(d, 1.0f);
+				float oSize = camera_->GetOrthoSize();
+				oSize += factor* Sign(moveY);
+				camera_->SetOrthoSize(oSize);
 			}
-
-			if (Sign(moveY) < 0)
+			else
 			{
-				factor = Max(factor, 0.1f);
-			}
+				if (d < 1.0f)
+				{
+					factor = factor * Pow(d, 1.0f);
+				}
 
-			cam_node_->Translate(factor* Sign(moveY) * d * Vector3::FORWARD, TS_LOCAL);
+				if (Sign(moveY) < 0)
+				{
+					factor = Max(factor, 0.1f);
+				}
+
+				cam_node_->Translate(factor* Sign(moveY) * d * Vector3::FORWARD, TS_LOCAL);
+			}
 		}
 
 		else
 		{
 			//rotate
 			GetNode()->RotateAround(GetNode()->GetPosition(), Quaternion(moveX, GetNode()->GetUp()), TS_WORLD);
-			GetNode()->RotateAround(GetNode()->GetPosition(), Quaternion(moveY, GetNode()->GetRight()), TS_WORLD);
+			cam_node_->RotateAround(GetNode()->GetPosition(), Quaternion(moveY, GetNode()->GetRight()), TS_WORLD);
 		}
 	}
 
-	float nearClip = camera_->GetNearClip();
 
-	if (input->GetKeyDown('r'))
-	{
-		nearClip -= 0.1f;
-		camera_->SetNearClip(nearClip);
-	}
-	if (input->GetKeyDown('f'))
-	{
-		nearClip += 0.1f;
-		camera_->SetNearClip(nearClip);
-	}
-
-	if (input->GetKeyPress('w'))
+	if (input->GetKeyDown(KEY_LCTRL) && input->GetKeyPress('w'))
 	{
 		if (camera_->GetFillMode() == FILL_SOLID)
 			camera_->SetFillMode(FILL_WIREFRAME);
@@ -161,71 +162,52 @@ void OrbitCamera::Update(float timeStep)
 		{
 			(sky->IsEnabled()) ? sky->SetEnabled(false) : sky->SetEnabled(true);
 		}
-
 	}
 
-	if (input->GetKeyPress('c'))
+	if (input->GetKeyDown(KEY_LCTRL) && input->GetKeyPress('p'))
+	{
+		if (camera_->IsOrthographic())
+		{
+			camera_->SetOrthographic(false);
+		}
+		else
+		{
+			camera_->SetOrthographic(true);
+		}
+	}
+
+	if (input->GetKeyDown(KEY_LCTRL) && input->GetKeyPress('l'))
+	{
+		if (light_node_)
+			light_node_->SetEnabled(!light_node_->IsEnabled());
+	}
+
+	if (input->GetKeyDown(KEY_TAB) && input->GetKeyPress('c'))
 		GetNode()->SetPosition(Vector3::ZERO);
 
+	if (input->GetKeyDown(KEY_LCTRL))
+	{
+		//view keyboard shortcuts
+		//if (input->GetKeyPress('5'))
+		//	SetView(CameraViews::TOP);
+		//if (input->GetKeyPress('6'))
+		//	SetView(CameraViews::RIGHT);
+		//if (input->GetKeyPress('4'))
+		//	SetView(CameraViews::LEFT);
+		//if (input->GetKeyPress('2'))
+		//	SetView(CameraViews::FRONT);
+		//if (input->GetKeyPress('8'))
+		//	SetView(CameraViews::BACK);
+		//if (input->GetKeyPress('1'))
+		//	SetView(CameraViews::BOTTOM);
 
-	//view keyboard shortcuts
-	if (input->GetKeyPress('5'))
-		SetView(CameraViews::TOP);
-	if (input->GetKeyPress('6'))
-		SetView(CameraViews::RIGHT);
-	if (input->GetKeyPress('4'))
-		SetView(CameraViews::LEFT);
-	if (input->GetKeyPress('2'))
-		SetView(CameraViews::FRONT);
-	if (input->GetKeyPress('8'))
-		SetView(CameraViews::BACK);
-	if (input->GetKeyPress('1'))
-		SetView(CameraViews::BOTTOM);
-
-	if (input->GetKeyPress('e'))
-		ZoomExtents();
+		if (input->GetKeyPress('e'))
+			ZoomExtents();
+	}
 
 	if (input->GetMouseButtonPress(MOUSEB_RIGHT))
 	{
-		//URHO3D_LOGINFO("Casting ray");
-		//Viewport* activeViewport = (Viewport*)GetGlobalVar("activeViewport").GetVoidPtr();
-		//UI* ui = GetSubsystem<UI>();
-		//IntVector2 pos = ui->GetCursorPosition();
-		//Graphics* graphics = GetSubsystem<Graphics>();
-		//Ray cameraRay = camera_->GetScreenRay((float)pos.x_ / graphics->GetWidth(), (float)pos.y_ / graphics->GetHeight());
-		//if (activeViewport)
-		//{
-		//	IntRect viewRect = activeViewport->GetRect();
-		//	float width = viewRect.Width();
-		//	float height = viewRect.Height();
-		//	float x = (float)(pos.x_ - viewRect.left_) / width;
-		//	float y = (float)(pos.y_ - viewRect.top_) / height;
-		//	
-		//	cameraRay = camera_->GetScreenRay(x, y);
-		//}
 
-		//
-
-		////Ray testRay(Vector3(300,0.1,-300), Vector3(0,1,0));
-
-		//PODVector<RayQueryResult> results;
-		//RayOctreeQuery query(results, cameraRay, RAY_TRIANGLE, 1000.0f,
-		//	DRAWABLE_GEOMETRY);
-
-		//GetScene()->GetComponent<Octree>()->Raycast(query);
-
-		//if(results.Size() > 0)
-		//{
-		//	VariantMap eventData;
-		//	eventData["ClickedNode"] = results.At(0).drawable_->GetNode();
-		//	SendEvent("NodeClicked", eventData);
-		//	URHO3D_LOGINFO("Object name: " + results.At(0).drawable_->GetNode()->GetName());
-		//}
-		//else
-		//{
-		//	VariantMap eventData;
-		//	SendEvent("Deselect", eventData);
-		//}
 	}
 
 }

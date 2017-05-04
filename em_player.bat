@@ -1,1 +1,0 @@
-cmake -Bbuild_player_em -H. -DURHO3D_HOME="C:/Dev/Urho3D/Build/web" -DWEB=1

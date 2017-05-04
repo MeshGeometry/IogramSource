@@ -21,10 +21,11 @@
 
 
 #include "Graphics_CurveRenderer.h"
-#include "CurveRenderer.h"
 #include "Polyline.h"
 
 #include <Urho3D/Graphics/BillboardSet.h>
+#include <Urho3D/Resource/ResourceCache.h>
+#include <Urho3D/Graphics/Material.h>
 
 using namespace Urho3D;
 
@@ -50,7 +51,7 @@ Graphics_CurveRenderer::Graphics_CurveRenderer(Urho3D::Context* context) : IoCom
 		"Width of curve",
 		VAR_FLOAT,
 		DataAccess::ITEM,
-		0.001f
+		0.01f
 	);
 
 	AddInputSlot(

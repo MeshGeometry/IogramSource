@@ -64,6 +64,7 @@ Input_EditGeometryListener::Input_EditGeometryListener(Urho3D::Context* context)
 	//	);
 
 	SubscribeToEvent("EditGeometryUpdate", URHO3D_HANDLER(Input_EditGeometryListener, HandleEditGeometry));
+	SubscribeToEvent("EditGeometryReset", URHO3D_HANDLER(Input_EditGeometryListener, HandleEditGeometryReset));
 
 }
 
@@ -97,8 +98,18 @@ void Input_EditGeometryListener::HandleEditGeometry(StringHash eventType, Varian
 	Node* n = (Node*)eventData["NodeReference"].GetPtr();
 	if (n)
 	{
-		currentGeometry = n->GetVar("ReferenceGeometry");
-		solvedFlag_ = 0;
-		GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
+		currentGeometry = n->GetVar("ReferenceGeometry");			
 	}
+	else
+	{
+		currentGeometry = Variant();
+	}
+
+	solvedFlag_ = 0;
+	GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
+}
+
+void Input_EditGeometryListener::HandleEditGeometryReset(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
+{
+	currentGeometry = Variant();
 }

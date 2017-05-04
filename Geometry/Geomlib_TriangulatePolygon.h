@@ -43,4 +43,8 @@ namespace Geomlib {
 		int faceIndex,
 		Urho3D::VariantVector& tri_face_list
 		);
+
+	bool TriangulatePolygonB(const Urho3D::Variant& polyIn,
+							const Urho3D::VariantVector& holes,
+							Urho3D::Variant& polyOut);
 };

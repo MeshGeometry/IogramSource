@@ -73,7 +73,8 @@ void Sets_ListConstruct::SolveInstance(
 
 				VariantVector cur_list = var.GetVariantVector();
 				for (int j = 0; j < cur_list.Size(); ++j) {
-					theList.Push(cur_list[j]);
+					if (cur_list[j].GetType() != VAR_NONE)
+						theList.Push(cur_list[j]);
 				}
 			}
 			else {

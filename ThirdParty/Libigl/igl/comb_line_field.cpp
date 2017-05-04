@@ -25,14 +25,12 @@ public:
     const Eigen::PlainObjectBase<DerivedV> &V;
     const Eigen::PlainObjectBase<DerivedF> &F;
     const Eigen::PlainObjectBase<DerivedV> &PD1;
-//#warning "Constructing Eigen::PlainObjectBase directly is deprecated"
-    Eigen::PlainObjectBase<DerivedV> N;
+    DerivedV N;
 
 private:
     // internal
-//#warning "Constructing Eigen::PlainObjectBase directly is deprecated"
-    Eigen::PlainObjectBase<DerivedF> TT;
-    Eigen::PlainObjectBase<DerivedF> TTi;
+    DerivedF TT;
+    DerivedF TTi;
 
 
 private:
@@ -130,5 +128,5 @@ IGL_INLINE void igl::comb_line_field(const Eigen::PlainObjectBase<DerivedV> &V,
 }
 
 #ifdef IGL_STATIC_LIBRARY
-// Explicit template specialization
+// Explicit template instantiation
 #endif

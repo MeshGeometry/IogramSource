@@ -64,13 +64,8 @@ public:
                        Urho3D::Color mainColor,
                        Urho3D::Variant& model_pointer);
 
-#ifdef EMSCRIPTEN
-	Urho3D::String normalMat = "Materials/BasicWeb.xml";
-	Urho3D::String normalAlphaMat = "Materials/BasicWebAlpha.xml";
-#else
 	Urho3D::String normalMat = "Materials/BasicPBR.xml";
 	Urho3D::String normalAlphaMat = "Materials/BasicPBRAlpha.xml";
-#endif
 
 	Urho3D::Vector<int> trackedItems;
 	Urho3D::Vector<Urho3D::String> trackedResources;

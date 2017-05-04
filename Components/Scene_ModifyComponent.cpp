@@ -107,6 +107,38 @@ void Scene_ModifyComponent::SolveInstance(
 			{
 				comp->SetAttribute(attributeName, propVals[i]);
 			}
+			else if (attriVar.GetType() == VAR_RESOURCEREFLIST)
+			{
+
+				Resource* resource = (Resource*)propVals[i].GetPtr();
+
+				if (resource)
+				{
+					ResourceRefList oldRef = attriVar.GetResourceRefList();
+					StringVector oldNames = oldRef.names_;
+
+					for (int i = 0; i < oldNames.Size(); i++)
+					{
+						oldNames[i] = resource->GetName();
+					}
+					
+					ResourceRefList newRef(oldRef.type_, oldNames);
+					comp->SetAttribute(attributeName, newRef);
+				}
+			}
+			else if (attriVar.GetType() == VAR_RESOURCEREF)
+			{
+
+				Resource* resource = (Resource*)propVals[i].GetPtr();
+
+				if (resource)
+				{
+					ResourceRef oldRef = attriVar.GetResourceRef();
+					oldRef.name_ = resource->GetName();
+					comp->SetAttribute(attributeName, oldRef);
+
+				}
+			}
 			else
 			{
 				URHO3D_LOGERROR("Mismatch in supplied attribuate type");

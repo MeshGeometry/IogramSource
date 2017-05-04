@@ -39,6 +39,7 @@
 
 #include "Polyline.h"
 #include "TriMesh.h"
+#include "NMesh.h"
 
 using namespace Urho3D;
 
@@ -152,10 +153,21 @@ void Input_GeometryEdit::SolveInstance(
 		SubscribeToEvent(E_MOUSEBUTTONUP, URHO3D_HANDLER(Input_GeometryEdit, HandleMouseUp));
 	}
 
+	Scene* scene = (Scene*)GetGlobalVar("Scene").GetPtr();
+	if (!scene)
+	{
+		SetAllOutputsNull(outSolveInstance);
+		SendEvent("EditGeometryReset");
+		return;
+	}
+
 	//create the renderer
 	float thickness = inSolveInstance[2].GetFloat();
 	Color col = inSolveInstance[3].GetColor();
 	int editGeom = CreateEditGeometry(inSolveInstance[0], thickness, col);
+
+	SendEvent("EditGeometryReset");
+
 	trackedItems.Push(editGeom);
 	outSolveInstance[0] = editGeom;
 
@@ -442,6 +454,12 @@ int Input_GeometryEdit::CreateEditGeometry(Variant geometry, float thickness, Co
 		verts = TriMesh_GetVertexList(geometry);
 		edges = TriMesh_ComputeEdges(geometry);
 	}
+    else if (NMesh_Verify(geometry))
+    {
+        VariantMap geoMap = geometry.GetVariantMap();
+        verts = NMesh_GetVertexList(geometry);
+        edges = NMesh_ComputeEdges(geometry);
+    }
 
 	if (verts.Size() < 2)
 	{

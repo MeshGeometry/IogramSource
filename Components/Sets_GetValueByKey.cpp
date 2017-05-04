@@ -85,15 +85,15 @@ void Sets_GetValueByKey::SolveInstance(
 
 	Variant value = mapIn[key];
 	
-	if (!value.GetType() == VAR_VARIANTVECTOR)
+	if (value.GetType() == VAR_VARIANTVECTOR)
+	{
+		outSolveInstance[0] = value;
+	}
+	else
 	{
 		VariantVector valOut;
 		valOut.Push(value);
 		outSolveInstance[0] = valOut;
-	}
-	else
-	{
-		outSolveInstance[0] = value;
 	}
 
 	

@@ -91,9 +91,7 @@ void Mesh_MeanCurvatureFlow::SolveInstance(
 
 	int num_steps = inSolveInstance[1].GetInt();
 	if (num_steps <= 0) {
-		URHO3D_LOGWARNING("MeanCurvatureFlow --- Num must be >= 1");
-		SetAllOutputsNull(outSolveInstance);
-		return;
+		num_steps = 1;
 	}
 
 	///////////////////

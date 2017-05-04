@@ -145,6 +145,15 @@ void Graphics_MeshRenderer::SolveInstance(
 		String matPath = inSolveInstance[1].GetString();
 		bool split = inSolveInstance[2].GetBool();
 
+		if (inSolveInstance[1].GetType() == VAR_PTR)
+		{
+			Material* inMat = (Material*)inSolveInstance[1].GetPtr();
+			if (inMat)
+			{
+				matPath = inMat->GetName();
+			}
+		}
+
 		//adjust defaults so that alpha behaves correctly
 		if (col.a_ < 1.0f && matPath.Empty())
 		{
@@ -301,26 +310,28 @@ int Graphics_MeshRenderer::TriMesh_Render(Urho3D::Variant trimesh,
     StaticModel* sm = mNode->CreateComponent<StaticModel>();
     int smID = sm->GetID();
     
-    //SharedPtr<Material> cloneMat = mat->Clone();
-    //cloneMat->SetName("tmp/materials/generated_mat_" + String(smID));
-    //cloneMat->SetShaderParameter("MatDiffColor", col);
-    mat->SetShaderParameter("MatDiffColor", mainColor);
+    SharedPtr<Material> cloneMat = mat->Clone();
+    cloneMat->SetName("tmp/materials/generated_mat_" + String(smID));
+	Color specColor = cloneMat->GetShaderParameter("MatSpecColor").GetColor();
+	Color existingColor = cloneMat->GetShaderParameter("MatDiffColor").GetColor();
+	Color blendColor = existingColor.MultiplyComponents(mainColor);
+    cloneMat->SetShaderParameter("MatDiffColor", blendColor);
     model->SetName("tmp/models/generated_model_" + String(smID));
     
     //add these to the resource cache
     ResourceCache* rc = GetSubsystem<ResourceCache>();
     bool res = rc->AddManualResource(model);
-    //res = rc->AddManualResource(cloneMat);
-    //trackedResources.Push(cloneMat->GetName());
+    res = rc->AddManualResource(cloneMat);
+    trackedResources.Push(cloneMat->GetName());
     trackedResources.Push(model->GetName());
     
     sm->SetModel(model);
     //sm->SetMaterial(cloneMat);
-    sm->SetMaterial(mat);
+    sm->SetMaterial(cloneMat);
 	sm->SetCastShadows(true);
 	sm->SetShadowDistance(100.0f);
     
-    model_pointer = Variant(model);
+    model_pointer = Variant(sm);
     
     return mNode->GetID();
 }
@@ -341,7 +352,10 @@ int Graphics_MeshRenderer::NMesh_Render(Urho3D::Variant nMesh,
     VariantVector ngonTriList;
     VariantVector ngonTriList_unified;
     
-    Urho3D::Variant convertedMesh = NMesh_ConvertToTriMesh_P2T(nMesh, ngonTriList);
+    //Urho3D::Variant convertedMesh = NMesh_ConvertToTriMesh_P2T(nMesh, ngonTriList);
+    
+    Urho3D::Variant convertedMesh = NMesh_ConvertToTriMesh(nMesh, ngonTriList);
+    
     Urho3D::Variant unifiedMesh = TriMesh_UnifyNormals(convertedMesh);
     
     VariantVector verts = TriMesh_GetVertexList(unifiedMesh);
@@ -451,24 +465,25 @@ int Graphics_MeshRenderer::NMesh_Render(Urho3D::Variant nMesh,
     StaticModel* sm = mNode->CreateComponent<StaticModel>();
     int smID = sm->GetID();
     
-    //SharedPtr<Material> cloneMat = mat->Clone();
-    //cloneMat->SetName("tmp/materials/generated_mat_" + String(smID));
-    //cloneMat->SetShaderParameter("MatDiffColor", col);
-    mat->SetShaderParameter("MatDiffColor", mainColor);
-    model->SetName("tmp/models/generated_model_" + String(smID));
-    
-    //add these to the resource cache
-    ResourceCache* rc = GetSubsystem<ResourceCache>();
-    bool res = rc->AddManualResource(model);
-    //res = rc->AddManualResource(cloneMat);
-    //trackedResources.Push(cloneMat->GetName());
-    trackedResources.Push(model->GetName());
+	SharedPtr<Material> cloneMat = mat->Clone();
+	cloneMat->SetName("tmp/materials/generated_mat_" + String(smID));
+	Color existingColor = cloneMat->GetShaderParameter("MatDiffColor").GetColor();
+	Color blendColor = existingColor.MultiplyComponents(mainColor);
+	cloneMat->SetShaderParameter("MatDiffColor", blendColor);
+	model->SetName("tmp/models/generated_model_" + String(smID));
+
+	//add these to the resource cache
+	ResourceCache* rc = GetSubsystem<ResourceCache>();
+	bool res = rc->AddManualResource(model);
+	res = rc->AddManualResource(cloneMat);
+	trackedResources.Push(cloneMat->GetName());
+	trackedResources.Push(model->GetName());
     
     sm->SetModel(model);
-    //sm->SetMaterial(cloneMat);
-    sm->SetMaterial(mat);
+    sm->SetMaterial(cloneMat);
+    //sm->SetMaterial(mat);
     
-    model_pointer = Variant(model);
+    model_pointer = Variant(sm);
     
     return mNode->GetID();
 }

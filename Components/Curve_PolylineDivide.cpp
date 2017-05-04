@@ -87,9 +87,7 @@ void Curve_PolylineDivide::SolveInstance(
 	}
 	int numParts = inSolveInstance[1].GetInt();
 	if (numParts < 1) {
-		URHO3D_LOGWARNING("N must be >= 1.");
-		outSolveInstance[0] = Variant();
-		return;
+		numParts = 1;
 	}
 
 	///////////////////

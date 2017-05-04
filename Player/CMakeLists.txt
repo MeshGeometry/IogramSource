@@ -22,9 +22,8 @@ include (Urho3D-CMake-common)
 
 # Define target name
 set (TARGET_NAME IogramPlayer)
+
 # Define source files
-#SET(IOLIB "../IogramLib")
-#define_source_files (GLOB_CPP_PATTERNS ./*.cpp ${IOLIB}/Graph/*.cpp ${IOLIB}/Components/*.cpp ${IOLIB}/Geometry/*.cpp ${IOLIB}/Render/*.cpp ${IOLIB}/Editor/*.cpp)
 define_source_files()
 
 #get rid of resource copying
@@ -40,19 +39,11 @@ add_definitions(-DNOMINMAX)
 include_directories("../Core")
 include_directories("../Geometry")
 include_directories("../Components")
-#include_directories("../ThirdParty/ShapeOp/src")
 
+#mandatory libs
 target_link_libraries(IogramPlayer Components)
 target_link_libraries(IogramPlayer Core)
 target_link_libraries(IogramPlayer Geometry)
-#target_link_libraries(IogramPlayer ShapeOp)
-target_link_libraries(IogramPlayer Assimp)
-
-
-# #compile flags
-# if(UNIX)
-#     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
-# endif()
 
 
 if(WIN32)
