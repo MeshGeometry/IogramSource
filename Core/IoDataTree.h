@@ -110,6 +110,8 @@ public:
 	// Automated tree operations
 	IoDataTree OneToManyGraft() const;
 
+	Urho3D::VariantMap ToVariantMap() const;
+
 public:
 	// Part of public interface: const operations with output depending on state
 	void GetItem(Urho3D::Variant& item, Urho3D::Vector<int> path, int index) const;

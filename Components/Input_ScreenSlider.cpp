@@ -24,6 +24,7 @@
 
 #include "Input_ScreenSlider.h"
 #include "Widget_OptionSlider.h"
+#include "MultiSlider.h"
 
 #include <Urho3D/UI/UIEvents.h>
 #include <Urho3D/UI/UI.h>
@@ -141,8 +142,22 @@ void Input_ScreenSlider::SolveInstance(
 
 	//attach
 	UIElement* container = (parent == NULL) ? root : parent;
-
-	//create the widget
+    
+//    //create the slider
+//    MultiSlider* screenSlider = container->CreateChild<MultiSlider>();
+//    screenSlider->SetRange(range.x_, range.y_);
+//    
+//    if (useCoords)
+//    {
+//        Vector3 coords = inSolveInstance[0].GetVector3();
+//        screenSlider->SetPosition(coords.x_, coords.y_);
+//    }
+//    
+//    trackedItems.Push(screenSlider);
+//    
+//    outSolveInstance[0] = (Slider*)screenSlider;
+    
+    //	//create the widget
 	Widget_OptionSlider* optionSlider = container->CreateChild<Widget_OptionSlider>("CustomUI", idx);
 	XMLFile* styleFile = GetSubsystem<ResourceCache>()->GetResource<XMLFile>("UI/IogramDefaultStyle.xml");
 	optionSlider->SetStyle("Widget_OptionSlider", styleFile);
@@ -156,9 +171,14 @@ void Input_ScreenSlider::SolveInstance(
 		optionSlider->SetPosition(coords.x_, coords.y_);
 	}
 
+    
+    Slider* slider = (Slider*)optionSlider->GetChild("MainSlider", false);
+    trackedItems.Push(optionSlider);
+    
+  //  outSolveInstance[0] = (Slider*)slider;
+    
+    outSolveInstance[0] = Variant(optionSlider);
+    
+    
 
-	Slider* slider = (Slider*)optionSlider->GetChild("MainSlider", false);
-	trackedItems.Push(optionSlider);
-
-	outSolveInstance[0] = (Slider*)slider;
 }

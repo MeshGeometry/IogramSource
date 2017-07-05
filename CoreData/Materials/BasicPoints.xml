@@ -1,5 +1,0 @@
-<material>
-    <technique name="Techniques/DiffAlphaMask.xml" />
-    <parameter name="MatDiffColor" value="1.0 0.67 0.1 1.0" />    
-    <texture unit="diffuse" name="Textures/PointX.png" />
-</material>

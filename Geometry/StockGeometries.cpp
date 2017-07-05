@@ -19,7 +19,6 @@
 // THE SOFTWARE.
 //
 
-
 #include "StockGeometries.h"
 
 #include <math.h>
@@ -27,6 +26,8 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+
+#include <Urho3D/IO/Log.h>
 
 #pragma warning(push, 0)
 #include <igl/adjacency_list.h>
@@ -37,8 +38,19 @@
 #include "TriMesh.h"
 #include "Polyline.h"
 #include "NMesh.h"
+#include "Geomlib_TriangulatePolygon.h"
+#include "Geomlib_TriMeshThicken.h"
+
+#include <Urho3D/AngelScript/Script.h>
+#include <AngelScript/angelscript.h>
+
 
 #pragma warning(disable : 4244)
+
+#define CHECK_GEO_REG(result) if (result <= 0) { \
+		printf("geo_reg: FAIL\n"); \
+		failed = true; \
+	}
 
 using Urho3D::Equals;
 using Urho3D::Variant;
@@ -189,6 +201,44 @@ Urho3D::Variant MakeHexayurtMesh(float s)
 	return TriMesh_Make(vertices, faces);
 }
 
+Urho3D::Variant MakeCubeMeshFromExtremeCorners(Vector3 m, Vector3 M)
+{
+	float cyc[8] = { M.x_, M.z_, m.x_, M.z_, m.x_, m.z_, M.x_, m.z_ };
+
+	Vector<Vector3> vertexCoords;
+	for (unsigned i = 0; i < 4; ++i) {
+		Vector3 v0(cyc[2 * i], m.y_, cyc[2 * i + 1]);
+		unsigned j = (i + 1) % 4;
+		Vector3 v1(cyc[2 * j], m.y_, cyc[2 * j + 1]);
+		Vector3 v2 = v1 + Vector3(0, M.y_ - m.y_, 0);
+		Vector3 v3 = v0 + Vector3(0, M.y_ - m.y_, 0);
+		vertexCoords.Push(v1); vertexCoords.Push(v0); vertexCoords.Push(v2);
+		vertexCoords.Push(v2); vertexCoords.Push(v0); vertexCoords.Push(v3);
+	}
+
+	{
+		Vector3 v0(cyc[0], m.y_, cyc[1]);
+		Vector3 v1(cyc[2], m.y_, cyc[3]);
+		Vector3 v2(cyc[4], m.y_, cyc[5]);
+		Vector3 v3(cyc[6], m.y_, cyc[7]);
+		vertexCoords.Push(v0); vertexCoords.Push(v1); vertexCoords.Push(v2);
+		vertexCoords.Push(v0); vertexCoords.Push(v2); vertexCoords.Push(v3);
+
+		Vector3 up(0, M.y_ - m.y_, 0);
+		v0 += up;
+		v1 += up;
+		v2 += up;
+		v3 += up;
+		vertexCoords.Push(v1); vertexCoords.Push(v0); vertexCoords.Push(v2);
+		vertexCoords.Push(v2); vertexCoords.Push(v0); vertexCoords.Push(v3);
+	}
+
+	Variant vertices, faces;
+	RemoveDuplicates(vertexCoords, vertices, faces);
+
+	return TriMesh_Make(vertices, faces);
+}
+
 Urho3D::Variant MakeCubeMesh(float s)
 {
 	if (s <= 0.0f) {
@@ -287,24 +337,83 @@ bool MakeZigZag(float s, float t, int n, Urho3D::Variant& zigZagPolyline)
 	return true;
 }
 
-Urho3D::Variant MakeIcosahedron()
+Urho3D::Variant MakeHelix(float radius, float height, float turns, int res)
 {
-	float t = (1 + (float)sqrt(5)) / 2;
+   
+    VariantVector vertexList;    
+    float height_incr= height/res;
+
+	if (turns == 0 || res == 0) {
+		URHO3D_LOGERROR("Number of turns or resolution may not be zero ");
+		return Variant();
+	}
+
+	float incr = 2*M_PI / ((float)res / (float)turns);
+    
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
+    for (int i = 0; i < res+1; ++i) {
+        x = radius*cos(i*incr);
+        y = i*height_incr;
+        z = radius*sin(i*incr);
+        vertexList.Push(Vector3(x, y, z));
+    }
+    
+    return Polyline_Make(vertexList);
+}
+
+Urho3D::Variant MakeSpiral(float lower_radius, float upper_radius, float height, float turns, int res)
+{
+
+	VariantVector vertexList;
+
+	float height_incr = height / res;
+	if (lower_radius == upper_radius) {
+		URHO3D_LOGERROR("Lower radius must not be the same as the upper radius");
+		return Variant();
+	}
+
+	if (turns == 0 || res == 0) {
+		URHO3D_LOGERROR("Number of turns or resolution may not be zero ");
+		return Variant();
+	}
+
+	float incr = 2 * M_PI / ((float)res / (float)turns);
+	float radius_incr = (upper_radius - lower_radius) / (float)res;
+
+	float x = 0.0f;
+	float y = 0.0f;
+	float z = 0.0f;
+	for (int i = 0; i < res + 1; ++i) {
+		float radius = lower_radius + i*radius_incr;
+		x = radius*cos(i*incr);
+		y = i*height_incr;
+		z = radius*sin(i*incr);
+		vertexList.Push(Vector3(x, y, z));
+	}
+
+	return Polyline_Make(vertexList);
+}
+
+Urho3D::Variant MakeIcosahedron(float r)
+{
+	float t = r*(1 + (float)sqrt(5)) / 2;
 
 	Eigen::MatrixXf V(12, 3);
 	V <<
-		t, 1, 0, // 0
-		1, 0, t, // 1, A
-		0, t, 1, // 2, B
-		t, -1, 0, // 3, E
-		-1, 0, t, // 4, DD <-> A
-		0, t, -1, // 5, C
-		-t, 1, 0, // 6, EE <-> B
-		1, 0, -t, // 7, D
-		0, -t, 1, // 8, CC <-> E
-		-t, -1, 0, // 9
-		-1, 0, -t, // 10, AA <-> C
-		0, -t, -1; // 11, BB <-> D
+		t, r, 0, // 0
+		r, 0, t, // 1, A
+		0, t, r, // 2, B
+		t, -r, 0, // 3, E
+		-r, 0, t, // 4, DD <-> A
+		0, t, -r, // 5, C
+		-t, r, 0, // 6, EE <-> B
+		r, 0, -t, // 7, D
+		0, -t, r, // 8, CC <-> E
+		-t, -r, 0, // 9
+		-r, 0, -t, // 10, AA <-> C
+		0, -t, -r; // 11, BB <-> D
 
 	Eigen::MatrixXi F(20, 3);
 	F <<
@@ -388,20 +497,21 @@ Urho3D::Variant MakeRegularPolygon(int n)
 	}
 
 	float theta = 2 * 3.14159f / n;
+	float offset = 0.5f * theta;
 
 	VariantVector vertex_list;
 
-	Vector3 v0(1.0f, 0.0f, 0.0f);
-	vertex_list.Push(Variant(v0));
+	//Vector3 v0(1.0f, 0.0f, 0.0f);
+	//vertex_list.Push(Variant(v0));
 
-	for (int i = 1; i < n; ++i) {
-		float x = std::cos(i * theta);
-		float z = std::sin(i * theta);
+	for (int i = 0; i < n; ++i) {
+		float x = std::cos(i * theta + offset);
+		float z = std::sin(i * theta + offset);
 		Vector3 v(x, 0.0f, z);
 		vertex_list.Push(Variant(v));
 	}
 
-	vertex_list.Push(Variant(v0));
+	vertex_list.Push(vertex_list.Front());
 
 	return Polyline_Make(vertex_list);
 }
@@ -495,7 +605,7 @@ Urho3D::Variant MakeSuperTorus(Urho3D::Variant& triMesh, float outer_radius, flo
     //return torus;
 }
 
-Urho3D::Variant MakePlane(float y_coord)
+Urho3D::Variant MakeXZPlane(float y_coord)
 {
 
 	VariantVector vertexList;
@@ -511,16 +621,6 @@ Urho3D::Variant MakePlane(float y_coord)
 	vertexList.Push(v_2);
 	vertexList.Push(v_3);
 
-	// add faces
-//	faceList.Push(0);
-//	faceList.Push(1);
-//	faceList.Push(2);
-//
-//	faceList.Push(0);
-//	faceList.Push(2);
-//	faceList.Push(3);
-
-	// add reversed faces to avoid backface shading issues.
 	faceList.Push(2);
 	faceList.Push(1);
 	faceList.Push(0);
@@ -532,4 +632,310 @@ Urho3D::Variant MakePlane(float y_coord)
 	Variant triMesh = TriMesh_Make(vertexList, faceList);
 
 	return triMesh;
+}
+
+Urho3D::Variant MakeYZPlane(float x_coord)
+{
+    
+    VariantVector vertexList;
+    VariantVector faceList;
+    
+    Vector3 v_0(x_coord, -100, -100);
+    Vector3 v_1(x_coord, 100,  -100);
+    Vector3 v_2(x_coord, 100, 100);
+    Vector3 v_3(x_coord, -100, 100);
+    
+    vertexList.Push(v_0);
+    vertexList.Push(v_1);
+    vertexList.Push(v_2);
+    vertexList.Push(v_3);
+    
+    faceList.Push(2);
+    faceList.Push(1);
+    faceList.Push(0);
+    
+    faceList.Push(3);
+    faceList.Push(2);
+    faceList.Push(0);
+    
+    Variant triMesh = TriMesh_Make(vertexList, faceList);
+    
+    return triMesh;
+}
+
+Urho3D::Variant MakeXYPlane(float z_coord)
+{
+    
+    VariantVector vertexList;
+    VariantVector faceList;
+    
+    Vector3 v_0(-100,  -100, z_coord);
+    Vector3 v_1(100,  -100, z_coord);
+    Vector3 v_2(100,  100, z_coord);
+    Vector3 v_3(-100,  100, z_coord);
+    
+    vertexList.Push(v_0);
+    vertexList.Push(v_1);
+    vertexList.Push(v_2);
+    vertexList.Push(v_3);
+    
+    faceList.Push(2);
+    faceList.Push(1);
+    faceList.Push(0);
+    
+    faceList.Push(3);
+    faceList.Push(2);
+    faceList.Push(0);
+    
+    Variant triMesh = TriMesh_Make(vertexList, faceList);
+    
+    return triMesh;
+}
+
+Urho3D::Variant MakeCone(int sides, float radius, float height)
+{
+    if (sides <= 2) {
+        return Variant();
+    }
+    
+    float theta = 2 * 3.14159f / sides;
+    
+    VariantVector vertex_list;
+    VariantVector face_list;
+    
+    Vector3 v0(0.0f, height, 0.0f);
+    vertex_list.Push(Variant(v0));
+    
+    // verts for the base
+    for (int i = 0; i < sides; ++i) {
+        float x = radius*std::cos(i * theta);
+        float z = radius*std::sin(i * theta);
+        Vector3 v(x, 0.0f, z);
+        vertex_list.Push(Variant(v));
+    }
+    
+    // make the mesh for the base
+    for (int i = 1; i < sides-1; ++i){
+        face_list.Push(Variant(1));
+        face_list.Push(Variant(i));
+        face_list.Push(Variant(i+1));
+    }
+    
+    // make the sides
+    for (int i = 0; i < sides; ++i){
+        face_list.Push(Variant(0));
+        face_list.Push(Variant(i));
+        face_list.Push(Variant((i+1)%sides));
+    }
+    Variant tri_mesh = TriMesh_Make(vertex_list, face_list);
+    
+    return tri_mesh;
+    
+}
+
+Urho3D::Variant MakeTruncatedCone(int sides, float radius, float height)
+{
+    Urho3D::Variant ret;
+    return ret;
+}
+
+// bot_r is the radius of the base
+// top_r is the radius of the top
+Urho3D::Variant MakeCylinder(int sides, float base_r, float top_r, float height)
+{
+    if (sides <= 2) {
+        return Variant();
+    }
+    
+    float theta = 2 * 3.14159f / sides;
+    
+    VariantVector vertex_list;
+    VariantVector face_list;
+
+    
+    // make the base verts
+    for (int i = 0; i < sides; ++i) {
+        float x = base_r*std::cos(i * theta);
+        float z = base_r*std::sin(i * theta);
+        Vector3 v(x, 0.0f, z);
+        vertex_list.Push(Variant(v));
+    }
+    
+    // make the top verts
+    for (int i = 0; i < sides; ++i) {
+        float x = top_r*std::cos(i * theta);
+        float z = top_r*std::sin(i * theta);
+        Vector3 v(x, height, z);
+        vertex_list.Push(Variant(v));
+    }
+    
+    // make the mesh for the base
+    for (int i = 1; i < sides-1; ++i){
+        face_list.Push(Variant(0));
+        face_list.Push(Variant(i));
+        face_list.Push(Variant(i+1));
+    }
+    
+
+    // make the mesh for the top
+    for (int i = 1; i < sides-1; ++i){
+        face_list.Push(Variant(sides + i+1));
+        face_list.Push(Variant(sides + i));
+        face_list.Push(Variant(sides));
+    }
+
+    
+    // make the sides
+    for (int i = 0; i < sides; ++i){
+        //first tri
+//        int a = i;
+//        int b = sides + i;
+//        int c = sides + (i+1)%sides;
+        face_list.Push(Variant(i));
+        face_list.Push(Variant(sides + i));
+        face_list.Push(Variant(sides + (i+1)%sides));
+        //second tri
+//        int d = i;
+//        int e = sides + (i+1)%sides;
+//        int f = (i+1)%sides;
+        face_list.Push(Variant(i));
+        face_list.Push(Variant(sides + (i+1)%sides));
+        face_list.Push(Variant((i+1)%sides));
+    }
+    
+    Variant tri_mesh = TriMesh_Make(vertex_list, face_list);
+    
+    return tri_mesh;
+}
+
+bool MakeZigZagWithStretchParams(float s, float t, int n, Urho3D::Variant& zigZagPolyline)
+{
+	return MakeZigZag(s, t, n, zigZagPolyline);
+}
+
+bool RegisterStockGeometryFunctions(Urho3D::Context* context)
+{
+	Urho3D::Script* script_system = context->GetSubsystem<Urho3D::Script>();
+	asIScriptEngine* engine = script_system->GetScriptEngine();
+
+	bool failed = false;
+
+	int res;
+
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeHexayurtMesh(float)",
+		asFUNCTION(MakeHexayurtMesh),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeCubeMesh(float)",
+		asFUNCTION(MakeCubeMesh),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeCubeMeshFromExtremeCorners(Vector3, Vector3)",
+		asFUNCTION(MakeCubeMeshFromExtremeCorners),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeZigZagWithStretchParams(float, float, int, Variant&)",
+		asFUNCTION(MakeZigZagWithStretchParams),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeHelix(float, float, float, int)",
+		asFUNCTION(MakeHelix),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeSpiral(float, float, float, float, int)",
+		asFUNCTION(MakeSpiral),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeSphere()",
+		asFUNCTION(MakeSphere),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeIcosahedron(float)",
+		asFUNCTION(MakeIcosahedron),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeRegularPolygon(int)",
+		asFUNCTION(MakeRegularPolygon),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeSuperTorus(Variant&, float, float, float, float, int)",
+		asFUNCTION(MakeSuperTorus),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeXZPlane(float)",
+		asFUNCTION(MakeXZPlane),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeYZPlane(float)",
+		asFUNCTION(MakeYZPlane),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeXYPlane(float)",
+		asFUNCTION(MakeXYPlane),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"Variant MakePlane(float)",
+		asFUNCTION(MakeXZPlane),
+		asCALL_CDECL
+	);
+
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeCone(int, float, float)",
+		asFUNCTION(MakeCone),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeTruncatedCone(int, float, float)",
+		asFUNCTION(MakeTruncatedCone),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant MakeCylinder(int, float, float, float)",
+		asFUNCTION(MakeCylinder),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	if (failed) {
+		URHO3D_LOGINFO("RegisterStockGeometryFunctions --- Failed to compile scripts");
+	}
+	else {
+		URHO3D_LOGINFO("RegisterStockGeometryFunctions --- OK!");
+	}
+
+	return !failed;
 }

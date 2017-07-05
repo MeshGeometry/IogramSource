@@ -43,8 +43,8 @@ Input_Float::Input_Float(Context* context) :
 	AddInputSlot(
 		"Number",
 		"X",
-		"Non-float number",
-		VAR_NONE,
+		"Number to cast to a float",
+		VAR_FLOAT,
 		DataAccess::ITEM
 		);
 
@@ -52,51 +52,10 @@ Input_Float::Input_Float(Context* context) :
 		"Float",
 		"F",
 		"Float",
-		VAR_VARIANTMAP,
+		VAR_FLOAT,
 		DataAccess::ITEM
 		);
 
-}
-
-String Input_Float::GetNodeStyle()
-{
-	return "InputFloat";
-}
-
-void Input_Float::HandleCustomInterface(UIElement* customElement)
-{
-	floatNameEdit = (LineEdit*)customElement->GetChild("PropertyEdit", true);
-	if (floatNameEdit)
-	{
-		SubscribeToEvent(floatNameEdit, E_TEXTFINISHED, URHO3D_HANDLER(Input_Float, HandleLineEdit));
-        floatName = GetGenericData("FloatName").GetString();
-        floatNameEdit->SetText(floatName);
-	}
-}
-
-void Input_Float::HandleLineEdit(StringHash eventType, VariantMap& eventData)
-{
-	using namespace TextFinished;
-
-	LineEdit* l = (LineEdit*)eventData[P_ELEMENT].GetVoidPtr();
-	if (l)
-	{
-
-		Vector<int> path;
-		path.Push(0);
-		IoDataTree tree(GetContext());
-
-
-		String val = l->GetText();
-		Variant var(VAR_FLOAT, val);
-        SetGenericData("FloatName", val);
-
-		tree.Add(path, var);
-
-		InputHardSet(0, tree);
-
-		GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
-	}
 }
 
 
@@ -107,7 +66,17 @@ void Input_Float::SolveInstance(
 	)
 {
 
-	float in_var = inSolveInstance[0].GetFloat();
-
-	outSolveInstance[0] = Variant(in_var);
+    Variant in_var = inSolveInstance[0];
+    float out_float = 0.0f;
+    
+    if (in_var.GetType() == VAR_STRING) {
+        String in_string = in_var.GetString();
+        out_float = Urho3D::ToFloat(in_string);
+    }
+    
+    else
+        out_float = in_var.GetFloat();
+    
+    
+    outSolveInstance[0] = Variant(out_float);
 }

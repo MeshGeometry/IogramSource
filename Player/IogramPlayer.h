@@ -36,6 +36,7 @@ public:
 	virtual void Stop();
 	void CreateScene();
 	void SetupViewport();
+	void LoadGraph();
 	void LoadPlugins();
 	void SetUIScale();
 
@@ -44,8 +45,8 @@ public:
 	static IogramPlayer* instance_; //singleton to app instance
 	Urho3D::Scene* scene_;
 	Urho3D::Viewport* viewport_;
-	Urho3D::SharedPtr<Urho3D::Node> cameraNode_;
-	Urho3D::SharedPtr<Urho3D::Node> lightNode_;
+	Urho3D::Node* cameraNode_;
+	Urho3D::Node* lightNode_;
 
 private:
 	void HandleUpdate(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);

@@ -25,13 +25,19 @@
 #include "TriMesh.h"
 
 #include <Urho3D/IO/Log.h>
-
+#include <Urho3D/AngelScript/Script.h>
+#include <AngelScript/angelscript.h>
 
 #pragma warning(push, 0)
 #include <igl/vertex_triangle_adjacency.h>
 #include <igl/triangle_triangle_adjacency.h>
 #include <igl/adjacency_list.h>
 #pragma warning(pop)
+
+#define CHECK_GEO_REG(result) if (result <= 0) { \
+		printf("geo_reg: FAIL\n"); \
+		failed = true; \
+	}
 
 using Urho3D::Variant;
 using Urho3D::VariantMap;
@@ -212,4 +218,95 @@ Urho3D::VariantVector TriMesh_FaceToFaces(const Urho3D::Variant& triMeshWithData
     }
 }
 
+// for scripts
 
+Urho3D::CScriptArray* TriMesh_VertexToVerticesArrayFromId(Urho3D::Variant& triMeshWithData, int vertID)
+{
+	Vector<Variant> vertices_data = TriMesh_VertexToVertices(triMeshWithData, vertID);
+	return Urho3D::VectorToArray<Variant>(vertices_data, "Array<Variant>");
+}
+
+Urho3D::CScriptArray* TriMesh_VertexToVerticesArray(Urho3D::Variant& triMeshWithData)
+{
+	Vector<Variant> vertices_data = TriMesh_VertexToVertices(triMeshWithData);
+	return Urho3D::VectorToArray<Variant>(vertices_data, "Array<Variant>");
+}
+
+Urho3D::CScriptArray* TriMesh_VertexToFacesArray(Urho3D::Variant& triMeshWithData, int vertID)
+{
+	Vector<Variant> faces_data = TriMesh_VertexToFaces(triMeshWithData, vertID);
+	return Urho3D::VectorToArray<Variant>(faces_data, "Array<Variant>");
+}
+
+Urho3D::CScriptArray* TriMesh_FaceToVerticesArray(const Urho3D::Variant& triMeshWithData, int faceID)
+{
+	Vector<Variant> vertices_data = TriMesh_FaceToVertices(triMeshWithData, faceID);
+	return Urho3D::VectorToArray<Variant>(vertices_data, "Array<Variant>");
+}
+
+Urho3D::CScriptArray* TriMesh_FaceToFacesArray(const Urho3D::Variant& triMeshWithData, int faceID)
+{
+	Vector<Variant> faces_data = TriMesh_FaceToFaces(triMeshWithData, faceID);
+	return Urho3D::VectorToArray<Variant>(faces_data, "Array<Variant>");
+}
+
+bool RegisterMeshTopologyQueryFunctions(Urho3D::Context* context)
+{
+	Urho3D::Script* script_system = context->GetSubsystem<Urho3D::Script>();
+	asIScriptEngine* engine = script_system->GetScriptEngine();
+
+	bool failed = false;
+
+	int res;
+	res = engine->RegisterGlobalFunction(
+		"Variant TriMesh_ComputeAdjacencyData(const Variant&)",
+		asFUNCTION(TriMesh_ComputeAdjacencyData),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"bool TriMesh_HasAdjacencyData(const Variant&)",
+		asFUNCTION(TriMesh_HasAdjacencyData),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ TriMesh_VertexToVerticesArrayFromId(Variant&, int)",
+		asFUNCTION(TriMesh_VertexToVerticesArrayFromId),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ TriMesh_VertexToVerticesArray(Variant&)",
+		asFUNCTION(TriMesh_VertexToVerticesArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ TriMesh_VertexToFacesArray(Variant&, int)",
+		asFUNCTION(TriMesh_VertexToFacesArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ TriMesh_FaceToVerticesArray(const Variant&, int)",
+		asFUNCTION(TriMesh_FaceToVerticesArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ TriMesh_FaceToFacesArray(const Variant&, int)",
+		asFUNCTION(TriMesh_FaceToFacesArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	if (failed) {
+		URHO3D_LOGINFO("RegisterTopologyQueryFunctions --- Failed to compile scripts");
+	}
+	else {
+		URHO3D_LOGINFO("RegisterTopologyQueryFunctions --- OK!");
+	}
+
+	return !failed;
+}

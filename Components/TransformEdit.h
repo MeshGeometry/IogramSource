@@ -25,6 +25,7 @@
 #include <Urho3D/Scene/Component.h>
 #include <Urho3D/Graphics/BillboardSet.h>
 #include <Urho3D/Graphics/Octree.h>
+#include <Urho3D/Graphics/StaticModel.h>
 
 /// Custom logic component for rotating a scene node.
 class TransformEdit : public Urho3D::Component
@@ -36,31 +37,29 @@ public:
 	TransformEdit(Urho3D::Context* context);
 	~TransformEdit() {};
 
-	void SetMoveAxes(Urho3D::Vector<Urho3D::Vector3> axes);
-
 protected:
 
-	float lineScale_;
 	bool editing_;
-	Urho3D::RayQueryResult raycastResult_;
-	Urho3D::Vector<Urho3D::Vector3> moveAxes_;
-	Urho3D::Vector<Urho3D::Vector3> scaleAxes_;
-	Urho3D::Vector<Urho3D::Vector3> rotateAxes_;
+	Urho3D::String currentEditName_;
 
-	//we need two separate objects for rendering the transform gizmo
-	Urho3D::BillboardSet* transformHandles_;
-	Urho3D::BillboardSet* transformLines_;
+	Urho3D::Matrix3x4 lastTransform_;
+	Urho3D::RayQueryResult raycastResult_;
+	Urho3D::IntVector2 startScreenPos_;
+	Urho3D::HashMap<Urho3D::StaticModel*, Urho3D::String> modelMap_;
+
 
 protected:
 
 	virtual void OnNodeSet(Urho3D::Node* node);
-	void CreateTransformGizmo();
-	Urho3D::Billboard* CreateMoveGizmo(Urho3D::Vector3 direction, int id);
+	
+	void LoadPrimitive(Urho3D::String name);
+	Urho3D::Ray GetScreenRay(Urho3D::IntVector2 screenPos);
+	Urho3D::IntVector2 GetScaledMousePosition();
 	void HandleUpdate(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 	void HandleMouseDown(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 	void HandleMouseMove(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 	void HandleMouseUp(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
-
+	void HandleComponentRemoved(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 	bool Raycast();
 
 };

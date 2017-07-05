@@ -25,6 +25,8 @@
 #include <Urho3D/Core/StringUtils.h>
 #include <Urho3D/IO/Log.h>
 
+#include <iostream>
+
 #include <assert.h>
 
 using namespace Urho3D;
@@ -315,6 +317,21 @@ String IoDataTree::ToString(bool truncate) const
 	}
 
 	return out;
+}
+
+Urho3D::VariantMap IoDataTree::ToVariantMap() const
+{
+	HashMap<String, IoBranch*>::ConstIterator itr = branches_.Begin();
+	VariantMap vm;
+
+	for (; itr != branches_.End(); itr++) {
+
+		String path = itr->first_;
+		VariantVector data = itr->second_->data;
+		vm[path.CString()] = Variant(data);
+	}
+
+	return vm;
 }
 
 Urho3D::Vector<Urho3D::String> IoDataTree::GetContent()

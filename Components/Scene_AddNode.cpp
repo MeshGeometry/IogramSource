@@ -25,12 +25,13 @@
 #include "IoGraph.h"
 
 #include "Geomlib_ConstructTransform.h"
+#include "TransformEdit.h"
 
 using namespace Urho3D;
 
 String Scene_AddNode::iconTexture = "Textures/Icons/Scene_AddNode.png";
 
-Scene_AddNode::Scene_AddNode(Urho3D::Context* context) : IoComponentBase(context, 3, 1)
+Scene_AddNode::Scene_AddNode(Urho3D::Context* context) : IoComponentBase(context, 4, 2)
 {
 	SetName("Add Node");
 	SetFullName("Add Node To Scene");
@@ -62,12 +63,28 @@ Scene_AddNode::Scene_AddNode(Urho3D::Context* context) : IoComponentBase(context
 	inputSlots_[2]->SetDefaultValue(-1);
 	inputSlots_[2]->DefaultSet();
 
+	inputSlots_[3]->SetName("Options");
+	inputSlots_[3]->SetVariableName("O");
+	inputSlots_[3]->SetDescription("Options to control node editing");
+	inputSlots_[3]->SetVariantType(VariantType::VAR_INT);
+	inputSlots_[3]->SetDataAccess(DataAccess::ITEM);
+	inputSlots_[3]->SetDefaultValue(7);
+	inputSlots_[3]->DefaultSet();
+
 
 	outputSlots_[0]->SetName("Node ID");
 	outputSlots_[0]->SetVariableName("ID");
 	outputSlots_[0]->SetDescription("ID of node");
 	outputSlots_[0]->SetVariantType(VariantType::VAR_INT);
 	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
+
+	outputSlots_[1]->SetName("Transform");
+	outputSlots_[1]->SetVariableName("T");
+	outputSlots_[1]->SetDescription("Transform");
+	outputSlots_[1]->SetVariantType(VariantType::VAR_MATRIX3X4);
+	outputSlots_[1]->SetDataAccess(DataAccess::ITEM);
+
+	SubscribeToEvent("TransformChanged", URHO3D_HANDLER(Scene_AddNode, HandleTransformChanged));
 }
 
 Scene_AddNode::~Scene_AddNode()
@@ -110,6 +127,9 @@ void Scene_AddNode::SolveInstance(
 	newNode->SetRotation(xform.Rotation());
 	newNode->SetScale(xform.Scale());
 
+	//create transform edit
+	TransformEdit* te = newNode->CreateComponent<TransformEdit>();
+
 	//track
 	trackedNodes.Push(newNode->GetID());
 
@@ -127,6 +147,7 @@ void Scene_AddNode::PreLocalSolve()
 			Node* oldNode = scene->GetNode(trackedNodes[i]);
 			if (oldNode)
 			{
+				oldNode->RemoveAllChildren();
 				oldNode->Remove();
 			}
 
@@ -135,6 +156,23 @@ void Scene_AddNode::PreLocalSolve()
 		trackedNodes.Clear();
 	}
 
+}
+
+void Scene_AddNode::HandleTransformChanged(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)
+{
+	Node* node = (Node*)eventData["NodePtr"].GetPtr();
+	if (node)
+	{
+		int id = node->GetID();
+		if (trackedNodes.Contains(id))
+		{
+			Matrix3x4 xform = node->GetWorldTransform();
+
+			outputSlots_[1]->SetIoDataTree(IoDataTree(GetContext(), xform));
+
+			GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
+		}
+	}
 }
 
 

@@ -26,6 +26,9 @@
 #include <Urho3D/Graphics/Viewport.h>
 
 
+using Urho3D::UIElement;
+
+
 class URHO3D_API Graphics_Viewport : public IoComponentBase {
 
 	URHO3D_OBJECT(Graphics_Viewport, IoComponentBase)
@@ -42,5 +45,5 @@ public:
 		Urho3D::Vector<Urho3D::Variant>& outSolveInstance
 		);
 
-	Urho3D::Vector<int> trackedItems;
+	Urho3D::Vector<UIElement*> trackedItems;
 };

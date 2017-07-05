@@ -1,5 +1,0 @@
-<renderpath>
-    <command type="quad" tag="Vibrance" vs="Vibrance" ps="Vibrance" output="viewport">
-        <texture unit="diffuse" name="viewport" />
-    </command>
-</renderpath>

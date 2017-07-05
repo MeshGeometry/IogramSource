@@ -2,6 +2,10 @@
 #include <Urho3D/Core/StringUtils.h>
 #include <Urho3D/IO/Log.h>
 
+#include "Polyline.h"
+#include "NMesh.h"
+#include "TriMesh.h"
+
 namespace {
 
 	File* dest_;
@@ -395,3 +399,4 @@ void DxfWriter::SetPoints(VariantVector points, String layer)
 		SetPoint(points[i].GetVector3(), layer);
 	}
 }
+

@@ -62,6 +62,8 @@ public:
 	friend class Editor_NodeView;
 
 public:
+	virtual int NewLocalSolve();
+	virtual int OldLocalSolve();
 	virtual int LocalSolve();
 	virtual void ClearOutputs();
 	virtual void PreLocalSolve() {};

@@ -82,6 +82,22 @@ Graphics_RenderTexture::Graphics_RenderTexture(Context* context) : IoComponentBa
 		DataAccess::ITEM
 	);
 
+	AddOutputSlot(
+		"TextureName",
+		"TextureName",
+		"TextureName",
+		VAR_STRING,
+		DataAccess::ITEM
+	);
+
+	AddOutputSlot(
+		"MatName",
+		"MatName",
+		"MatName",
+		VAR_STRING,
+		DataAccess::ITEM
+	);
+
 	SubscribeToEvent(E_RENDERSURFACEUPDATE, URHO3D_HANDLER(Graphics_RenderTexture, HandleRenderUpdate));
 }
 
@@ -159,7 +175,8 @@ void Graphics_RenderTexture::SolveInstance(
 	//set outputs
 	outSolveInstance[0] = renderTexture;
 	outSolveInstance[1] = renderMaterial;
-
+	outSolveInstance[2] = renderTexture->GetName();
+	outSolveInstance[3] = renderMaterial->GetName();
 }
 
 void Graphics_RenderTexture::HandleRenderUpdate(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData)

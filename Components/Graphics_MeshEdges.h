@@ -47,13 +47,15 @@ public:
 		Urho3D::Context* context,
 		float lineWidth,
 		Urho3D::Color mainColor,
-		Urho3D::Variant& model_pointer);
+		Urho3D::Variant& model_pointer,
+		Urho3D::String& model_name);
 
 	int NMesh_Render(Urho3D::Variant nmesh,
 		Urho3D::Context* context,
 		float lineWidth,
 		Urho3D::Color mainColor,
-		Urho3D::Variant& model_pointer);
+		Urho3D::Variant& model_pointer,
+		Urho3D::String& model_name);
 
 	Urho3D::String normalMat = "Materials/BasicEdges.xml";
 

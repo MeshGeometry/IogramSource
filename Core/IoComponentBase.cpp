@@ -306,11 +306,186 @@ void IoComponentBase::SolveInstance(
 	}
 }
 
+int IoComponentBase::LocalSolve()
+{
+
+	PreLocalSolve();
+
+	bool tree_access_required = false;
+
+	for (unsigned i = 0; i < inputSlots_.Size(); ++i) {
+		DataAccess dataAccess = inputSlots_[i]->GetDataAccess();
+		if (dataAccess == DataAccess::TREE) {
+			tree_access_required = true;
+			break;
+		}
+	}
+
+	if (tree_access_required) {
+		URHO3D_LOGWARNING("IoComponentBase::LocalSolve --- TREE access is alpha!");
+		int ret = NewLocalSolve();
+		return ret;
+	}
+
+	int ret = OldLocalSolve();
+	return ret;
+}
+
+int IoComponentBase::NewLocalSolve()
+{
+	// check for empty IoDataTree values at IoInputSlots
+	for (unsigned i = 0; i < inputSlots_.Size(); ++i) {
+		if (inputSlots_[i]->HasNoData()) {
+
+			ClearOutputs();
+			solvedFlag_ = 0;
+			return 0;
+		}
+	}
+
+	// ORIGINAL LOCATION OF PreLocalSolve();
+
+	// all IoInputSlots have non-empty IoDataTree values; proceed with LocalSolve operation
+
+	// Vector<SharedPtr<IoDataTree> > not Vector<IoDataTree> just b/c Vector<IoDataTree> can't compile b/c IoDataTree has no default constructor
+	Vector<SharedPtr<IoDataTree> > inputIoDataTrees;
+	for (unsigned i = 0; i < inputSlots_.Size(); ++i) {
+
+		if (inputSlots_[i]->GetDataAccess() == DataAccess::TREE) {
+
+			SharedPtr<IoDataTree> treePtr_ = SharedPtr<IoDataTree>(new IoDataTree(inputSlots_[i]->GetIoDataTree()));
+			VariantMap vm = treePtr_->ToVariantMap();
+			Variant var(vm);
+			Vector<StringHash> keys = vm.Keys();
+
+			SharedPtr<IoDataTree> treePtr(new IoDataTree(GetContext(), var));
+			inputIoDataTrees.Push(treePtr);
+		}
+		else {
+			SharedPtr<IoDataTree> treePtr = SharedPtr<IoDataTree>(new IoDataTree(inputSlots_[i]->GetIoDataTree()));
+			inputIoDataTrees.Push(treePtr);
+		}
+	}
+
+	Vector<SharedPtr<IoDataTree> > outputIoDataTrees;
+	for (unsigned i = 0; i < outputSlots_.Size(); ++i) {
+		SharedPtr<IoDataTree> treePtr = SharedPtr<IoDataTree>(new IoDataTree(GetContext()));
+		outputIoDataTrees.Push(treePtr);
+	}
+
+	// find branch count of the IoDataTree with the highest branch count
+	unsigned maxNumBranches = inputIoDataTrees[0]->GetNumBranches();
+	unsigned maxBranchIndex = 0;
+	for (unsigned i = 1; i < inputIoDataTrees.Size(); ++i) {
+		unsigned numBranches = inputIoDataTrees[i]->GetNumBranches();
+		if (numBranches > maxNumBranches) {
+			maxNumBranches = numBranches;
+			maxBranchIndex = i;
+		}
+	}
+
+	// currentPath[0] stores current path into IoDataTree at IoInputSlot index 0,
+	// currentPath[1] stores current path into IoDataTree at IoInputSlot index 1,
+	// and so on
+	Vector<Vector<int> > currentPaths;
+	for (unsigned i = 0; i < inputIoDataTrees.Size(); ++i) {
+		currentPaths.Push(inputIoDataTrees[i]->Begin());
+	}
+
+	// loop one time for every branch in the highest branch count IoDataTree
+	for (unsigned i = 0; i < maxNumBranches; ++i) {
+
+		// A single "Arg" here refers to either a:
+		//   Variant, if access is ITEM type;
+		//   Vector<Variant>, if access is LIST type.
+		// We loop over the input slots,
+		// to find the maximum number of "Args" available from the lists identified by the currentPaths
+
+		// hack 1!
+		unsigned maxNumArgs;
+		if (inputSlots_[0]->GetDataAccess() == DataAccess::TREE) {
+			maxNumArgs = 1;
+		}
+		else {
+			maxNumArgs = inputIoDataTrees[0]->GetNumItemsAtBranch(currentPaths[0], inputSlots_[0]->GetDataAccess());
+		}
+		for (unsigned j = 1; j < inputIoDataTrees.Size(); ++j) {
+			// hack 2!
+			unsigned numArgs;
+			if (inputSlots_[j]->GetDataAccess() == DataAccess::TREE) {
+				numArgs = 1;
+			}
+			else {
+				numArgs = inputIoDataTrees[j]->GetNumItemsAtBranch(currentPaths[j], inputSlots_[j]->GetDataAccess());
+			}
+			if (numArgs > maxNumArgs) {
+				maxNumArgs = numArgs;
+			}
+		}
+
+		Vector<int> outputPath = inputIoDataTrees[maxBranchIndex]->GetCurrentBranch();
+
+		// loop one time for every "Arg" available from the highest arg count
+		for (unsigned j = 0; j < maxNumArgs; ++j) {
+
+			Vector<Variant> inSolveInstance;
+			for (unsigned k = 0; k < inputIoDataTrees.Size(); ++k) {
+				Variant arg;
+				// hack 3!
+				if (inputSlots_[k]->GetDataAccess() == DataAccess::TREE) {
+					inputIoDataTrees[k]->GetNextItem(arg, DataAccess::ITEM);
+				}
+				else {
+					inputIoDataTrees[k]->GetNextItem(arg, inputSlots_[k]->GetDataAccess());
+				}
+				inSolveInstance.Push(arg);
+			}
+			Vector<Variant> outSolveInstance(outputSlots_.Size());
+			SolveInstance(inSolveInstance, outSolveInstance);
+
+			for (unsigned k = 0; k < outputSlots_.Size(); ++k) {
+				outputIoDataTrees[k]->Add(outputPath, outSolveInstance[k]);
+				/*
+				Worrying at this point about 1-to-many problems.
+				Maybe it's cleanest & simplest to add a Variant here, whether it
+				represents a VAR_FLOAT or a VAR_VARIANTVECTOR or whatever,
+				and afterwards traverse the tree and detect and push the lists to new branches
+				where necessary....
+				*/
+			}
+		}
+
+		// update the identifiers in currentPaths
+		currentPaths.Clear();
+		for (unsigned j = 0; j < inputIoDataTrees.Size(); ++j) {
+			currentPaths.Push(inputIoDataTrees[j]->GetNextBranch());
+		}
+	}
+
+	for (unsigned i = 0; i < outputSlots_.Size(); ++i) {
+		if (outputSlots_[i]->GetDataAccess() == DataAccess::LIST) {
+			//std::cout << "... outputIoDataTree[" << i << "]->OneToManyGraft()";
+
+			IoDataTree graftedTree = outputIoDataTrees[i]->OneToManyGraft();
+			//std::cout << "graftedTree" << std::endl;
+			//std::cout << graftedTree.ToString().CString() << std::endl;
+			SharedPtr<IoDataTree> treePtr(new IoDataTree(graftedTree));
+			outputIoDataTrees[i] = treePtr;
+		}
+	}
+
+	for (unsigned i = 0; i < outputSlots_.Size(); ++i) {
+		outputSlots_[i]->SetIoDataTree(*outputIoDataTrees[i]);
+	}
+
+	return solvedFlag_ = 1; // the only way that solvedFlag_ ever becomes 1
+}
+
 // Always attempts to solve the node anew, based on current input values, regardless of value of solvedFlag_
 // Returns:
 //   1 if the node is successfully solved
 //   0 otherwise
-int IoComponentBase::LocalSolve()
+int IoComponentBase::OldLocalSolve()
 {
 	// check for empty IoDataTree values at IoInputSlots
 	for (unsigned i = 0; i < inputSlots_.Size(); ++i) {
@@ -324,8 +499,7 @@ int IoComponentBase::LocalSolve()
 		}
 	}
 
-	//call a prep function if needed
-	PreLocalSolve();
+	// ORIGINAL LOCATION OF PreLocalSolve();
 
 	// all IoInputSlots have non-empty IoDataTree values; proceed with LocalSolve operation
 
@@ -785,6 +959,8 @@ void IoComponentBase::SetAllOutputsNull(Urho3D::Vector<Urho3D::Variant>& outSolv
 	for (unsigned i = 0; i < outSolveInstance.Size(); ++i) {
 		outSolveInstance[i] = Variant();
 	}
+
+	SendEvent("GraphNodeError");
 }
 
 bool IoComponentBase::SetGenericData(String key, Variant data)

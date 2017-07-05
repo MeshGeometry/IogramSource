@@ -20,3 +20,76 @@
 //
 
 
+#include "Mesh_TriangulateNMesh.h"
+#include <Urho3D/Core/Variant.h>
+#include "ConversionUtilities.h"
+#include "NMesh.h"
+
+using namespace Urho3D;
+
+String Mesh_TriangulateNMesh::iconTexture = "Textures/Icons/Mesh_TriangulateNMesh.png";
+
+Mesh_TriangulateNMesh::Mesh_TriangulateNMesh(Context* context) : IoComponentBase(context, 0, 0)
+{
+	SetName("TriangulateNMesh");
+	SetFullName("Triangulate NMesh");
+	SetDescription("Triangulates a quad or N-mesh");
+
+	AddInputSlot(
+		"Mesh",
+		"M",
+		"Mesh to triangulate",
+		VAR_VARIANTMAP,
+		ITEM
+	);
+
+	AddOutputSlot(
+		"MeshOut",
+		"TM",
+		"TriMesh out",
+		VAR_VARIANTMAP,
+		ITEM
+	);
+
+}
+
+void Mesh_TriangulateNMesh::SolveInstance(
+	const Vector<Variant>& inSolveInstance,
+	Vector<Variant>& outSolveInstance
+)
+{
+
+
+	///////////////////
+	// VERIFY & EXTRACT
+
+	// Verify input slot 0
+	Variant inMesh = inSolveInstance[0];
+
+	if (inMesh.GetType() == VAR_NONE)
+	{
+		URHO3D_LOGWARNING("M must be a valid mesh.");
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
+
+	if (!NMesh_Verify(inMesh)) {
+		URHO3D_LOGWARNING("M must be a valid mesh.");
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
+
+
+	///////////////////
+	// COMPONENT'S WORK
+
+	Variant outMesh = NMesh_ConvertToTriMesh(inMesh);
+
+
+	/////////////////
+	// ASSIGN OUTPUTS
+
+	outSolveInstance[0] = outMesh;
+}
+
+

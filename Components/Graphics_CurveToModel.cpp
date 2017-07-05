@@ -30,7 +30,7 @@ using namespace Urho3D;
 
 String Graphics_CurveToModel::iconTexture = "Textures/Icons/Graphics_CurveToModel.png";
 
-Graphics_CurveToModel::Graphics_CurveToModel(Urho3D::Context* context) : IoComponentBase(context, 4, 1)
+Graphics_CurveToModel::Graphics_CurveToModel(Urho3D::Context* context) : IoComponentBase(context, 4, 2)
 {
 	SetName("CurveToModel");
 	SetFullName("Curve To Model");
@@ -69,8 +69,14 @@ Graphics_CurveToModel::Graphics_CurveToModel(Urho3D::Context* context) : IoCompo
 	outputSlots_[0]->SetName("ModelPointer");
 	outputSlots_[0]->SetVariableName("M");
 	outputSlots_[0]->SetDescription("Void Pointer to Model");
-	outputSlots_[0]->SetVariantType(VariantType::VAR_STRING); // this would change to VAR_FLOAT if access becomes LIST
+	outputSlots_[0]->SetVariantType(VariantType::VAR_PTR);
 	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
+
+	outputSlots_[1]->SetName("ModelName");
+	outputSlots_[1]->SetVariableName("ModelName");
+	outputSlots_[1]->SetDescription("ModelName");
+	outputSlots_[1]->SetVariantType(VariantType::VAR_STRING);
+	outputSlots_[1]->SetDataAccess(DataAccess::ITEM);
 }
 
 Graphics_CurveToModel::~Graphics_CurveToModel()
@@ -122,6 +128,7 @@ void Graphics_CurveToModel::SolveInstance(
 
 		trackedItems.Push(mdl);
 		outSolveInstance[0] = mdl;
+		outSolveInstance[1] = mdl->GetName();
 	}
 	else
 	{

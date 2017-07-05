@@ -52,6 +52,8 @@ public:
 		textureSrc_->SetData(0, 0, 0, GetWidth(), GetHeight(), GetData());
 	}
 
+	Urho3D::Texture2D* GetSource() { return textureSrc_.Get(); };
+
 protected:
 	Urho3D::WeakPtr<Urho3D::Texture2D> textureSrc_;
 };

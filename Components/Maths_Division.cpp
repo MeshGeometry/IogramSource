@@ -122,6 +122,14 @@ void Maths_Division::SolveInstance(
 			product = Variant();
 		}
 	}
+    else if (type0 == VariantType::VAR_VECTOR3 &&
+             (type1 == VariantType::VAR_FLOAT|| type1 == VariantType::VAR_INT))
+    {
+        if (factor1.GetFloat() != 0.0f){
+            float scalar = 1.0f / factor1.GetFloat();
+            product = Variant(scalar*factor0.GetVector3());
+        }
+    }
 	else {
 		product = Variant();
 	}

@@ -36,6 +36,9 @@ public:
 	void CustomInterface();
 	void SetParams(float min, float max, float val);
 	void SetLabel(Urho3D::String label);
+    
+    float GetMin() { return minRange; }
+ //   float GetRange()
 
 
 private:

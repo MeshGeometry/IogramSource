@@ -21,7 +21,7 @@
 
 
 #include "IoSerialization.h"
-
+#include "IoScriptInstance.h"
 #include <Urho3D/IO/File.h>
 
 using namespace Urho3D;
@@ -239,6 +239,15 @@ void IoSerialization::LoadGraph(IoGraph & graph, File* source)
 
 			if (!data.Empty()) {
 				newComp->metaData_ = data;
+			}
+
+			//handle special case of script file
+			bool loadScript = newComp->GetGenericData("LoadScript").GetBool();
+			if (loadScript) {
+				String scriptPath = newComp->GetGenericData("ScriptPath").GetString();
+				String className = newComp->GetGenericData("ClassName").GetString();
+				SharedPtr<IoScriptInstance> scriptInstance = DynamicCast<IoScriptInstance>(newComp);
+				scriptInstance->CreateObjectFromPath(scriptPath, className);
 			}
 
 			//if there is a mismatch between input or output count in file and current version of component, continue

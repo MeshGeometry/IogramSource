@@ -38,4 +38,10 @@ namespace Geomlib {
 		const Urho3D::Vector3 q,
 		int& index, Urho3D::Vector3& p
 	);
+
+	bool TriMeshPerVertexClosestPoint(
+		const Urho3D::Variant& mesh,
+		const Urho3D::Variant& target_mesh,
+		Urho3D::VariantVector& closest_points
+	);
 }

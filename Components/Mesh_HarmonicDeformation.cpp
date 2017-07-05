@@ -92,7 +92,7 @@ Mesh_HarmonicDeformation::Mesh_HarmonicDeformation(Context* context) : IoCompone
 	AddOutputSlot(
 		"Mesh",
 		"DM",
-		"Transormed Mesh",
+		"Transformed Mesh",
 		VAR_VARIANTMAP,
 		DataAccess::ITEM
 	);

@@ -24,6 +24,7 @@
 
 #include <Urho3D/Core/Context.h>
 #include <Urho3D/Core/Object.h>
+#include <Urho3D/IO/Log.h>
 
 //static char* GRAPH_CATEGORY = "GRAPH_CATEGORY";
 //static char* GRAPH_TYPES = "GRAPH_TYPES";
@@ -42,6 +43,7 @@ template <class T> static void RegisterIogramType(Urho3D::Context* context)
 	Urho3D::VariantMap infoMap;
 	infoMap["typeName"] = T::GetTypeNameStatic();
 	infoMap["texturePath"] = T::iconTexture;
+	infoMap["isScript"] = false;
 
 	//bunch of nasty hacks for tags
 	Urho3D::String tagString = T::GetTypeNameStatic().Split('_')[0];
@@ -68,5 +70,30 @@ template <class T> static void RegisterIogramType(Urho3D::Context* context)
 
 	//set the type map
 	typeMap[T::GetTypeNameStatic()] = infoMap;
+	context->SetGlobalVar("GRAPH_TYPES", typeMap);
+
+	//log
+	Urho3D::String msg;
+	msg.AppendWithFormat("Registered type: %s", T::GetTypeNameStatic().CString());
+	URHO3D_LOGINFO(msg);
+}
+
+static void RegisterIogramScript(Urho3D::Context* context, Urho3D::String path, Urho3D::String className)
+{
+	
+	//get or create the type map
+	Urho3D::Variant typeVar = context->GetGlobalVar("GRAPH_TYPES");
+	Urho3D::VariantMap typeMap = typeVar.GetVariantMap();
+	
+	//create a new info map for this type
+	Urho3D::VariantMap infoMap;
+	infoMap["scriptPath"] = path;
+	infoMap["typeName"] = "IoScriptInstance";
+	infoMap["className"] = className;
+	infoMap["texturePath"] = "";
+	infoMap["tags"] = "Script";
+	infoMap["isScript"] = true;
+
+	typeMap[path] = infoMap;
 	context->SetGlobalVar("GRAPH_TYPES", typeMap);
 }

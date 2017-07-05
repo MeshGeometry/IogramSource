@@ -30,6 +30,11 @@
 
 #include <Urho3D/Math/MathDefs.h>
 
+#define CHECK_GEO_REG(result) if (result <= 0) { \
+		printf("geo_reg: FAIL\n"); \
+		failed = true; \
+	}
+
 using Urho3D::String;
 using Urho3D::Variant;
 using Urho3D::VariantMap;
@@ -378,4 +383,115 @@ Urho3D::Model* NMesh_GetRenderMesh(const Urho3D::Variant& nMesh, Urho3D::Context
     
 
     return model;
+}
+
+// for scripts
+Urho3D::Variant NMesh_MakeFromVariantArrays(Urho3D::CScriptArray* vertex_array, Urho3D::CScriptArray* face_array)
+{
+	Vector<Variant> vertex_list = Urho3D::ArrayToVector<Variant>(vertex_array);
+	Vector<Variant> face_list = Urho3D::ArrayToVector<Variant>(face_array);
+	return NMesh_Make(vertex_list, face_list);
+}
+
+Urho3D::CScriptArray* NMesh_GetVertexArray(const Urho3D::Variant& nmesh)
+{
+	Vector<Variant> vertex_list = NMesh_GetVertexList(nmesh);
+	return Urho3D::VectorToArray<Variant>(vertex_list, "Array<Variant>");
+}
+
+Urho3D::CScriptArray* NMesh_GetFaceArray(const Urho3D::Variant& nmesh)
+{
+	Vector<Variant> face_list = NMesh_GetFaceList(nmesh);
+	return Urho3D::VectorToArray<Variant>(face_list, "Array<Variant>");
+}
+
+Urho3D::Variant NMesh_ConvertToTriMeshFromVariant(const Urho3D::Variant& nmesh)
+{
+	return NMesh_ConvertToTriMesh(nmesh);
+}
+
+Urho3D::Variant NMesh_ConvertToTriMeshFromVariantAndFaceTris(const Urho3D::Variant& nmesh, Urho3D::CScriptArray* face_tris_array)
+{
+	Vector<Variant> face_tris_list = Urho3D::ArrayToVector<Variant>(face_tris_array);
+	return NMesh_ConvertToTriMesh(nmesh, face_tris_list);
+}
+
+Urho3D::CScriptArray* NMesh_ComputeWireframePolylinesArray(const Urho3D::Variant& nmesh)
+{
+	Vector<Variant> polyline_list = NMesh_ComputeWireframePolylines(nmesh);
+	return Urho3D::VectorToArray<Variant>(polyline_list, "Array<Variant>");
+}
+
+Urho3D::Variant NMesh_GetFacePolylineFromIndicesArray(const Urho3D::Variant& nmesh, int face_ID, Urho3D::CScriptArray* face_indices_arr)
+{
+	Vector<Variant> face_indices = Urho3D::ArrayToVector<Variant>(face_indices_arr);
+	return NMesh_GetFacePolyline(nmesh, face_ID, face_indices);
+}
+
+bool RegisterNMeshFunctions(Urho3D::Context* context)
+{
+	Urho3D::Script* script_system = context->GetSubsystem<Urho3D::Script>();
+	asIScriptEngine* engine = script_system->GetScriptEngine();
+
+	bool failed = false;
+
+	int res;
+
+	res = engine->RegisterGlobalFunction(
+		"Variant NMesh_MakeFromVariantArrays(Array<Variant>@, Array<Variant>@)",
+		asFUNCTION(NMesh_MakeFromVariantArrays),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"bool NMesh_Verify(const Variant&)",
+		asFUNCTION(NMesh_Verify),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ NMesh_GetVertexArray(const Variant&)",
+		asFUNCTION(NMesh_GetVertexArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ NMesh_GetFaceArray(const Variant&)",
+		asFUNCTION(NMesh_GetFaceArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant NMesh_ConvertToTriMeshFromVariant(const Variant&)",
+		asFUNCTION(NMesh_ConvertToTriMeshFromVariant),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant NMesh_ConvertToTriMeshFromVariantAndFaceTris(const Variant&, Array<Variant>@)",
+		asFUNCTION(NMesh_ConvertToTriMeshFromVariantAndFaceTris),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ NMesh_ComputeWireframePolylinesArray(const Variant&)",
+		asFUNCTION(NMesh_ComputeWireframePolylinesArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant NMesh_GetFacePolylineFromIndicesArray(const Variant&, int, Array<Variant>@)",
+		asFUNCTION(NMesh_GetFacePolylineFromIndicesArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	if (failed) {
+		URHO3D_LOGINFO("RegisterNMeshFunctions --- Failed to compile scripts");
+	}
+	else {
+		URHO3D_LOGINFO("RegisterNMeshFunctions --- OK!");
+	}
+
+	return !failed;
 }

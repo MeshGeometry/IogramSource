@@ -32,11 +32,7 @@
 #include "Geomlib_ClosestPoint.h"
 #include "TriMesh.h"
 
-using Urho3D::Vector;
-using Urho3D::Vector3;
-using Urho3D::Variant;
-using Urho3D::VariantMap;
-
+using namespace Urho3D;
 
 // IN PROGRESS, NOT DONE * IN PROGRESS, NOT DONE
 // Inputs
@@ -95,5 +91,28 @@ bool Geomlib::TriMeshClosestPoint(const Variant& mesh, const Vector3 q, int& ind
 
 	index = (int)minFaceIndex;
 	p = perFaceClosePoints[minFaceIndex];
+	return true;
+}
+
+bool Geomlib::TriMeshPerVertexClosestPoint(
+	const Urho3D::Variant& mesh,
+	const Urho3D::Variant& target_mesh,
+	Urho3D::VariantVector& closest_points
+)
+{
+	VariantVector vertex_list = TriMesh_GetVertexList(mesh);
+	closest_points.Clear();
+
+	for (int i = 0; i < vertex_list.Size(); ++i) {
+
+		Vector3 v = vertex_list[i].GetVector3();
+
+		Vector3 p;
+		int f = -1;
+		TriMeshClosestPoint(target_mesh, v, f, p);
+
+		closest_points.Push(p);
+	}
+
 	return true;
 }

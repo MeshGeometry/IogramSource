@@ -26,6 +26,7 @@
 
 #include <Urho3D/UI/UIEvents.h>
 #include <Urho3D/Resource/ResourceCache.h>
+#include <Urho3D/Core/StringUtils.h>
 
 #include <assert.h>
 
@@ -44,8 +45,8 @@ Input_Int::Input_Int(Context* context) :
 	AddInputSlot(
 		"Number",
 		"X",
-		"Non-integer number",
-		VAR_NONE,
+		"Number to cast to an int",
+		VAR_INT,
 		DataAccess::ITEM
 		);
 
@@ -53,53 +54,11 @@ Input_Int::Input_Int(Context* context) :
 		"Integer",
 		"I",
 		"Integer",
-		VAR_VARIANTMAP,
+		VAR_INT,
 		DataAccess::ITEM
 		);
 
 }
-
-String Input_Int::GetNodeStyle()
-{
-	return "InputInteger";
-}
-
-void Input_Int::HandleCustomInterface(UIElement* customElement)
-{
-	intNameEdit = (LineEdit*)customElement->GetChild("PropertyEdit", true);
-	if (intNameEdit)
-	{
-		SubscribeToEvent(intNameEdit, E_TEXTFINISHED, URHO3D_HANDLER(Input_Int, HandleLineEdit));
-		intName = GetGenericData("IntName").GetString();
-		intNameEdit->SetText(intName);
-	}
-}
-
-void Input_Int::HandleLineEdit(StringHash eventType, VariantMap& eventData)
-{
-	using namespace TextFinished;
-
-	LineEdit* l = (LineEdit*)eventData[P_ELEMENT].GetVoidPtr();
-	if (l)
-	{
-
-		Vector<int> path;
-		path.Push(0);
-		IoDataTree tree(GetContext());
-
-		
-		String val = l->GetText();
-		Variant var(VAR_INT, val);
-        SetGenericData("IntName", val);
-
-		tree.Add(path, var);
-		
-		InputHardSet(0, tree);
-
-		GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
-	}
-}
-
 
 
 void Input_Int::SolveInstance(
@@ -107,10 +66,19 @@ void Input_Int::SolveInstance(
 	Vector<Variant>& outSolveInstance
 	)
 {
-		
-	int in_var = inSolveInstance[0].GetInt();
 
-	outSolveInstance[0] = Variant(in_var);
+	Variant in_var = inSolveInstance[0];
+	int out_int = 0;
 
-	//outSolveInstance[0] = inSolveInstance[0];
+	if (in_var.GetType() == VAR_STRING) {
+		String in_string = in_var.GetString();
+		out_int = Urho3D::ToInt(in_string);
+	}
+
+	else
+		out_int = in_var.GetInt();
+
+
+	outSolveInstance[0] = Variant(out_int);
+
 }

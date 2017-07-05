@@ -46,14 +46,13 @@ Scene_AddStaticModel::Scene_AddStaticModel(Urho3D::Context* context) : IoCompone
 	inputSlots_[0]->SetVariantType(VariantType::VAR_INT);
 	inputSlots_[0]->SetDataAccess(DataAccess::ITEM);
 
-	inputSlots_[1]->SetName("Model");
-	inputSlots_[1]->SetVariableName("MD");
-	inputSlots_[1]->SetDescription("Pointer to Model");
+	inputSlots_[1]->SetName("Resource");
+	inputSlots_[1]->SetVariableName("Resource");
+	inputSlots_[1]->SetDescription("Resource");
 	inputSlots_[1]->SetVariantType(VariantType::VAR_STRING);
 	inputSlots_[1]->SetDataAccess(DataAccess::ITEM);
 	inputSlots_[1]->SetDefaultValue("Models/Box.mdl");
 	inputSlots_[1]->DefaultSet();
-
 
 	inputSlots_[2]->SetName("Material");
 	inputSlots_[2]->SetVariableName("MT");
@@ -113,15 +112,8 @@ void Scene_AddStaticModel::SolveInstance(
 	}
 
 	Model* model = NULL;
-	String type = inSolveInstance[1].GetTypeName();
-	if (inSolveInstance[1].GetType() == VAR_PTR)
-	{
-		model = (Model*)inSolveInstance[1].GetPtr();
-	}
-	else if (inSolveInstance[1].GetType() == VAR_STRING)
-	{
-		model = cache->GetResource<Model>(inSolveInstance[1].GetString());
-	}
+	String path_to_res_ref = inSolveInstance[1].GetString();
+	model = cache->GetResource<Model>(path_to_res_ref);
 
 	Material* mat = NULL;
 	
@@ -140,6 +132,9 @@ void Scene_AddStaticModel::SolveInstance(
 	sm->SetModel(model->Clone());
 	sm->SetMaterial(mat->Clone());
 	sm->SetCastShadows(true);
+
+	//
+	//cache->GetResource(model->GetName());
 
 	trackedItems.Push(sm->GetID());
 

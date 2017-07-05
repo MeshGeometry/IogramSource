@@ -50,19 +50,23 @@ public:
 		Urho3D::Vector<Urho3D::Variant>& outSolveInstance
 		);
     
-    int TriMesh_Render(Urho3D::Variant trimesh,
-                       Urho3D::Context* context,
-                       Urho3D::String material_path,
-                       bool flatShaded,
-                       Urho3D::Color mainColor,
-                       Urho3D::Variant& model_pointer);
+    int TriMesh_Render(
+		Urho3D::Variant trimesh,
+        Urho3D::Context* context,
+		Urho3D::String material_path,
+        bool flatShaded,
+        Urho3D::Color mainColor,
+        Urho3D::Variant& model_pointer,
+		Urho3D::String& model_name
+	);
     
     int NMesh_Render(Urho3D::Variant nmesh,
                        Urho3D::Context* context,
                        Urho3D::String material_path,
                        bool flatShaded,
                        Urho3D::Color mainColor,
-                       Urho3D::Variant& model_pointer);
+                       Urho3D::Variant& model_pointer,
+		       Urho3D::String& model_name);
 
 	Urho3D::String normalMat = "Materials/BasicPBR.xml";
 	Urho3D::String normalAlphaMat = "Materials/BasicPBRAlpha.xml";

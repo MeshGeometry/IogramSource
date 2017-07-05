@@ -1,9 +1,0 @@
-<cubemap>
-    <face name="hangingstone_ft.png" />
-    <face name="hangingstone_bk.png" />
-    <face name="hangingstone_up.png" />
-    <face name="hangingstone_dn.png" />
-    <face name="hangingstone_rt.png" />
-    <face name="hangingstone_lf.png" />
-    <quality low="5" />
-</cubemap>

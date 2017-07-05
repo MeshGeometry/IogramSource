@@ -112,7 +112,7 @@ void Scene_AppendRenderPath::SolveInstance(
 	VariantVector vpList = GetGlobalVar("ViewportVector").GetVariantVector();
 	int numVP = vpList.Size();
 
-	if (vId >= numVP)
+	if (vId >= numVP || vId < 0)
 	{
 		URHO3D_LOGERROR("No viewport with that index.");
 		SetAllOutputsNull(outSolveInstance);

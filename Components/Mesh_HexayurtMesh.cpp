@@ -40,7 +40,7 @@ using namespace Urho3D;
 
 String Mesh_HexayurtMesh::iconTexture = "Textures/Icons/Mesh_HexayurtMesh.png";
 
-Mesh_HexayurtMesh::Mesh_HexayurtMesh(Context* context) : IoComponentBase(context, 2, 1)
+Mesh_HexayurtMesh::Mesh_HexayurtMesh(Context* context) : IoComponentBase(context, 1, 1)
 {
 	SetName("Hexayurt");
 	SetFullName("ConstructHexayurtMesh");
@@ -56,12 +56,12 @@ Mesh_HexayurtMesh::Mesh_HexayurtMesh(Context* context) : IoComponentBase(context
 	inputSlots_[0]->SetDefaultValue(Variant(4.0f));
 	inputSlots_[0]->DefaultSet();
 
-	inputSlots_[1]->SetName("Transformation");
-	inputSlots_[1]->SetVariableName("T");
-	inputSlots_[1]->SetDescription("Transformation to apply to hexayurt");
-	inputSlots_[1]->SetVariantType(VariantType::VAR_MATRIX3X4);
-	inputSlots_[1]->SetDefaultValue(Matrix3x4::IDENTITY);
-	inputSlots_[1]->DefaultSet();
+//	inputSlots_[1]->SetName("Transformation");
+//	inputSlots_[1]->SetVariableName("T");
+//	inputSlots_[1]->SetDescription("Transformation to apply to hexayurt");
+//	inputSlots_[1]->SetVariantType(VariantType::VAR_MATRIX3X4);
+//	inputSlots_[1]->SetDefaultValue(Matrix3x4::IDENTITY);
+//	inputSlots_[1]->DefaultSet();
 
 	outputSlots_[0]->SetName("Mesh");
 	outputSlots_[0]->SetVariableName("M");
@@ -94,14 +94,14 @@ void Mesh_HexayurtMesh::SolveInstance(
 		outSolveInstance[0] = Variant();
 		return;
 	}
-	// Verify input slot 1
-	VariantType type1 = inSolveInstance[1].GetType();
-	if (type1 != VariantType::VAR_MATRIX3X4) {
-		URHO3D_LOGWARNING("T must be a valid transform.");
-		outSolveInstance[0] = Variant();
-		return;
-	}
-	Matrix3x4 tr = inSolveInstance[1].GetMatrix3x4();
+//	// Verify input slot 1
+//	VariantType type1 = inSolveInstance[1].GetType();
+//	if (type1 != VariantType::VAR_MATRIX3X4) {
+//		URHO3D_LOGWARNING("T must be a valid transform.");
+//		outSolveInstance[0] = Variant();
+//		return;
+//	}
+    Matrix3x4 tr = Matrix3x4::IDENTITY;
 
 	///////////////////
 	// COMPONENT'S WORK

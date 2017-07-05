@@ -169,8 +169,8 @@ bool Geomlib::TriangulatePolygon(const Urho3D::Variant& polyIn, const Urho3D::Va
 		VariantVector faces;
 		faces.Resize(6);
 		faces[0] = 0;
-		faces[1] = 1;
-		faces[2] = 2;
+		faces[1] = 2;
+		faces[2] = 1;
 		faces[3] = 0;
 		faces[4] = 3;
 		faces[5] = 2;

@@ -22,6 +22,9 @@
 
 #include "Graphics_Viewport.h"
 
+#include <Urho3D/UI/Window.h>
+#include <Urho3D/UI/View3D.h>
+#include <Urho3D/UI/UI.h>
 #include <Urho3D/Resource/ResourceCache.h>
 #include <Urho3D/Graphics/Renderer.h>
 #include <Urho3D/Graphics/RenderPath.h>
@@ -39,15 +42,6 @@ Graphics_Viewport::Graphics_Viewport(Context* context) : IoComponentBase(context
 
 	//set up the slots
 	AddInputSlot(
-		"Viewport Index",
-		"ID",
-		"Index of viewport to create. If exists, viewport will be overwritten.",
-		VAR_INT,
-		DataAccess::ITEM,
-		1
-		);
-
-	AddInputSlot(
 		"Camera",
 		"C",
 		"Camera with which to render viewport.",
@@ -61,7 +55,7 @@ Graphics_Viewport::Graphics_Viewport(Context* context) : IoComponentBase(context
 		"Screen space rectangle in which to render. If null, full extents are used.",
 		VAR_VECTOR4,
 		DataAccess::ITEM,
-		Vector4(100, 100, 500, 500)
+		Vector4(10, 10, 200, 200)
 		);
 
 	AddInputSlot(
@@ -70,7 +64,7 @@ Graphics_Viewport::Graphics_Viewport(Context* context) : IoComponentBase(context
 		"Base RenderPath for viewport. If blank, this will default to the main viewport path.",
 		VAR_STRING,
 		DataAccess::ITEM,
-		"RenderPaths/PBRDeferred.xml"
+		"RenderPaths/ForwardDepth.xml"
 		);
 
 	AddOutputSlot(
@@ -87,8 +81,8 @@ void Graphics_Viewport::PreLocalSolve()
 	//not sure how to release a viewport...
 	for (int i = 0; i < trackedItems.Size(); i++)
 	{
-		int id = trackedItems[i];
-		GetSubsystem<Renderer>()->SetViewport(id, NULL);
+		UIElement* element = trackedItems[i];
+		element->Remove();
 	}
 	
 	trackedItems.Clear();
@@ -103,38 +97,35 @@ void Graphics_Viewport::SolveInstance(
 	Scene* scene = (Scene*)GetGlobalVar("Scene").GetPtr();
 	
 	//first check if a camera has been set
-	Camera* cam = (Camera*)inSolveInstance[1].GetPtr();
+	Camera* cam = (Camera*)inSolveInstance[0].GetPtr();
 	if (!cam || !scene) {
 		URHO3D_LOGERROR("A valid camera and scene is required for viewport creation.");
 		SetAllOutputsNull(outSolveInstance);
 		return;
 	}
+	Vector4 vExtents = inSolveInstance[1].GetVector4();
+	String renderPath = inSolveInstance[2].GetString();
 
-	int viewID = inSolveInstance[0].GetInt();
-	Vector4 vExtents = inSolveInstance[2].GetVector4();
-	String renderPath = inSolveInstance[3].GetString();
+	UIElement* activeRegion = (UIElement*)GetGlobalVar("activeUIRegion").GetPtr();
 
-	SharedPtr<Viewport> vp(new Viewport(GetContext(), scene, cam));
-	IntRect viewRect(vExtents.x_, vExtents.y_, vExtents.z_, vExtents.w_);
-	vp->SetRect(viewRect);
-	
-	GetSubsystem<Renderer>()->SetViewport(viewID, vp);
+	if (!activeRegion) {
+		activeRegion = GetSubsystem<UI>()->GetRoot();
+	}
 
+	View3D* view = activeRegion->CreateChild<View3D>("View3D");
+	view->SetPosition(vExtents.x_, vExtents.y_);
+	view->SetSize(vExtents.z_, vExtents.w_);
+	view->SetView(scene, cam, false);
+
+	//load renderpath
 	ResourceCache* cache = GetSubsystem<ResourceCache>();
 	RenderPath* render_path = new RenderPath();
-
-#ifdef EMSCRIPTEN
-	render_path->Load(cache->GetResource<XMLFile>("RenderPaths/ForwardDepthSAO.xml"));
-#endif
-
-#ifndef EMSCRIPTEN
 	render_path->Load(cache->GetResource<XMLFile>(renderPath));
-#endif
+	view->GetViewport()->SetRenderPath(render_path);
+	view->SetAutoUpdate(true);
 
-	vp->SetRenderPath(render_path);
-
-	trackedItems.Push(viewID);
+	trackedItems.Push(view);
 	
-	outSolveInstance[0] = vp;
+	outSolveInstance[0] = view;
 
 }

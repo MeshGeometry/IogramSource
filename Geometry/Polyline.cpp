@@ -31,6 +31,11 @@
 #include "Geomlib_TransformVertexList.h"
 #include "TriMesh.h"
 
+#define CHECK_GEO_REG(result) if (result <= 0) { \
+		printf("geo_reg: FAIL\n"); \
+		failed = true; \
+	}
+
 using Urho3D::Color;
 using Urho3D::Equals;
 using Urho3D::Model;
@@ -52,6 +57,8 @@ namespace {
 	}
 
 } // namespace
+
+using namespace Urho3D;
 
 Urho3D::Variant Polyline_Make(const Urho3D::VariantVector& vertexList)
 {
@@ -377,4 +384,146 @@ Urho3D::SharedPtr<Model> Polyline_GetRenderMesh(const Urho3D::Variant& poly, Urh
 	model = TriMesh_GetRenderMesh(thickMesh, context, doubledCols, split);
 
 	return model;
+}
+
+// script versions
+
+Urho3D::Variant Polyline_MakeFromVariantArray(CScriptArray* vertexList_arr)
+{
+	Vector<Variant> vertexList = ArrayToVector<Variant>(vertexList_arr);
+	return Polyline_Make(vertexList);
+}
+
+Urho3D::Variant Polyline_MakeFromVector3Array(CScriptArray* vertexList_arr)
+{
+	Vector<Vector3> vertexList = ArrayToVector<Vector3>(vertexList_arr);
+	return Polyline_Make(vertexList);
+}
+
+Urho3D::CScriptArray* Polyline_GetVertexArray(const Urho3D::Variant& polyline)
+{
+	VariantVector vertexList = Polyline_GetVertexList(polyline);
+	return VectorToArray<Variant>(vertexList, "Array<Variant>");
+}
+
+Urho3D::CScriptArray* Polyline_ComputeSequentialVertexArray(const Urho3D::Variant& polyline)
+{
+	VariantVector vertexList = Polyline_ComputeSequentialVertexList(polyline);
+	return VectorToArray<Variant>(vertexList, "Array<Variant>");
+}
+
+Urho3D::CScriptArray* Polyline_ComputePointCloudArray(const Urho3D::Variant& polyline)
+{
+	Vector<Vector3> cloud = Polyline_ComputePointCloud(polyline);
+	return VectorToArray<Vector3>(cloud, "Array<Vector3>");
+}
+
+////////////////////////////////////////////
+// Register polyline functions for scripting
+
+bool RegisterPolylineFunctions(Urho3D::Context* context)
+{
+	bool failed = false;
+
+	Script* script_system = context->GetSubsystem<Script>();
+	asIScriptEngine* engine = script_system->GetScriptEngine();
+	
+	int res;
+
+	res = engine->RegisterGlobalFunction(
+		"Variant Polyline_MakeFromVariantArray(Array<Variant>@)",
+		asFUNCTION(Polyline_MakeFromVariantArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res)
+
+		res = engine->RegisterGlobalFunction(
+			"Variant Polyline_MakeFromVector3Array(Array<Vector3>@)",
+			asFUNCTION(Polyline_MakeFromVector3Array),
+			asCALL_CDECL
+		);
+	CHECK_GEO_REG(res)
+
+	res = engine->RegisterGlobalFunction(
+		"bool Polyline_Verify(const Variant&)",
+		asFUNCTION(Polyline_Verify),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res)
+
+	res = engine->RegisterGlobalFunction(
+		"void Polyline_Close(Variant&)",
+		asFUNCTION(Polyline_Close),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ Polyline_GetVertexArray(const Variant&)",
+		asFUNCTION(Polyline_GetVertexArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"int Polyline_GetSequentialVertexNumber(const Variant&)",
+		asFUNCTION(Polyline_GetSequentialVertexNumber),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ Polyline_ComputeSequentialVertexArray(const Variant&)",
+		asFUNCTION(Polyline_ComputeSequentialVertexArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"float Polyline_GetCurveLength(const Variant&)",
+		asFUNCTION(Polyline_GetCurveLength),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"Variant Polyline_Clean(const Variant&)",
+		asFUNCTION(Polyline_Clean),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"Array<Vector3>@ Polyline_ComputePointCloudArray(const Variant&)",
+		asFUNCTION(Polyline_ComputePointCloudArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	//TODO: Polyline_ComputeEdges
+
+	res = engine->RegisterGlobalFunction(
+		"bool Polyline_IsClosed(const Variant&)",
+		asFUNCTION(Polyline_IsClosed),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"Variant Polyline_ApplyTransform(const Variant&, const Matrix3x4&)",
+		asFUNCTION(Polyline_ApplyTransform),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	//TODO: Polyline_GetRenderMesh
+
+	if (failed) {
+		URHO3D_LOGINFO("RegisterPolylineFunctions --- Failed to compile scripts");
+	}
+	else {
+		URHO3D_LOGINFO("RegisterPolylineFunctions --- OK!");
+	}
+
+	return !failed;
 }

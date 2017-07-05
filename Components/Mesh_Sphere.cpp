@@ -48,16 +48,16 @@ Mesh_Sphere::Mesh_Sphere(Context* context) : IoComponentBase(context, 1, 1)
 	SetGroup(IoComponentGroup::MESH);
 	SetSubgroup("Primitive");
 
-	inputSlots_[0]->SetName("Transformation");
-	inputSlots_[0]->SetVariableName("T");
-	inputSlots_[0]->SetDescription("Transformation to apply to cube");
-	inputSlots_[0]->SetVariantType(VariantType::VAR_MATRIX3X4);
-	inputSlots_[0]->SetDefaultValue(Matrix3x4::IDENTITY);
-	inputSlots_[0]->DefaultSet();
+    inputSlots_[0]->SetName("Radius");
+    inputSlots_[0]->SetVariableName("R");
+    inputSlots_[0]->SetDescription("Sphere radius");
+    inputSlots_[0]->SetVariantType(VariantType::VAR_FLOAT);
+    inputSlots_[0]->SetDefaultValue(Variant(1.0f));
+    inputSlots_[0]->DefaultSet();
 
 	outputSlots_[0]->SetName("Mesh");
 	outputSlots_[0]->SetVariableName("M");
-	outputSlots_[0]->SetDescription("Icosahedron Mesh");
+	outputSlots_[0]->SetDescription("Sphere Mesh");
 	outputSlots_[0]->SetVariantType(VariantType::VAR_VARIANTMAP);
 	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
 }
@@ -73,16 +73,18 @@ void Mesh_Sphere::SolveInstance(
 	///////////////////
 	// VERIFY & EXTRACT
 
-	// Verify input slot 1
-	VariantType type1 = inSolveInstance[0].GetType();
-	if (type1 != VariantType::VAR_MATRIX3X4) {
-		URHO3D_LOGWARNING("T must be a valid transform.");
-		outSolveInstance[0] = Variant();
-		return;
-	}
-	Matrix3x4 tr = inSolveInstance[0].GetMatrix3x4();
-
-	///////////////////
+    // Verify input slot 0
+    VariantType type0 = inSolveInstance[0].GetType();
+    if (type0 != VariantType::VAR_FLOAT && type0 != VariantType::VAR_INT) {
+        URHO3D_LOGWARNING("r must be a valid float or int.");
+        outSolveInstance[0] = Variant();
+        return;
+    }
+    float r = inSolveInstance[0].GetFloat();
+    Matrix3x4 tr = Matrix3x4::IDENTITY;
+    tr.SetScale(r);
+    
+    ///////////////////
 	// COMPONENT'S WORK
 
 	Variant baseSphere = MakeSphere();

@@ -178,7 +178,7 @@ void Input_ObjectMove::HandleMouseMove(StringHash eventType, VariantMap& eventDa
 		//rb->SetPosition(orgPos + (newPos - orgHitPoint));
 		rb->ApplyWorldTransform(orgPos + moveVec, currentNode->GetRotation());
 	}
-	else
+	else if (currentNode)
 	{
 		currentNode->SetWorldPosition(orgPos + moveVec);
 	}

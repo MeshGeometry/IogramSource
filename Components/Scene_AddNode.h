@@ -41,4 +41,6 @@ public:
 	virtual void PreLocalSolve();
 
 	Urho3D::Vector<int> trackedNodes;
+
+	void HandleTransformChanged(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 };

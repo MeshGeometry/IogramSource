@@ -38,11 +38,6 @@ public:
 		Urho3D::Vector<Urho3D::Variant>& outSolveInstance
 		);
 
-	virtual Urho3D::String GetNodeStyle();
-	virtual void HandleCustomInterface(Urho3D::UIElement* customElement);
 	static Urho3D::String iconTexture;
 
-	Urho3D::LineEdit* floatNameEdit;
-	Urho3D::String floatName;
-	void HandleLineEdit(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);
 };

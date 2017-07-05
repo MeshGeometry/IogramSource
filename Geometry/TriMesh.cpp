@@ -42,7 +42,15 @@
 
 #include <Urho3D/Math/MathDefs.h>
 
+#include <Urho3D/AngelScript/Script.h>
+#include <AngelScript/angelscript.h>
+
 #pragma warning(disable : 4244)
+
+#define CHECK_GEO_REG(result) if (result <= 0) { \
+		printf("geo_reg: FAIL\n"); \
+		failed = true; \
+	}
 
 using Urho3D::String;
 using Urho3D::Variant;
@@ -661,6 +669,58 @@ Urho3D::Variant TriMesh_FlipNormals(const Urho3D::Variant& tri_mesh)
     return TriMesh_Make(vertex_list, reverse_face_list);
 }
 
+Urho3D::Variant TriMesh_ToYUp(const Urho3D::Variant& tri_mesh)
+{
+	if (!TriMesh_Verify(tri_mesh)) {
+		return Variant();
+	}
+
+	Eigen::MatrixXf V;
+	Eigen::MatrixXi F;
+	IglMeshToMatrices(tri_mesh, V, F);
+
+	Eigen::MatrixXf W = V;
+	W.col(1) = V.col(2);
+	W.col(2) = -V.col(1);
+
+	return TriMesh_Make(W, F);
+}
+
+Urho3D::Variant TriMesh_ToZUp(const Urho3D::Variant& tri_mesh)
+{
+	if (!TriMesh_Verify(tri_mesh)) {
+		return Variant();
+	}
+
+	Eigen::MatrixXf V;
+	Eigen::MatrixXi F;
+	IglMeshToMatrices(tri_mesh, V, F);
+
+	Eigen::MatrixXf W = V;
+	W.col(2) = V.col(1);
+	W.col(1) = -V.col(2);
+
+	return TriMesh_Make(W, F);
+}
+
+Urho3D::Vector3 TriMesh_CenterOfMass(const Urho3D::Variant& tri_mesh)
+{
+	Vector3 cen(0.0f, 0.0f, 0.0f);
+	VariantVector vertex_list = TriMesh_GetVertexList(tri_mesh);
+
+	if (!TriMesh_Verify(tri_mesh) || vertex_list.Size() == 0) {
+		return cen;
+	}
+
+	for (unsigned i = 0; i < vertex_list.Size(); ++i) {
+
+		cen += vertex_list[i].GetVector3();
+	}
+
+	return cen / vertex_list.Size();
+}
+
+
 void TriMeshToMatrices(const Variant& triMesh, Eigen::MatrixXf& V, Eigen::MatrixXi& F)
 {
 	VariantMap var_map = triMesh.GetVariantMap();
@@ -831,4 +891,250 @@ Urho3D::Model* TriMesh_GetRenderMesh(const Urho3D::Variant& triMesh, Urho3D::Con
 
 
 	return model;
+}
+
+// for scripts
+
+Urho3D::Variant TriMesh_MakeFromVariants(const Urho3D::Variant& vertices, const Urho3D::Variant& faces)
+{
+	return TriMesh_Make(vertices, faces);
+}
+
+Urho3D::Variant TriMesh_MakeFromVariantArrays(Urho3D::CScriptArray* vertexArray, Urho3D::CScriptArray* faceArray)
+{
+	Vector<Variant> vertexList = Urho3D::ArrayToVector<Variant>(vertexArray);
+	Vector<Variant> faceList = Urho3D::ArrayToVector<Variant>(faceArray);
+	return TriMesh_Make(vertexList, faceList);
+}
+
+Urho3D::Variant TriMesh_MakeWithLabels(Urho3D::CScriptArray* vertexArray, Urho3D::CScriptArray* faceArray, Urho3D::CScriptArray* labelArray)
+{
+	Vector<Variant> vertexList = Urho3D::ArrayToVector<Variant>(vertexArray);
+	Vector<Variant> faceList = Urho3D::ArrayToVector<Variant>(faceArray);
+	Vector<Variant> labelList = Urho3D::ArrayToVector<Variant>(labelArray);
+	return TriMesh_Make(vertexList, faceList, labelList);
+}
+
+Urho3D::CScriptArray* TriMesh_GetVertexArray(const Urho3D::Variant& triMesh)
+{
+	Vector<Variant> vertexList = TriMesh_GetVertexList(triMesh);
+	return Urho3D::VectorToArray<Variant>(vertexList, "Array<Variant>");
+}
+
+Urho3D::CScriptArray* TriMesh_GetFaceArray(const Urho3D::Variant& triMesh)
+{
+	Vector<Variant> faceList = TriMesh_GetFaceList(triMesh);
+	return Urho3D::VectorToArray<Variant>(faceList, "Array<Variant>");
+}
+
+Urho3D::CScriptArray* TriMesh_GetNormalArray(const Urho3D::Variant& triMesh)
+{
+	Vector<Variant> normalList = TriMesh_GetNormalList(triMesh);
+	return Urho3D::VectorToArray<Variant>(normalList, "Array<Variant>");
+}
+
+Urho3D::CScriptArray* TriMesh_GetLabelArray(const Urho3D::Variant& triMesh)
+{
+	Vector<Variant> labelList = TriMesh_GetLabelList(triMesh);
+	return Urho3D::VectorToArray<Variant>(labelList, "Array<Variant>");
+}
+
+Urho3D::CScriptArray* TriMesh_ComputeFaceNormalsArray(const Urho3D::Variant& triMesh, bool normalize)
+{
+	Vector<Variant> faceNormals = TriMesh_ComputeFaceNormals(triMesh, normalize);
+	return Urho3D::VectorToArray<Variant>(faceNormals, "Array<Variant>");
+}
+
+Urho3D::CScriptArray* TriMesh_ComputeVertexNormalsArray(const Urho3D::Variant& triMesh, bool normalize)
+{
+	Vector<Variant> vertexNormals = TriMesh_ComputeVertexNormals(triMesh, normalize);
+	return Urho3D::VectorToArray<Variant>(vertexNormals, "Array<Variant>");
+}
+
+Urho3D::CScriptArray* TriMesh_GetVerticesAsFloatArray(const Urho3D::Variant& triMesh)
+{
+	Vector<float> vertices = TriMesh_GetVerticesAsFloats(triMesh);
+	return Urho3D::VectorToArray<float>(vertices, "Array<float>");
+}
+
+Urho3D::CScriptArray* TriMesh_GetVerticesAsDoubleArray(const Urho3D::Variant& triMesh)
+{
+	Vector<double> vertices = TriMesh_GetVerticesAsDoubles(triMesh);
+	return Urho3D::VectorToArray<double>(vertices, "Array<double>");
+}
+
+Urho3D::CScriptArray* TriMesh_GetFacesAsIntArray(const Urho3D::Variant& triMesh)
+{
+	Vector<int> faces = TriMesh_GetFacesAsInts(triMesh);
+	return Urho3D::VectorToArray<int>(faces, "Array<int>");
+}
+
+Urho3D::CScriptArray* TriMesh_ComputePointCloudArray(const Urho3D::Variant& triMesh)
+{
+	Vector<Vector3> point_cloud = TriMesh_ComputePointCloud(triMesh);
+	return Urho3D::VectorToArray<Vector3>(point_cloud, "Array<Vector3>");
+}
+
+Urho3D::Model* TriMesh_GetRenderMeshWithColorArray(const Urho3D::Variant& triMesh, Urho3D::Context* context, Urho3D::CScriptArray* vColors, bool split)
+{
+	Vector<Variant> vColorVector = Urho3D::ArrayToVector<Variant>(vColors);
+	return TriMesh_GetRenderMesh(triMesh, context, vColorVector, split);
+}
+
+bool RegisterTriMeshFunctions(Urho3D::Context* context)
+{
+	Urho3D::Script* script_system = context->GetSubsystem<Urho3D::Script>();
+	asIScriptEngine* engine = script_system->GetScriptEngine();
+
+	bool failed = false;
+
+	int res;
+
+	res = engine->RegisterGlobalFunction(
+		"Variant TriMesh_MakeFromVariants(const Variant&, const Variant&)",
+		asFUNCTION(TriMesh_MakeFromVariants),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant TriMesh_MakeFromVariantArrays(Array<Variant>@, Array<Variant>@)",
+		asFUNCTION(TriMesh_MakeFromVariantArrays),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant TriMesh_MakeWithLabels(Array<Variant>@, Array<Variant>@, Array<Variant>@)",
+		asFUNCTION(TriMesh_MakeWithLabels),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"bool TriMesh_Verify(const Variant&)",
+		asFUNCTION(TriMesh_Verify),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ TriMesh_GetVertexArray(const Variant&)",
+		asFUNCTION(TriMesh_GetVertexArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ TriMesh_GetFaceArray(const Variant&)",
+		asFUNCTION(TriMesh_GetFaceArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ TriMesh_GetNormalArray(const Variant&)",
+		asFUNCTION(TriMesh_GetNormalArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ TriMesh_GetLabelArray(const Variant&)",
+		asFUNCTION(TriMesh_GetLabelArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ TriMesh_ComputeFaceNormalsArray(const Variant&, bool)",
+		asFUNCTION(TriMesh_ComputeFaceNormalsArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Variant>@ TriMesh_ComputeVertexNormalsArray(const Variant&, bool)",
+		asFUNCTION(TriMesh_ComputeVertexNormalsArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"Array<float>@ TriMesh_GetVerticesAsFloatArray(const Variant&)",
+		asFUNCTION(TriMesh_GetVerticesAsFloatArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Array<Vector3>@ TriMesh_ComputePointCloudArray(const Variant&)",
+		asFUNCTION(TriMesh_ComputePointCloudArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant TriMesh_ApplyTransform(const Variant&, const Matrix3x4&)",
+		asFUNCTION(TriMesh_ApplyTransform),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+
+	res = engine->RegisterGlobalFunction(
+		"Variant TriMesh_CullUnusedVertices(const Variant&)",
+		asFUNCTION(TriMesh_CullUnusedVertices),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant TriMesh_DoubleAndFlipFaces(const Variant&)",
+		asFUNCTION(TriMesh_DoubleAndFlipFaces),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant TriMesh_BoundingBox(const Variant&)",
+		asFUNCTION(TriMesh_BoundingBox),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant TriMesh_UnifyNormals(const Variant&)",
+		asFUNCTION(TriMesh_UnifyNormals),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant TriMesh_FlipNormals(const Variant&)",
+		asFUNCTION(TriMesh_FlipNormals),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant TriMesh_ToYUp(const Variant&)",
+		asFUNCTION(TriMesh_ToYUp),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Variant TriMesh_ToZUp(const Variant&)",
+		asFUNCTION(TriMesh_ToZUp),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	res = engine->RegisterGlobalFunction(
+		"Vector3 TriMesh_CenterOfMass(const Variant&)",
+		asFUNCTION(TriMesh_CenterOfMass),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	/*
+	res = engine->RegisterGlobalFunction(
+		"Model@ TriMesh_GetRenderMeshWithColorArray(const Variant&, Context@, Array<Variant>@, bool)",
+		asFUNCTION(TriMesh_GetRenderMeshWithColorArray),
+		asCALL_CDECL
+	);
+	CHECK_GEO_REG(res);
+	*/
+
+	if (failed) {
+		URHO3D_LOGINFO("RegisterTriMeshFunctions --- Failed to compile scripts");
+	}
+	else {
+		URHO3D_LOGINFO("RegisterTriMeshFunctions --- OK!");
+	}
+
+	return !failed;
 }

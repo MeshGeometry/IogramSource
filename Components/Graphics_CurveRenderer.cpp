@@ -55,12 +55,21 @@ Graphics_CurveRenderer::Graphics_CurveRenderer(Urho3D::Context* context) : IoCom
 	);
 
 	AddInputSlot(
-		"Color",
-		"C",
+		"Color_A",
+		"C_A",
 		"Color",
 		VAR_COLOR,
 		DataAccess::ITEM,
 		Color(0.2f, 0.2f, 0.2f,1.0f)
+	);
+
+	AddInputSlot(
+		"Color_B",
+		"C_B",
+		"Color",
+		VAR_COLOR,
+		DataAccess::ITEM,
+		Color(0.2f, 0.2f, 0.2f, 1.0f)
 	);
 
 	AddOutputSlot(
@@ -135,6 +144,7 @@ void Graphics_CurveRenderer::SolveInstance(
 	curveDisplay->SetMaterial(firstMat);
 	curveDisplay->SetSorted(true);
 	curveDisplay->SetFaceCameraMode(FaceCameraMode::FC_DIRECTION);
+	curveDisplay->SetRelative(true);
 	//curveDisplay->SetFixedScreenSize(true);
 
 	SharedPtr<Material> clonedMat = mat->Clone();
@@ -144,13 +154,19 @@ void Graphics_CurveRenderer::SolveInstance(
 	controlPointDisplay->SetMaterial(clonedMat);
 	controlPointDisplay->SetSorted(true);
 	controlPointDisplay->SetFaceCameraMode(FaceCameraMode::FC_ROTATE_XYZ);
+	controlPointDisplay->SetRelative(true);
 	//controlPointDisplay->SetFixedScreenSize(true);
 
 	float width = inSolveInstance[1].GetFloat();
-	Color col = inSolveInstance[2].GetColor();
+	Color col_A = inSolveInstance[2].GetColor();
+	Color col_B = inSolveInstance[3].GetColor();
 
-	firstMat->SetShaderParameter("MatDiffColor", col);
-	clonedMat->SetShaderParameter("MatDiffColor", col);
+	firstMat->SetShaderParameter("MatDiffColor", col_A);
+	clonedMat->SetShaderParameter("MatDiffColor", col_A);
+
+	Color C = col_B - col_A;
+	float N = (float)verts.Size();
+	Color col_incr = Color(C.r_ / N, C.g_ / N, C.b_ / N, C.a_ / N);
 
 	for (int i = 0; i < verts.Size() - 1; i++)
 	{
@@ -166,14 +182,14 @@ void Graphics_CurveRenderer::SolveInstance(
 		bb->size_ = Vector2(width, 0.5f * (edgeVec.Length()));
 		bb->direction_ = edgeVec;
 		bb->enabled_ = true;
-		bb->color_ = col;
+		bb->color_ = col_A + i*col_incr;
 
 		//render the point
 		bb = controlPointDisplay->GetBillboard(i);
 		bb->position_ = vA;
 		bb->size_ =  0.59f * Vector2(width, width);
 		bb->enabled_ = true;
-		bb->color_ = col;
+		bb->color_ = col_A + i*col_incr;
 		
 	}
 

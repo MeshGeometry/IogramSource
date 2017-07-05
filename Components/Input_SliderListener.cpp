@@ -26,6 +26,7 @@
 #include <Urho3D/Core/Variant.h>
 #include <Urho3D/UI/UIEvents.h>
 #include <Urho3D/UI/Slider.h>
+#include "Widget_OptionSlider.h"
 
 #include "IoGraph.h"
 
@@ -84,14 +85,32 @@ void Input_SliderListener::SolveInstance(
 	}
 	
 	float val = 0.0f;
-	Slider* slider = (Slider*)inSolveInstance[0].GetVoidPtr();
-	String typeName = slider->GetTypeName();
-	if (slider && typeName == Slider::GetTypeNameStatic())
-	{
-		SubscribeToEvent(slider, E_SLIDERCHANGED, URHO3D_HANDLER(Input_SliderListener, HandleSliderChanged));
+    float min = 0.0f;
+//	Slider* slider = (Slider*)inSolveInstance[0].GetVoidPtr();
+    
+    Widget_OptionSlider* optionSlider = (Widget_OptionSlider*)inSolveInstance[0].GetPtr();
+    
+    String typeName = optionSlider->GetTypeName();
+ //   if (optionSlider && typeName == Slider::GetTypeNameStatic())
+    if (optionSlider && typeName == Widget_OptionSlider::GetTypeNameStatic())
+    {
+        Slider* slider = (Slider*)optionSlider->GetChild("MainSlider", false);
+        SubscribeToEvent(slider, E_SLIDERCHANGED, URHO3D_HANDLER(Input_SliderListener, HandleSliderChanged));
+        
 
-		val = slider->GetValue();
-	}
+        min = optionSlider->GetMin();
+        
+        val = min + slider->GetValue();
+        
+    }
+    
+//	String typeName = slider->GetTypeName();
+//	if (slider && typeName == Slider::GetTypeNameStatic())
+//	{
+//		SubscribeToEvent(slider, E_SLIDERCHANGED, URHO3D_HANDLER(Input_SliderListener, HandleSliderChanged));
+//
+//		val = slider->GetValue();
+//	}
 
 
 	outSolveInstance[0] = val;

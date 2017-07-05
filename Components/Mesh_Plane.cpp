@@ -39,7 +39,7 @@ using namespace Urho3D;
 
 String Mesh_Plane::iconTexture = "Textures/Icons/Mesh_Plane.png";
 
-Mesh_Plane::Mesh_Plane(Context* context) : IoComponentBase(context, 2, 1)
+Mesh_Plane::Mesh_Plane(Context* context) : IoComponentBase(context, 1, 3)
 {
 	SetName("Plane");
 	SetFullName("ConstructPlaneMesh");
@@ -49,25 +49,40 @@ Mesh_Plane::Mesh_Plane(Context* context) : IoComponentBase(context, 2, 1)
 
 	inputSlots_[0]->SetName("Height");
 	inputSlots_[0]->SetVariableName("Height");
-	inputSlots_[0]->SetDescription("Y coordinate");
+	inputSlots_[0]->SetDescription("Offset from origin");
 	inputSlots_[0]->SetVariantType(VariantType::VAR_FLOAT);
 	inputSlots_[0]->SetDataAccess(DataAccess::ITEM);
 	inputSlots_[0]->SetDefaultValue(Variant(0.0f));
 	inputSlots_[0]->DefaultSet();
 
-	inputSlots_[1]->SetName("Transformation");
-	inputSlots_[1]->SetVariableName("T");
-	inputSlots_[1]->SetDescription("Transformation to apply to cube");
-	inputSlots_[1]->SetVariantType(VariantType::VAR_MATRIX3X4);
-	inputSlots_[1]->SetDefaultValue(Matrix3x4::IDENTITY);
-	inputSlots_[1]->DefaultSet();
+//	inputSlots_[1]->SetName("Transformation");
+//	inputSlots_[1]->SetVariableName("T");
+//	inputSlots_[1]->SetDescription("Transformation to apply to plane");
+//	inputSlots_[1]->SetVariantType(VariantType::VAR_MATRIX3X4);
+//	inputSlots_[1]->SetDefaultValue(Matrix3x4::IDENTITY);
+//	inputSlots_[1]->DefaultSet();
 
-	outputSlots_[0]->SetName("Mesh");
-	outputSlots_[0]->SetVariableName("M");
-	outputSlots_[0]->SetDescription("Plane Mesh");
+	outputSlots_[0]->SetName("XZplane");
+	outputSlots_[0]->SetVariableName("XZ");
+	outputSlots_[0]->SetDescription("XZ Plane Mesh");
 	outputSlots_[0]->SetVariantType(VariantType::VAR_VARIANTMAP);
 	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
+    
+    outputSlots_[1]->SetName("XYplane");
+    outputSlots_[1]->SetVariableName("XY");
+    outputSlots_[1]->SetDescription("XY Plane Mesh");
+    outputSlots_[1]->SetVariantType(VariantType::VAR_VARIANTMAP);
+    outputSlots_[1]->SetDataAccess(DataAccess::ITEM);
+    
+    outputSlots_[2]->SetName("YZplane");
+    outputSlots_[2]->SetVariableName("YZ");
+    outputSlots_[2]->SetDescription("YZ Plane Mesh");
+    outputSlots_[2]->SetVariantType(VariantType::VAR_VARIANTMAP);
+    outputSlots_[2]->SetDataAccess(DataAccess::ITEM);
+    
 }
+
+
 
 void Mesh_Plane::SolveInstance(
 	const Vector<Variant>& inSolveInstance,
@@ -89,23 +104,19 @@ void Mesh_Plane::SolveInstance(
 	}
 	float s = inSolveInstance[0].GetFloat();
 	
-	// Verify input slot 1
-	VariantType type1 = inSolveInstance[1].GetType();
-	if (type1 != VariantType::VAR_MATRIX3X4) {
-		URHO3D_LOGWARNING("T must be a valid transform.");
-		outSolveInstance[0] = Variant();
-		return;
-	}
-	Matrix3x4 tr = inSolveInstance[1].GetMatrix3x4();
 
 	///////////////////
 	// COMPONENT'S WORK
 
-	Variant basePlaneMesh = MakePlane(s);
-	Variant planeMesh = TriMesh_ApplyTransform(basePlaneMesh, tr);
+	Variant XZ_planeMesh = MakeXZPlane(s);
+    Variant YZ_planeMesh = MakeYZPlane(s);
+    Variant XY_planeMesh = MakeXYPlane(s);
+
 
 	/////////////////
 	// ASSIGN OUTPUTS
 
-	outSolveInstance[0] = planeMesh;
+	outSolveInstance[0] = XZ_planeMesh;
+    outSolveInstance[1] = YZ_planeMesh;
+    outSolveInstance[2] = XY_planeMesh;
 }

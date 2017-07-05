@@ -88,6 +88,10 @@ file(GLOB Misc_SRC
     "./ColorSlider.*"
     "./MultiSlider.*"
     "./TransformEdit.*"
+    "./ModelEdit.*"
+    "./ModelEditLinear.*"
+    "./ModelBoxMorph.*"
+    "./MeshSketcher.*"
     )
 source_group("Misc" FILES ${Misc_SRC})
 

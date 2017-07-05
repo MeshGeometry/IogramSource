@@ -74,6 +74,9 @@
 #include <Urho3D/UI/View3D.h>
 #include <Urho3D/UI/UIEvents.h>
 
+#include "IoScriptInstance.h"
+#include "IoGeometryAPI.h"
+
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 #endif
@@ -86,17 +89,23 @@ IogramPlayer* IogramPlayer::instance_;
 
 URHO3D_DEFINE_APPLICATION_MAIN(IogramPlayer);
 
+IoGraph* graph;
+
 IogramPlayer::IogramPlayer(Context* context) :
 	Application(context)
 {
 	context->RegisterFactory<OrbitCamera>();
 	context->RegisterSubsystem(new Script(context));
+	context->RegisterFactory<IoScriptInstance>();
+
+	IoScriptInstance::RegisterScriptObject(context);
+
 
 	//register iogram systems
 	context->RegisterSubsystem(new IoGraph(context));
 	context->RegisterSubsystem(new PluginAPI(context));
 	context->RegisterSubsystem(new PersistentData(context));
-	context->RegisterSubsystem(new Log(context));
+	//context->RegisterSubsystem(new Log(context));
 	instance_ = this;
 }
 
@@ -126,34 +135,53 @@ void IogramPlayer::Setup()
 	engineParameters_["WindowResizable"] = true;
 	engineParameters_["HighDPI"] = true;
 
-	//Urho3D::OpenConsoleWindow();
+	Urho3D::OpenConsoleWindow();
 }
 
 void IogramPlayer::Start()
 {
 	//set up the log
-	GetSubsystem<Log>()->SetLevel(1);
+	//GetSubsystem<Log>()->SetLevel(1);
 
 	//init the pref dir
+#ifndef WEB
 	PersistentData* pd = GetSubsystem<PersistentData>();
 	pd->RegisterAppData("MyOrganization", "MyFirstApp");
+#endif
 
 	//register core components
 	RegisterCoreComponents(context_);
 
+	//register geometry api
+	RegisterGeometryFunctions(context_);
+
 	//load plugins
-//#ifndef EMSCRIPTEN
-//	LoadPlugins();
-//#endif
+#ifndef WEB
+	LoadPlugins();
+#endif
 
 	GetSubsystem<Input>()->SetMouseVisible(true);
+
 	CreateScene();
 
 	SetupViewport();
 
+	//push scene to script
+	GetSubsystem<Script>()->SetDefaultScene(scene_);
+
+	LoadGraph();
+
 	//subscribe
 	SubscribeToEvent(E_SCENEUPDATE, URHO3D_HANDLER(IogramPlayer, HandleUpdate));
+}
 
+
+void IogramPlayer::Stop()
+{
+}
+
+void IogramPlayer::LoadGraph()
+{
 	//scan the graphs directory and load the first one
 	FileSystem* fs = GetSubsystem<FileSystem>();
 	ResourceCache* cache = GetSubsystem<ResourceCache>();
@@ -224,23 +252,17 @@ hasfile:
 	{
 		URHO3D_LOGERROR("Could not find a graph file to run.");
 	}
-
-
-}
-
-
-void IogramPlayer::Stop()
-{
 }
 
 void IogramPlayer::LoadPlugins()
 {
-	FileSystem* fs = GetSubsystem<FileSystem>();
-	PluginAPI* pl = GetSubsystem<PluginAPI>();
-	String configPath = fs->GetProgramDir() + "Plugins/PluginConfiguration.json";
-	pl->LoadPluginsFromFile(configPath);
+	//FileSystem* fs = GetSubsystem<FileSystem>();
+	//PluginAPI* pl = GetSubsystem<PluginAPI>();
+	//String configPath = fs->GetProgramDir() + "Plugins/PluginConfiguration.json";
+	//pl->LoadPluginsFromFile(configPath);
 
 }
+
 
 void IogramPlayer::CreateScene()
 {
@@ -259,26 +281,25 @@ void IogramPlayer::CreateScene()
 	zone->SetBoundingBox(BoundingBox(-1000.0f, 1000.0f));
 	zone->SetFogStart(300.0f);
 	zone->SetFogEnd(600.0f);
-	zone->SetAmbientColor(Color(0.1, 0.1, 0.1, 0.9));
-	TextureCube* cubeTex = cache->GetResource<TextureCube>("Textures/ZoneCubeMap.xml");
+	zone->SetAmbientColor(Color(0.3, 0.3, 0.3, 0.9));
+	TextureCube* cubeTex = cache->GetResource<TextureCube>("Textures/GreySkyGradient.xml");
 	zone->SetZoneTexture(cubeTex);
 
 	//create the background
 	Skybox* skybox = scene_->CreateComponent<Skybox>();
 	skybox->SetModel(cache->GetResource<Model>("Models/Sphere.mdl"));
-	skybox->SetMaterial(cache->GetResource<Material>("Materials/Skybox.xml"));
+	Material* skyMat = cache->GetResource<Material>("Materials/GradientSkydome.xml");
+	skybox->SetMaterial(skyMat);
 
 	// Create the camera
 	cameraNode_ = scene_->CreateChild("OrbitCamera");
 	cameraNode_->CreateComponent<OrbitCamera>();
 
-	//push the scene to graph system
-	GetSubsystem<IoGraph>()->scene = scene_;
-	context_->SetGlobalVar("Scene", scene_);
+
+	//GetSubsystem<Script>()->SetDefaultScene(scene_);
 
 	//calculate the best fit ui scale
 	SetUIScale();
-
 
 	//initialize the ui style sheet
 	UI* ui = GetSubsystem<UI>();
@@ -294,6 +315,8 @@ void IogramPlayer::CreateScene()
 	//Graphics* g = GetSubsystem<Graphics>();
 	Graphics* g = GetSubsystem<Graphics>();
 	g->Maximize();
+
+
 
 }
 
@@ -339,6 +362,7 @@ void IogramPlayer::SetupViewport()
 
 	// Set up a viewport to the Renderer subsystem so that the 3D scene can be seen
 	viewport_ = new Viewport(context_, scene_, cameraNode_->GetComponent<OrbitCamera>()->camera_);
+	
 	SetGlobalVar("activeViewport", viewport_);
 	VariantVector vpList;
 	vpList.Push(viewport_);
@@ -348,20 +372,31 @@ void IogramPlayer::SetupViewport()
 	ResourceCache* cache = GetSubsystem<ResourceCache>();
 	RenderPath* render_path = new RenderPath();
 
-
 	render_path->Load(cache->GetResource<XMLFile>("RenderPaths/ForwardDepth.xml"));
-
-	//render_path->Append(cache->GetResource<XMLFile>("PostProcess/FXAA3.xml"));
-	//render_path->Append(cache->GetResource<XMLFile>("PostProcess/ColorCorrection.xml"));
 	render_path->Append(cache->GetResource<XMLFile>("PostProcess/Vibrance.xml"));
-
-
 	viewport_->SetRenderPath(render_path);
 
 	Graphics* graphics = GetSubsystem<Graphics>();
 	graphics->SetWindowTitle("Iogram: The Pre-Game Engine");
 	Image* icon = cache->GetResource<Image>("Textures/Io_Icon_Small.png");
 	graphics->SetWindowIcon(icon);
+
+	/***********************************************************
+
+	HERE BE DRAGONS:
+
+	When accessing the scene via script, somehow "ownership" of the scene got transferred to script system (I think).
+	This then caused the Player to render only a black screen (presumably because the Viewport pointer to the scene was NULL).
+
+	In the Editor, this didn't happen. The difference between the Editor and the Player is (wrt this problem) is that Editor
+	uses View3D to render to scene. So, I checked out that code and found the following code that somehow prevents this issue.
+
+	It works, but I don't really know why.
+
+	************************************************************/
+
+	RefCount* refCount = scene_->RefCountPtr();
+	++refCount->refs_;
 
 }
 
@@ -389,11 +424,11 @@ void IogramPlayer::HandleUpdate(StringHash eventType, VariantMap& eventData)
 
 #endif
 
-	//Input* input = GetSubsystem<Input>();
-	//if (input->GetKeyPress('g'))
-	//{
-	//	GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
-	//}
+	Input* input = GetSubsystem<Input>();
+	if (input->GetKeyDown(KEY_ALT) && input->GetKeyPress(KEY_G))
+	{
+		GetSubsystem<IoGraph>()->TopoSolveGraph();
+	}
 }
 
 

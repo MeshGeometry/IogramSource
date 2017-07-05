@@ -226,6 +226,15 @@ bool Geomlib::ReadOFF(
 		return false;
 	}
 
+	// xV, xF record the mesh at this stage
+
+	if (yup) {
+		Eigen::MatrixXf xW = xV;
+		xW.col(1) = xV.col(2);
+		xW.col(2) = -1 * xV.col(1);
+		xV = xW;
+	}
+
 	tri_mesh = TriMesh_Make(xV, xF);
 	if (!TriMesh_Verify(tri_mesh)) {
 		return false;

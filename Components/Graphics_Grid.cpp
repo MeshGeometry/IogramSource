@@ -95,6 +95,14 @@ Graphics_Grid::Graphics_Grid(Urho3D::Context* context) : IoComponentBase(context
 		ITEM
 	);
 
+	AddOutputSlot(
+		"ModelName",
+		"ModelName",
+		"ModelName",
+		VAR_STRING,
+		ITEM
+	);
+
 }
 
 void Graphics_Grid::PreLocalSolve()
@@ -170,5 +178,6 @@ void Graphics_Grid::SolveInstance(
 
 	outSolveInstance[0] = node->GetID();
 	outSolveInstance[1] = sm;
+	outSolveInstance[2] = mdl->GetName();
 
 }

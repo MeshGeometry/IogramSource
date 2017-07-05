@@ -24,6 +24,7 @@
 
 #include <Urho3D/Core/Variant.h>
 #include <Urho3D/Container/Vector.h>
+#include <Urho3D/AngelScript/APITemplates.h>
 
 // TriMeshWithData is a variant map:
 /*
@@ -42,21 +43,21 @@
 
 
 // this computes all the various adjacency data and stores it as an enhanced triMesh
-Urho3D::Variant TriMesh_ComputeAdjacencyData(const Urho3D::Variant& triMesh);
+Urho3D::Variant TriMesh_ComputeAdjacencyData(const Urho3D::Variant& triMesh); // REGISTERED
 
 // this checks for existance, but makes no guarantee that the data is uptodate.
-bool TriMesh_HasAdjacencyData(const Urho3D::Variant& triMeshWithData);
+bool TriMesh_HasAdjacencyData(const Urho3D::Variant& triMeshWithData); // REGISTERED
 
 
 /// VERTEX QUERIES
-Urho3D::VariantVector TriMesh_VertexToVertices(Urho3D::Variant& triMeshWithData, int vertID);
-Urho3D::Vector<Urho3D::Variant> TriMesh_VertexToVertices(Urho3D::Variant& triMeshWithData);
-Urho3D::VariantVector TriMesh_VertexToFaces(Urho3D::Variant& triMeshWithData, int vertID);
+Urho3D::VariantVector TriMesh_VertexToVertices(Urho3D::Variant& triMeshWithData, int vertID); // REGISTERED as TriMesh_VertexToVerticesArrayFromId
+Urho3D::Vector<Urho3D::Variant> TriMesh_VertexToVertices(Urho3D::Variant& triMeshWithData); // REGISTERED as TriMesh_VertexToVerticesArray
+Urho3D::VariantVector TriMesh_VertexToFaces(Urho3D::Variant& triMeshWithData, int vertID); // REGISTERED as TriMesh_VertexToFacesArray
 //Urho3D::VariantVector TriMesh_VertexToLabels(const Urho3D::Variant& triMesh, int vertID);
 
 /// FACE QUERIES
-Urho3D::VariantVector TriMesh_FaceToVertices(const Urho3D::Variant& triMeshWithData, int faceID);
-Urho3D::VariantVector TriMesh_FaceToFaces(const Urho3D::Variant& triMeshWithData, int faceID);
+Urho3D::VariantVector TriMesh_FaceToVertices(const Urho3D::Variant& triMeshWithData, int faceID); // REGISTERED as TriMesh_FaceToVerticesArray
+Urho3D::VariantVector TriMesh_FaceToFaces(const Urho3D::Variant& triMeshWithData, int faceID); // REGISTERED as TriMesh_FaceToFacesArray
 //Urho3D::VariantVector TriMesh_FaceToLabels(const Urho3D::Variant& triMesh, int faceID);
 
 // TODO
@@ -64,3 +65,12 @@ Urho3D::VariantVector TriMesh_FaceToFaces(const Urho3D::Variant& triMeshWithData
 //Urho3D::VariantVector TriMesh_LabelToVertices(const Urho3D::Variant& triMesh, int faceID);
 //Urho3D::VariantVector TriMesh_LabelToFaces(const Urho3D::Variant& triMesh, int faceID);
 //Urho3D::VariantVector TriMesh_LabelToLabels(const Urho3D::Variant& triMesh, int faceID);
+
+// for scripts
+Urho3D::CScriptArray* TriMesh_VertexToVerticesArrayFromId(Urho3D::Variant& triMeshWithData, int vertID);
+Urho3D::CScriptArray* TriMesh_VertexToVerticesArray(Urho3D::Variant& triMeshWithData);
+Urho3D::CScriptArray* TriMesh_VertexToFacesArray(Urho3D::Variant& triMeshWithData, int vertID);
+Urho3D::CScriptArray* TriMesh_FaceToVerticesArray(const Urho3D::Variant& triMeshWithData, int faceID);
+Urho3D::CScriptArray* TriMesh_FaceToFacesArray(const Urho3D::Variant& triMeshWithData, int faceID);
+
+bool RegisterMeshTopologyQueryFunctions(Urho3D::Context* context);

@@ -26,29 +26,37 @@
 #include <Urho3D/Container/Vector.h>
 #include <Urho3D/Math/Vector3.h>
 #include <Urho3D/Graphics/Model.h>
+#include <Urho3D/AngelScript/Script.h>
+#include <AngelScript/angelscript.h>
+#include <Urho3D/AngelScript/APITemplates.h>
 
-Urho3D::Variant Polyline_Make(const Urho3D::VariantVector& vertexList);
-Urho3D::Variant Polyline_Make(const Urho3D::Vector<Urho3D::Vector3>& vertexList);
-//Urho3D::Variant Polyline_Make(const Urho3D::VariantVector& vertexList, const Urho3D::VariantVector& edgeList);
+Urho3D::Variant Polyline_Make(const Urho3D::VariantVector& vertexList); // REGISTERED as Polyline_MakeFromVariantArray
+Urho3D::Variant Polyline_Make(const Urho3D::Vector<Urho3D::Vector3>& vertexList); // REGISTERED as Polyline_MakeFromVector3Array
 
-bool Polyline_Verify(const Urho3D::Variant& polyline);
-void Polyline_Close(Urho3D::Variant& polyline);
+bool Polyline_Verify(const Urho3D::Variant& polyline); // REGISTERED
+void Polyline_Close(Urho3D::Variant& polyline); // REGISTERED
 
-Urho3D::VariantVector Polyline_GetVertexList(const Urho3D::Variant& polyline);
-int Polyline_GetSequentialVertexNumber(const Urho3D::Variant& polyline);
+Urho3D::VariantVector Polyline_GetVertexList(const Urho3D::Variant& polyline); // REGISTERED as Polyline_GetVertexArray
+int Polyline_GetSequentialVertexNumber(const Urho3D::Variant& polyline); // REGISTERED
 
-Urho3D::VariantVector Polyline_ComputeSequentialVertexList(const Urho3D::Variant& polyline);
-float Polyline_GetCurveLength(const Urho3D::Variant& polyline);
+Urho3D::VariantVector Polyline_ComputeSequentialVertexList(const Urho3D::Variant& polyline); // REGISTERED as Polyline_ComputeSequentialVertexArray
+float Polyline_GetCurveLength(const Urho3D::Variant& polyline); // REGISTERED
 
-Urho3D::Variant Polyline_Clean(const Urho3D::Variant& polyline);
+Urho3D::Variant Polyline_Clean(const Urho3D::Variant& polyline); // REGISTERED
 
-Urho3D::Vector<Urho3D::Vector3> Polyline_ComputePointCloud(const Urho3D::Variant& polyline);
+Urho3D::Vector<Urho3D::Vector3> Polyline_ComputePointCloud(const Urho3D::Variant& polyline); // REGISTERED as Polyline_ComputePointCloudArray
 Urho3D::Vector<Urho3D::Pair<int, int>> Polyline_ComputeEdges(const Urho3D::Variant& polyline);
-bool Polyline_IsClosed(const Urho3D::Variant& polyline);
+bool Polyline_IsClosed(const Urho3D::Variant& polyline); // REGISTERED
 
-Urho3D::Variant Polyline_ApplyTransform(
-	const Urho3D::Variant& polyline,
-	const Urho3D::Matrix3x4& T
-);
+Urho3D::Variant Polyline_ApplyTransform(const Urho3D::Variant& polyline, const Urho3D::Matrix3x4& T); // REGISTERED
 
 Urho3D::SharedPtr<Urho3D::Model> Polyline_GetRenderMesh(const Urho3D::Variant& triMesh, Urho3D::Context* context, Urho3D::VariantVector vCols, float thickness, bool split=false);
+
+// script versions
+Urho3D::Variant Polyline_MakeFromVariantArray(Urho3D::CScriptArray* vertexList_arr);
+Urho3D::Variant Polyline_MakeFromVector3Array(Urho3D::CScriptArray* vertexList_arr);
+Urho3D::CScriptArray* Polyline_GetVertexArray(const Urho3D::Variant& polyline);
+Urho3D::CScriptArray* Polyline_ComputeSequentialVertexArray(const Urho3D::Variant& polyline);
+Urho3D::CScriptArray* Polyline_ComputePointCloudArray(const Urho3D::Variant& polyline);
+
+bool RegisterPolylineFunctions(Urho3D::Context* context);

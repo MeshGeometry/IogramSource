@@ -181,6 +181,14 @@ Graphics_ModifyMaterial::Graphics_ModifyMaterial(Urho3D::Context* context) : IoC
 		VAR_PTR,
 		ITEM
 		);
+
+	AddOutputSlot(
+		"MatName",
+		"MatName",
+		"MatName",
+		VAR_STRING,
+		ITEM
+	);
 }
 
 
@@ -291,5 +299,6 @@ void Graphics_ModifyMaterial::SolveInstance(
 	}
 
 	outSolveInstance[0] = mat;
+	outSolveInstance[1] = mat->GetName();
 }
 

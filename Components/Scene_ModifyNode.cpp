@@ -100,7 +100,9 @@ void Scene_ModifyNode::SolveInstance(
 	Matrix3x4 xform = inSolveInstance[1].GetMatrix3x4();
 	String name = inSolveInstance[2].GetString();
 
-	node->SetTransform(xform.Translation(), xform.Rotation(), xform.Scale());
+	node->SetPosition(xform.Translation());
+	node->SetRotation(xform.Rotation());
+	node->SetScale(xform.Scale());
 	node->SetName(name);
 
 	outSolveInstance[0] = node->GetID();

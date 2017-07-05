@@ -140,6 +140,7 @@ void Graphics_Skybox::SolveInstance(
 	if (tex) {
 		mat->SetTexture(TU_DIFFUSE, tex);
 	}
+
 	mat->SetShaderParameter("GradColorA", colA);
 	mat->SetShaderParameter("GradColorB", colB);
 	mat->SetShaderParameter("BlurRadius", 0.001f * blurRadius);

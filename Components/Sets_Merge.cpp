@@ -60,7 +60,7 @@ Sets_Merge::Sets_Merge(Urho3D::Context* context) : IoComponentBase(context, 3, 1
 	inputSlots_[2]->SetVariantType(VariantType::VAR_BOOL);
 	inputSlots_[2]->SetDefaultValue(Variant(defaultPattern));
 	inputSlots_[2]->DefaultSet();
-	inputSlots_[2]->SetDataAccess(DataAccess::LIST);
+	inputSlots_[2]->SetDataAccess(DataAccess::ITEM);
 
 	outputSlots_[0]->SetName("MergedList");
 	outputSlots_[0]->SetVariableName("L");

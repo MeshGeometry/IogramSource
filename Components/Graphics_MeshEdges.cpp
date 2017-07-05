@@ -94,6 +94,13 @@ Graphics_MeshEdges::Graphics_MeshEdges(Urho3D::Context* context) : IoComponentBa
 		DataAccess::ITEM
 	);
 
+	AddOutputSlot(
+		"ModelName",
+		"ModelName",
+		"ModelName",
+		VAR_STRING,
+		DataAccess::ITEM
+	);
 
 }
 
@@ -162,25 +169,29 @@ void Graphics_MeshEdges::SolveInstance(
 		// TRIMESH render
 		if (isTriMesh) {
 			Variant model_pointer;
-			int nodeId = TriMesh_Render(inSolveInstance[0], context, width, col, model_pointer);
+			String model_name;
+			int nodeId = TriMesh_Render(inSolveInstance[0], context, width, col, model_pointer, model_name);
 			if (nodeId == -1)
 				SetAllOutputsNull(outSolveInstance);
 
 			trackedItems.Push(nodeId);
 			outSolveInstance[0] = nodeId;
 			outSolveInstance[1] = model_pointer.GetPtr();
+			outSolveInstance[2] = model_name;
 		}//TRIMESH render
 
 		 // NMESH render
 		if (isNMesh) {
 			Variant model_pointer;
-			int nodeId = NMesh_Render(inSolveInstance[0], context, width, col, model_pointer);
+			String model_name;
+			int nodeId = NMesh_Render(inSolveInstance[0], context, width, col, model_pointer, model_name);
 			if (nodeId == -1)
 				SetAllOutputsNull(outSolveInstance);
 
 			trackedItems.Push(nodeId);
 			outSolveInstance[0] = nodeId;
 			outSolveInstance[1] = model_pointer.GetPtr();
+			outSolveInstance[2] = model_name;
 		}//NMESH render
 	}
 	else
@@ -195,7 +206,8 @@ int Graphics_MeshEdges::TriMesh_Render(Urho3D::Variant trimesh,
 	Urho3D::Context* context,
 	float lineWidth,
 	Urho3D::Color mainColor,
-	Urho3D::Variant& model_pointer)
+	Urho3D::Variant& model_pointer,
+	Urho3D::String& model_name)
 {
 
 	Vector<VertexData> vbd;
@@ -306,6 +318,7 @@ int Graphics_MeshEdges::TriMesh_Render(Urho3D::Variant trimesh,
 	sm->SetMaterial(cloneMat);
 
 	model_pointer = Variant(sm);
+	model_name = model->GetName();
 
 	return mNode->GetID();
 }
@@ -314,7 +327,8 @@ int Graphics_MeshEdges::NMesh_Render(Urho3D::Variant nMesh,
 	Urho3D::Context* context,
 	float lineWidth,
 	Urho3D::Color mainColor,
-	Urho3D::Variant& model_pointer)
+	Urho3D::Variant& model_pointer,
+	Urho3D::String& model_name)
 {
 
 	Vector<VertexData> vbd;
@@ -448,6 +462,7 @@ int Graphics_MeshEdges::NMesh_Render(Urho3D::Variant nMesh,
 	//sm->SetMaterial(mat);
 
 	model_pointer = Variant(sm);
+	model_name = model->GetName();
 
 	return mNode->GetID();
 }

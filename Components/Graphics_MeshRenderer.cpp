@@ -19,6 +19,7 @@
 // THE SOFTWARE.
 //
 
+#include <iostream>
 
 #include "Graphics_MeshRenderer.h"
 #include "TriMesh.h"
@@ -36,7 +37,7 @@ using namespace Urho3D;
 
 String Graphics_MeshRenderer::iconTexture = "Textures/Icons/Scene_MeshRenderer.png";
 
-Graphics_MeshRenderer::Graphics_MeshRenderer(Urho3D::Context* context) : IoComponentBase(context, 4, 2)
+Graphics_MeshRenderer::Graphics_MeshRenderer(Urho3D::Context* context) : IoComponentBase(context, 4, 3)
 {
 	SetName("MeshRenderer");
 	SetFullName("MeshRenderer");
@@ -73,14 +74,20 @@ Graphics_MeshRenderer::Graphics_MeshRenderer(Urho3D::Context* context) : IoCompo
 	outputSlots_[0]->SetName("NodeID");
 	outputSlots_[0]->SetVariableName("ID");
 	outputSlots_[0]->SetDescription("ID of rendered node");
-	outputSlots_[0]->SetVariantType(VariantType::VAR_INT); // this would change to VAR_FLOAT if access becomes LIST
+	outputSlots_[0]->SetVariantType(VariantType::VAR_INT);
 	outputSlots_[0]->SetDataAccess(DataAccess::ITEM);
 
 	outputSlots_[1]->SetName("StaticModelPointer");
 	outputSlots_[1]->SetVariableName("SM");
 	outputSlots_[1]->SetDescription("Void Pointer to Static Model");
-	outputSlots_[1]->SetVariantType(VariantType::VAR_PTR); // this would change to VAR_FLOAT if access becomes LIST
+	outputSlots_[1]->SetVariantType(VariantType::VAR_PTR);
 	outputSlots_[1]->SetDataAccess(DataAccess::ITEM);
+
+	outputSlots_[2]->SetName("ModelName");
+	outputSlots_[2]->SetVariableName("ModelName");
+	outputSlots_[2]->SetDescription("ModelName");
+	outputSlots_[2]->SetVariantType(VariantType::VAR_STRING);
+	outputSlots_[2]->SetDataAccess(DataAccess::ITEM);
 }
 
 Graphics_MeshRenderer::~Graphics_MeshRenderer()
@@ -167,25 +174,29 @@ void Graphics_MeshRenderer::SolveInstance(
         // TRIMESH render
         if (isTriMesh){
             Variant model_pointer;
-            int nodeId = TriMesh_Render(inSolveInstance[0], context, matPath, split, col, model_pointer);
+			String model_name;
+            int nodeId = TriMesh_Render(inSolveInstance[0], context, matPath, split, col, model_pointer, model_name);
             if (nodeId == -1)
                 SetAllOutputsNull(outSolveInstance);
         
             trackedItems.Push(nodeId);
             outSolveInstance[0] = nodeId;
             outSolveInstance[1] = model_pointer.GetPtr();
+			outSolveInstance[2] = model_name;
         }//TRIMESH render
         
         // NMESH render
         if (isNMesh){
             Variant model_pointer;
-            int nodeId = NMesh_Render(inSolveInstance[0], context, matPath, split, col, model_pointer);
+	    String model_name;
+            int nodeId = NMesh_Render(inSolveInstance[0], context, matPath, split, col, model_pointer, model_name);
             if (nodeId == -1)
                 SetAllOutputsNull(outSolveInstance);
             
             trackedItems.Push(nodeId);
             outSolveInstance[0] = nodeId;
             outSolveInstance[1] = model_pointer.GetPtr();
+	    outSolveInstance[2] = model_name;
         }//NMESH render
 	}
 	else
@@ -201,7 +212,8 @@ int Graphics_MeshRenderer::TriMesh_Render(Urho3D::Variant trimesh,
                                           Urho3D::String material_path,
                                           bool flatShaded,
                                           Urho3D::Color mainColor,
-                                          Urho3D::Variant& model_pointer)
+                                          Urho3D::Variant& model_pointer,
+					  Urho3D::String& model_name)
 {
     
     Vector<VertexData> vbd;
@@ -226,12 +238,15 @@ int Graphics_MeshRenderer::TriMesh_Render(Urho3D::Variant trimesh,
         {
             int fId = faces[i].GetInt();
             int normId = (int)floor((float)i / 3.0f);
+			Vector3 n = normals[normId].GetVector3();
+			Color vCol = Color(n.x_, n.y_, n.z_, 1.0f);
+			vCol = 0.5f * (vCol + Color::WHITE);
             //unsigned int col = vCols[normId%numColors].GetColor().ToUInt();
             if (fId < (int)verts.Size())
             {
                 vbd[i].position = verts[fId].GetVector3();
-                vbd[i].normal = normals[normId].GetVector3();
-                vbd[i].color = vCol;
+				vbd[i].normal = n;
+				vbd[i].color = vCol.ToUInt();
                 tmpVerts[i] = vbd[i].position;
             }
             
@@ -241,7 +256,7 @@ int Graphics_MeshRenderer::TriMesh_Render(Urho3D::Variant trimesh,
     }
     else
     {
-        normals = TriMesh_ComputeVertexNormals(trimesh);
+        normals = TriMesh_ComputeVertexNormals(trimesh, true);
         tmpFaces.Resize(faces.Size());
         tmpVerts.Resize(verts.Size());
         vbd.Resize(verts.Size());
@@ -249,9 +264,13 @@ int Graphics_MeshRenderer::TriMesh_Render(Urho3D::Variant trimesh,
         
         for (unsigned i = 0; i < verts.Size(); i++)
         {
-            vbd[i].position = verts[i].GetVector3();
-            vbd[i].normal = normals[i].GetVector3();
-            vbd[i].color = vCol;// vCols[i%numColors].GetColor().ToUInt();
+			Vector3 n = normals[i].GetVector3();
+			Color vCol = Color(n.x_, n.y_, n.z_, 1.0f);
+			vCol = 0.5f * (vCol + Color::WHITE);
+			
+			vbd[i].position = verts[i].GetVector3();
+			vbd[i].normal = n;
+			vbd[i].color = vCol.ToUInt();
             tmpVerts[i] = verts[i].GetVector3();
         }
         
@@ -333,6 +352,9 @@ int Graphics_MeshRenderer::TriMesh_Render(Urho3D::Variant trimesh,
     
     model_pointer = Variant(sm);
     
+	std::cout << "model->GetName().CString() = " << model->GetName().CString() << std::endl;
+	model_name = model->GetName();
+
     return mNode->GetID();
 }
 
@@ -341,7 +363,8 @@ int Graphics_MeshRenderer::NMesh_Render(Urho3D::Variant nMesh,
                                           Urho3D::String material_path,
                                           bool flatShaded,
                                           Urho3D::Color mainColor,
-                                          Urho3D::Variant& model_pointer)
+                                          Urho3D::Variant& model_pointer,
+					  Urho3D::String& model_name)
 {
     
     Vector<VertexData> vbd;
@@ -398,11 +421,14 @@ int Graphics_MeshRenderer::NMesh_Render(Urho3D::Variant nMesh,
             for (int j = 0; j < faces.Size(); ++j){
                 int ID = 3*faceCounter +j;
                 int fId = faces[j].GetInt();
+				Vector3 n = normals[normId].GetVector3();;
+				Color vCol = Color(n.x_, n.y_, n.z_, 1.0f);
+				vCol = 0.5f * (vCol + Color::WHITE);
                 if (fId < (int)verts.Size())
                 {
                     vbd[ID].position = verts[fId].GetVector3();
-                    vbd[ID].normal = normals[normId].GetVector3();
-                    vbd[ID].color = vCol;
+					vbd[ID].normal = n;
+                    vbd[ID].color = vCol.ToUInt();
                     tmpVerts[ID] = vbd[ID].position;
                 }
                 tmpFaces[ID] = ID;
@@ -413,7 +439,8 @@ int Graphics_MeshRenderer::NMesh_Render(Urho3D::Variant nMesh,
     else
     {
         // if it is smooth-shaded, just compute as smoothshaded trimesh
-        return TriMesh_Render(unifiedMesh, context, material_path, flatShaded, mainColor, model_pointer);
+		String path_to_resource_ref;
+        return TriMesh_Render(unifiedMesh, context, material_path, flatShaded, mainColor, model_pointer, path_to_resource_ref);
     }
     
     SharedPtr<VertexBuffer> vb(new VertexBuffer(context));
@@ -484,7 +511,7 @@ int Graphics_MeshRenderer::NMesh_Render(Urho3D::Variant nMesh,
     //sm->SetMaterial(mat);
     
     model_pointer = Variant(sm);
-    
+    model_name = model->GetName();
     return mNode->GetID();
 }
 

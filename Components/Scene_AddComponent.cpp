@@ -70,7 +70,7 @@ void Scene_AddComponent::PreLocalSolve()
 			Component* sm = scene->GetComponent(trackedItems[i]);
 			if (sm != NULL)
 			{
-				sm->Remove();
+				scene->GetComponent(trackedItems[i])->Remove();
 			}
 		}
 	}
@@ -97,7 +97,7 @@ void Scene_AddComponent::SolveInstance(
 	String compTypeName = inSolveInstance[1].GetString();
 
 	Node* node = scene->GetNode(nodeID);
-	if (node)
+	if (node && nodeID > 0)
 	{
 		Component* comp = node->CreateComponent(compTypeName);
 		if (comp)

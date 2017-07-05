@@ -48,14 +48,21 @@ Mesh_Icosahedron::Mesh_Icosahedron(Context* context) : IoComponentBase(context, 
 	SetGroup(IoComponentGroup::MESH);
 	SetSubgroup("Primitive");
 
-	inputSlots_[0]->SetName("Transformation");
-	inputSlots_[0]->SetVariableName("T");
-	inputSlots_[0]->SetDescription("Transformation to apply to cube");
-	inputSlots_[0]->SetVariantType(VariantType::VAR_MATRIX3X4);
-	inputSlots_[0]->SetDefaultValue(Matrix3x4::IDENTITY);
-	inputSlots_[0]->DefaultSet();
-
-	outputSlots_[0]->SetName("Mesh");
+//	inputSlots_[0]->SetName("Transformation");
+//	inputSlots_[0]->SetVariableName("T");
+//	inputSlots_[0]->SetDescription("Transformation to apply to cube");
+//	inputSlots_[0]->SetVariantType(VariantType::VAR_MATRIX3X4);
+//	inputSlots_[0]->SetDefaultValue(Matrix3x4::IDENTITY);
+//	inputSlots_[0]->DefaultSet();
+    
+    	inputSlots_[0]->SetName("Scale");
+    	inputSlots_[0]->SetVariableName("S");
+    	inputSlots_[0]->SetDescription("Scale of Icosahedron");
+    	inputSlots_[0]->SetVariantType(VariantType::VAR_FLOAT);
+    	inputSlots_[0]->SetDefaultValue(Variant(1.0f));
+    	inputSlots_[0]->DefaultSet();
+    
+    outputSlots_[0]->SetName("Mesh");
 	outputSlots_[0]->SetVariableName("M");
 	outputSlots_[0]->SetDescription("Icosahedron Mesh");
 	outputSlots_[0]->SetVariantType(VariantType::VAR_VARIANTMAP);
@@ -75,17 +82,19 @@ void Mesh_Icosahedron::SolveInstance(
 
 	// Verify input slot 0
 	VariantType type0 = inSolveInstance[0].GetType();
-	if (type0 != VariantType::VAR_MATRIX3X4) {
-		URHO3D_LOGWARNING("T must be a valid transform.");
+    if (type0 != VariantType::VAR_FLOAT && type0 != VariantType::VAR_INT) {
+		URHO3D_LOGWARNING("S must be a valid float or int.");
 		outSolveInstance[0] = Variant();
 		return;
 	}
-	Matrix3x4 tr = inSolveInstance[0].GetMatrix3x4();
+
+    Matrix3x4 tr = Matrix3x4::IDENTITY;
+    float r = inSolveInstance[0].GetFloat();
 
 	///////////////////
 	// COMPONENT'S WORK
 
-	Variant baseIcosahedron = MakeIcosahedron();
+	Variant baseIcosahedron = MakeIcosahedron(r);
 	Variant icosahedron = TriMesh_ApplyTransform(baseIcosahedron, tr);
 
 	/////////////////
