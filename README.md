@@ -1,7 +1,7 @@
 
 ## Build prerequisites
 
-IogramSource's primary dependency is [Urho3D](https://urho3d.github.io). To
+IogramSource's primary dependency is our custom version of [Urho3D](https://github.com/MeshGeometry/Urho3D). To
 build IogramSource you will have to build Urho3D first on your machine.
 
 Here are instructions to
