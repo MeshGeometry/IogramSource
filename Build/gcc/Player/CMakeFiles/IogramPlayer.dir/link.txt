@@ -1,1 +1,0 @@
-/usr/bin/c++   -std=gnu++11 -Wno-invalid-offsetof -march=native -ffast-math -pthread -O3 -DNDEBUG    CMakeFiles/IogramPlayer.dir/IogramPlayer.cpp.o  -o ../bin/IogramPlayer -rdynamic ../../../Urho3D/Build/gcc/lib/libUrho3D.a -ldl -lm -lrt -lGL ../Components/libComponents.a ../Core/libCore.a ../Geometry/libGeometry.a ../../../Urho3D/Build/gcc/lib/libUrho3D.a -ldl -lm -lrt -lGL 
