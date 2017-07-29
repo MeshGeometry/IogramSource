@@ -1,1 +1,0 @@
-cmake -Bbuild -H. -DURHO3D_HOME="C:/Dev/Urho3D/Build/vs2015_ogl" -DURHO3D_OPENGL=1 -DURHO3D_64BIT=1 -G "Visual Studio 14 2015 Win64"

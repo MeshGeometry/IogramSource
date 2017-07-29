@@ -65,7 +65,9 @@ you must include it here and follow the registration pattern in RegisterComponen
 #include "Sets_ShiftList.h"
 #include "Sets_LoopBegin.h"
 #include "Sets_LoopEnd.h"
-#include "Sets_DataRecorder.h"
+#include "Sets_Heap.h"
+#include "Sets_Freeze.h"
+#include "Sets_Pop.h"
 #include "Sets_NamedPair.h"
 #include "Sets_AddKeyValue.h"
 #include "Sets_GetValueByKey.h"
@@ -359,7 +361,9 @@ void RegisterCoreComponents(Context* context)
 	RegisterIogramType<Sets_ShiftList>(context);
 	RegisterIogramType<Sets_LoopBegin>(context);
 	RegisterIogramType<Sets_LoopEnd>(context);
-	RegisterIogramType<Sets_DataRecorder>(context);
+	RegisterIogramType<Sets_Heap>(context);
+	RegisterIogramType<Sets_Freeze>(context);
+	RegisterIogramType<Sets_Pop>(context);
 	RegisterIogramType<Sets_NamedPair>(context);
 	RegisterIogramType<Sets_AddKeyValue>(context);
 	RegisterIogramType<Sets_GetValueByKey>(context);

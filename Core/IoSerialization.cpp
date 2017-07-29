@@ -430,6 +430,7 @@ void IoSerialization::SaveDataTree(IoDataTree& tree, JSONValue& treeVal)
 	treeVal.Set("branches", branchArr);
 }
 
+
 void IoSerialization::LoadDataTree(IoDataTree& tree, const JSONValue& treeVal)
 {
 	//iterate over the branches value

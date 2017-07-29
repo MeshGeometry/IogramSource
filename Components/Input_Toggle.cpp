@@ -74,10 +74,10 @@ void Input_Toggle::HandleCustomInterface(UIElement* customElement)
 	Button* b = customElement->CreateChild<Button>("BoolToogle");
 	b->SetStyle("Button");
 	b->SetMinSize(30, 20);
-	if (b)
-	{
-		SubscribeToEvent(b, E_PRESSED, URHO3D_HANDLER(Input_Toggle, HandleButtonPress));
-	}
+	bool lastVal = GetGenericData("ButtonValue").GetBool();
+	lastVal ? b->SetColor(LIGHT_GREEN) : b->SetColor(BRIGHT_ORANGE);
+	SubscribeToEvent(b, E_PRESSED, URHO3D_HANDLER(Input_Toggle, HandleButtonPress));
+
 }
 
 void Input_Toggle::HandleButtonPress(StringHash eventType, VariantMap& eventData)
@@ -90,12 +90,14 @@ void Input_Toggle::HandleButtonPress(StringHash eventType, VariantMap& eventData
 		{
 			b->SetSelected(false);
 			b->SetColor(BRIGHT_ORANGE);
+			SetGenericData("ButtonValue", false);
 
 		}
 		else
 		{
 			b->SetSelected(true);
 			b->SetColor(LIGHT_GREEN);
+			SetGenericData("ButtonValue", true);
 		}
 
 		Vector<int> path;

@@ -59,6 +59,7 @@ IGL_INLINE std::string igl::file_dialog_open()
   ofn.lpstrInitialDir = NULL;
   ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
+
   // Display the Open dialog box. 
   int pos = 0;
   if (GetOpenFileName(&ofn)==TRUE)

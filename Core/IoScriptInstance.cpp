@@ -346,7 +346,7 @@ IoInputSlot* IoScriptInstance::AddInputSlotFromScript(Urho3D::VariantMap inputMa
 					name,
 					varName,
 					description,
-					type,
+					val.GetType(),
 					da,
 					val
 				);
@@ -454,9 +454,11 @@ void IoScriptInstance::SolveInstance(const Urho3D::Vector<Urho3D::Variant>& inSo
 
 	//create a map between variable names and input values
 	VariantMap inArgs;
-	for (int i = 0; i < inSolveInstance.Size(); i++)
+ 	for (int i = 0; i < inSolveInstance.Size(); i++)
 	{
-		inArgs[inputSlots_[i]->GetVariableName()] = inSolveInstance[i];
+		Variant inVar = inSolveInstance[i];
+		String varName = inputSlots_[i]->GetVariableName();
+		inArgs[varName] = inSolveInstance[i];
 	}
 
 	//create a map between variable names and output values
