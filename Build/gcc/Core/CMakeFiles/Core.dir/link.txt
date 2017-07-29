@@ -1,0 +1,2 @@
+/usr/bin/ar qc libCore.a  CMakeFiles/Core.dir/IndexUtilities.cpp.o CMakeFiles/Core.dir/IoComponentBase.cpp.o CMakeFiles/Core.dir/IoDataTree.cpp.o CMakeFiles/Core.dir/IoGraph.cpp.o CMakeFiles/Core.dir/IoInputSlot.cpp.o CMakeFiles/Core.dir/IoOutputSlot.cpp.o CMakeFiles/Core.dir/IoScriptInstance.cpp.o CMakeFiles/Core.dir/IoSerialization.cpp.o CMakeFiles/Core.dir/NetworkUtilities.cpp.o CMakeFiles/Core.dir/PersistentData.cpp.o CMakeFiles/Core.dir/PluginAPI.cpp.o
+/usr/bin/ranlib libCore.a
