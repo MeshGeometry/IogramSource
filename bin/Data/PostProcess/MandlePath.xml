@@ -1,0 +1,7 @@
+<renderpath>
+    <command type="quad" tag="MandleBulb" vs="MandleBulb" ps="MandleBulb" output="viewport">
+		<parameter name="Epsilon" value="0.001" />
+    	<parameter name="Power" value="10.1" />
+        <texture unit="diffuse" name="viewport" />
+    </command>
+</renderpath>

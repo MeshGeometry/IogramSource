@@ -1,0 +1,3 @@
+<technique vs="Volume" ps="Volume" psdefines="" >
+	<pass name="alpha" depthwrite="false" blend="addalpha" />
+</technique>

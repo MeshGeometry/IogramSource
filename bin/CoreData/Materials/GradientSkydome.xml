@@ -1,0 +1,9 @@
+<material>
+    <technique name="Techniques/GradientSkydome.xml" />
+    <texture unit="diffuse" name="Textures/studio008_square.png" />
+    <parameter name="GradColorA" value="0.8 0.8 0.8 0.8"/>
+    <parameter name="GradColorB" value="0.2 0.2 0.2 2"/>
+    <parameter name="BlurRadius" value="0.001"/>
+    <parameter name="Blend" value="0.2"/>
+    <cull value="none" />
+</material>

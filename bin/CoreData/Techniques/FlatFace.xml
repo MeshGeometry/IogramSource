@@ -1,0 +1,6 @@
+<technique vs="FlatNormals" ps="FlatNormals">
+    <pass name="base" />
+    <pass name="litbase" psdefines="AMBIENT" />
+    <pass name="light" depthtest="equal" depthwrite="false" blend="add" />
+    <pass name="shadow" vs="Shadow" ps="Shadow" />
+</technique>

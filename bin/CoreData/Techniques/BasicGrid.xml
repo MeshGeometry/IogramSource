@@ -1,0 +1,3 @@
+<technique vs="BasicGrid" ps="BasicGrid" vsdefines="NOUV">
+    <pass name="alpha" depthwrite="false" blend="addalpha" />
+</technique>

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<project_settings>
+	<setting name="BaseColor" value="0.8 0.8 0.8"/>
+	<setting name="BaseTextColor" value="0.2 0.2 0.2"/>
+	<setting name="DividerColor" value="0.7 0.7 0.7"/>
+	<setting name="NodeBaseColor" value="0.6 0.6 0.6"/>
+	<setting name="NodeSelectionColor" value="0.6 0.6 0.7"/>
+	<setting name="MenuColor" value="0.9 0.9 0.9"/>
+	<setting name="MenuDividerColor" value="0.7 0.7 0.1"/>
+	<setting name="WorkspaceHint" value="Basic_Editing.xml"/>
+	<setting name="GraphHint" value="main.graph"/>
+</project_settings>
