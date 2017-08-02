@@ -20,4 +20,4 @@ Run 'FullBuild_Win64.bat'
 
 ### Linux (tested on Ubuntu 16.04 LTS)
 
-FRun 'FullBuild_GCC.bat'
+Run 'FullBuild_GCC.bat'
