@@ -1,1 +1,1 @@
-cmake -Bbuild -H. -DURHO3D_HOME="~/ThirdParty/Urho3D/gcc_build" -DURHO3D_OPENGL=1 -DURHO3D_64BIT=1
+cmake -BBuild/gcc_build -H. -DURHO3D_HOME="~/ThirdParty/Urho3D/gcc_build" -DURHO3D_OPENGL=1 -DURHO3D_64BIT=1
