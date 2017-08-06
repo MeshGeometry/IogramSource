@@ -1,0 +1,8 @@
+<material>
+    <technique name="Techniques/NoTextureEnvCube.xml" />
+    <parameter name="MatDiffColor" value="1.0 1.0 1.0 0.85" />
+    <parameter name="MatSpecColor" value="0.5 0.5 0.5 1" />
+    <parameter name="MatEnvMapColor" value="0.5 0.5 0.5" />
+    <texture unit="environment" name="Textures/ZoneCubeMap.xml" />
+    <cull value="ccw"/>
+</material>

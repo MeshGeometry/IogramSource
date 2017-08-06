@@ -1,0 +1,5 @@
+<renderpath>
+    <command type="quad" tag="Nebula" vs="Nebula" ps="Nebula" psdefines="COMPILEPS" output="viewport">
+        <texture unit="diffuse" name="Textures/noise.png" />
+    </command>
+</renderpath>

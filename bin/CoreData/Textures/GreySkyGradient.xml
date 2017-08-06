@@ -1,0 +1,9 @@
+<cubemap>
+    <face name="GreySkySides.png" />
+    <face name="GreySkySides.png" />
+    <face name="GreySkyTop.png" />
+    <face name="GreySkyBottom.png" />
+    <face name="GreySkySides.png" />
+    <face name="GreySkySides.png" />
+    <quality low="5" />
+</cubemap>

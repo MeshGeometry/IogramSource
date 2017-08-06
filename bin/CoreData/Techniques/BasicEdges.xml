@@ -1,0 +1,3 @@
+<technique vs="BasicEdges" ps="BasicEdges" vsdefines="NOUV">
+    <pass name="alpha" depthwrite="false" blend="alpha" />
+</technique>

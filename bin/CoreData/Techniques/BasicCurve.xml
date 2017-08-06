@@ -1,0 +1,3 @@
+<technique vs="BasicCurve" ps="BasicCurve" vsdefines="VERTEXCOLOR" psdefines="VERTEXCOLOR">
+    <pass name="alpha"  depthwrite="false" blend="alpha" />
+</technique>

@@ -1,0 +1,10 @@
+<renderpath>
+    <rendertarget name="depth" sizedivisor="4 4" format="lineardepth" />
+    <command type="quad" tag="DepthOfField" vs="DepthOfField" ps="DepthOfField" output="viewport">
+    	<texture unit="depth" name="depth" />
+        <texture unit="diffuse" name="viewport" />
+        <parameter name="Bias" value="0.4"/>
+        <parameter name="BlurClamp" value="1.0"/>
+        <parameter name="Focus" value="1.0"/>
+    </command>
+</renderpath>

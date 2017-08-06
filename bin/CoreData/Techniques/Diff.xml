@@ -1,0 +1,10 @@
+<technique vs="LitSolid" ps="LitSolid" psdefines="DIFFMAP">
+    <pass name="base" psdefines="FLATFACE"/>
+    <pass name="litbase" psdefines="AMBIENT" />
+    <pass name="light" psdefines="FLATFACE" depthtest="equal" depthwrite="false" blend="add" />
+    <pass name="prepass" psdefines="PREPASS FLATFACE" />
+    <pass name="material" psdefines="MATERIAL FLATFACE" depthtest="equal" depthwrite="false" />
+    <pass name="deferred" psdefines="DEFERRED FLATFACE" />
+    <pass name="depth" vs="Depth" ps="Depth" />
+    <pass name="shadow" vs="Shadow" ps="Shadow" />
+</technique>
