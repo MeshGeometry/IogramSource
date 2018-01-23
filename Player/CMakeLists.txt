@@ -45,6 +45,10 @@ target_link_libraries(IogramPlayer Components)
 target_link_libraries(IogramPlayer Core)
 target_link_libraries(IogramPlayer Geometry)
 
+if (APPLE)
+target_link_libraries(${TARGET_NAME} "-framework SystemConfiguration")
+endif()
+
 
 if(WIN32)
     install(FILES ${CMAKE_BINARY_DIR}/bin/IogramPlayer.exe DESTINATION ${CMAKE_SOURCE_DIR}/bin/Runtime/win)
