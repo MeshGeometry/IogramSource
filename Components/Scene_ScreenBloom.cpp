@@ -30,7 +30,7 @@ using namespace Urho3D;
 
 String Scene_ScreenBloom::iconTexture = "Textures/ScreenBloom.png";
 
-Scene_ScreenBloom::Scene_ScreenBloom(Urho3D::Context* context) : IoComponentBase(context, 3, 1)
+Scene_ScreenBloom::Scene_ScreenBloom(Urho3D::Context* context) : IoComponentBase(context, 4, 1)
 {
 	SetName("ScreenBloom");
 	SetFullName("Screen Bloom");
@@ -62,6 +62,14 @@ Scene_ScreenBloom::Scene_ScreenBloom(Urho3D::Context* context) : IoComponentBase
 	inputSlots_[2]->SetDefaultValue(90.0f);
 	inputSlots_[2]->DefaultSet();
 
+	inputSlots_[3]->SetName("Viewport ID");
+	inputSlots_[3]->SetVariableName("V");
+	inputSlots_[3]->SetDescription("Viewport ID");
+	inputSlots_[3]->SetVariantType(VariantType::VAR_INT);
+	inputSlots_[3]->SetDataAccess(DataAccess::ITEM);
+	inputSlots_[3]->SetDefaultValue(0);
+	inputSlots_[3]->DefaultSet();
+
 	outputSlots_[0]->SetName("Vertices");
 	outputSlots_[0]->SetVariableName("V");
 	outputSlots_[0]->SetDescription("Vertices Out");
@@ -72,11 +80,42 @@ Scene_ScreenBloom::Scene_ScreenBloom(Urho3D::Context* context) : IoComponentBase
 
 void Scene_ScreenBloom::PreLocalSolve()
 {
-	Renderer* renderer(GetSubsystem<Renderer>());
-	RenderPath* renderPath = renderer->GetViewport(0)->GetRenderPath();
+	//Renderer* renderer(GetSubsystem<Renderer>());
+	//
+	//RenderPath* renderPath;
+	//if (renderer->GetViewport(0))
+	//	renderPath = renderer->GetViewport(0)->GetRenderPath();
+	//else
+	//	return;
 
-	renderPath->RemoveCommands("BloomHDR");
-	renderPath->RemoveRenderTargets("BloomHDR");
+	//renderPath->RemoveCommands("BloomHDR");
+	//renderPath->RemoveRenderTargets("BloomHDR");
+
+	Renderer* renderer = GetSubsystem<Renderer>();
+	VariantVector vpList = GetGlobalVar("ViewportVector").GetVariantVector();
+	int numVP = vpList.Size();
+
+	for (int i = 0; i < trackedItems.Size(); i++)
+	{
+		int vpID = trackedItems[i].first_;
+		String rpCommand = trackedItems[i].second_;
+
+		if (vpID < numVP)
+		{
+			Viewport* vp = (Viewport*)vpList[vpID].GetPtr();
+			if (vp)
+			{
+				RenderPath* renderPath = vp->GetRenderPath();
+				renderPath->RemoveCommands(rpCommand);
+				renderPath->RemoveRenderTargets(rpCommand);
+			}
+
+		}
+
+	}
+
+	trackedItems.Clear();
+
 }
 
 void Scene_ScreenBloom::SolveInstance(
@@ -87,15 +126,90 @@ void Scene_ScreenBloom::SolveInstance(
 	float threshold = inSolveInstance[0].GetFloat()/100.0f;
 	float source = inSolveInstance[1].GetFloat() / 100.0f;
 	float bloom = inSolveInstance[2].GetFloat() / 100.0f;
-
+	int vId = inSolveInstance[3].GetInt(); 
 
 	Renderer* renderer(GetSubsystem<Renderer>());
-	RenderPath* renderPath = renderer->GetViewport(0)->GetRenderPath();
+
+	VariantVector vpList = GetGlobalVar("ViewportVector").GetVariantVector();
+	int numVP = vpList.Size();
+	if (vId >= numVP || vId < 0)
+	{
+		URHO3D_LOGERROR("No viewport with that index.");
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
+
+	//Viewport* vp = (Viewport*)GetGlobalVar("activeViewport").GetPtr();
+	Viewport* vp = (Viewport*)vpList[vId].GetPtr();
+
+	if (!vp)
+	{
+		SetAllOutputsNull(outSolveInstance);
+		return;
+	}
+
+	RenderPath* renderPath = vp->GetRenderPath();
 	ResourceCache* cache = GetSubsystem<ResourceCache>();
+	XMLFile* rFile = cache->GetResource<XMLFile>("PostProcess/BloomHDR.xml");
 
-	renderPath->Append(cache->GetResource<XMLFile>("PostProcess/BloomHDR.xml"));
+	if (rFile)
+	{
 
-	Vector2 mix(source, bloom);
-	renderPath->SetShaderParameter("BloomHDRThreshold", threshold);
-	renderPath->SetShaderParameter("BloomHDRMix", mix);
+		bool res = renderPath->Append(rFile);
+
+		String tag;
+		XMLElement rt = rFile->GetRoot().GetChild("rendertarget");
+		if (!rt.IsNull())
+		{
+			tag = rt.GetAttribute("tag");
+			trackedItems.Push(Pair<int, String>(vId, tag));
+		}
+		else
+		{
+			XMLElement cmd = rFile->GetRoot().GetChild("command");
+			tag = cmd.GetAttribute("tag");
+			trackedItems.Push(Pair<int, String>(vId, tag));
+		}
+
+		if (res)
+		{
+			//set some parameters
+			Vector2 mix(source, bloom);
+			renderPath->SetShaderParameter("BloomHDRThreshold", threshold);
+			renderPath->SetShaderParameter("BloomHDRMix", mix);
+
+			vp->SetRenderPath(renderPath);
+		}
+
+		outSolveInstance[0] = tag;
+		return;
+
+	}
+	else
+	{
+		outSolveInstance[0] = Variant();
+		return;
+	}
+
+
+
+
+	//////
+
+
+	//RenderPath* renderPath;
+	//if (renderer->GetViewport(vId))
+	//	renderPath = renderer->GetViewport(vId)->GetRenderPath();
+	//else {
+	//	outSolveInstance[0] = Variant();
+	//	return;
+	//}
+	//
+	//ResourceCache* cache = GetSubsystem<ResourceCache>();
+
+	//renderPath->Append(cache->GetResource<XMLFile>("PostProcess/BloomHDR.xml"));
+
+	//Vector2 mix(source, bloom);
+	//renderPath->SetShaderParameter("BloomHDRThreshold", threshold);
+	//renderPath->SetShaderParameter("BloomHDRMix", mix);
 }

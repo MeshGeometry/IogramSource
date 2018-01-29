@@ -378,6 +378,7 @@ int Graphics_MeshRenderer::NMesh_Render(Urho3D::Variant nMesh,
     //Urho3D::Variant convertedMesh = NMesh_ConvertToTriMesh_P2T(nMesh, ngonTriList);
     
     Urho3D::Variant convertedMesh = NMesh_ConvertToTriMesh(nMesh, ngonTriList);
+    int test =  ngonTriList.Size();
     
     Urho3D::Variant unifiedMesh = TriMesh_UnifyNormals(convertedMesh);
     

@@ -72,4 +72,21 @@ void RemoveDuplicates(
 	Urho3D::Variant& faces
 );
 
+void NMesh_RemoveDuplicates(
+	const Urho3D::Vector<Urho3D::Vector3>& vertexListIn,
+	const Urho3D::VariantVector& structuredFaceList,
+	Urho3D::Variant& vertices,
+	Urho3D::Variant& faces
+);
+
+void NMesh_WeldFaces(
+	const Urho3D::VariantVector& structuredFaceList,
+	Urho3D::VariantVector& weldedFaceList
+);
+
+void TriMesh_WeldFaces(
+	const Urho3D::VariantVector& faceList,
+	Urho3D::VariantVector& weldedFaceList
+);
+
 }

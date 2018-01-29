@@ -42,7 +42,7 @@ public:
 	void SetEditing(bool editOn) { editing_ = editOn; }
 	void DoHarmonicDeformation(Urho3D::Vector<Urho3D::Vector3> deltas, Urho3D::Vector<int> ids, Urho3D::Variant& geomOut);
 	void DoLinearDeformation(Urho3D::Vector<Urho3D::Vector3> deltas, Urho3D::Vector<int> ids, Urho3D::Variant& geomOut);
-	void DoBoxMorph(Urho3D::Vector<Urho3D::Vector3> deltas, Urho3D::Vector<int> ids, Urho3D::Variant & geomOut);
+    void DoBoxMorph(Urho3D::Vector<Urho3D::Vector3>& morphed_verts, Urho3D::Variant& geomOut);
 	void UpdateHandles();
 
 protected:
@@ -53,15 +53,14 @@ protected:
 	Urho3D::BillboardSet* meshEditor_;
 	Urho3D::Variant baseGeometry_;
 	Urho3D::Variant boundingBox_;
+	Urho3D::Vector<Urho3D::Vector3> originalVertParams_;
 	Urho3D::Vector3 primaryDelta_;
 	int primaryVertexID_;
-	Urho3D::Vector<Urho3D::Pair<int, int> > diagonals_;
 
 protected:
 
 	virtual void OnNodeSet(Urho3D::Node* node);
 	void CreateMeshEditor();
-	void PopulateDiagonals();
 	bool GetScreenRay(Urho3D::IntVector2 screenPos, Urho3D::Ray& ray);
 	Urho3D::IntVector2 GetScaledMousePosition();
 	void HandleUpdate(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData);

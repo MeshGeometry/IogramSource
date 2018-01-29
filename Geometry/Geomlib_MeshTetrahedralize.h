@@ -30,4 +30,27 @@ namespace Geomlib {
 		float maxVolume,
 		Urho3D::Variant& meshOut
 	);
+    
+    bool MeshTetrahedralizeFromPoints(
+        const Urho3D::Variant& meshIn,
+        const Urho3D::VariantVector& pointsIn,
+        float maxVolume,
+        Urho3D::Variant& meshOut
+        );
+
+	bool EdgeLatticeFromTetrahedra(
+		const Urho3D::Variant& meshIn, // mesh with tetrahedra
+		Urho3D::VariantVector& latticeMeshes,
+		float t // inset
+	);
+
+	// The E0-E1 E1-E4 lattice from 
+	// Elastic Textures for Additive Fabrication
+
+	bool E0E1E4LatticeFromTetrahedra(
+		const Urho3D::Variant& meshIn, // mesh with tetrahedra
+		Urho3D::VariantVector& latticeMeshes,
+		Urho3D::VariantVector& polylines,
+		float t // inset
+	);
 }

@@ -134,7 +134,7 @@ void IogramPlayer::Setup()
 	engineParameters_["WindowWidth"] = width;
 	engineParameters_["WindowResizable"] = true;
 	engineParameters_["HighDPI"] = true;
-
+	engineParameters_[EP_RESOURCE_PREFIX_PATHS] = ";./CoreData;./Data";
 	Urho3D::OpenConsoleWindow();
 }
 

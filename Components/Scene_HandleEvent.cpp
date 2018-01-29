@@ -73,7 +73,7 @@ int Scene_HandleEvent::LocalSolve()
 		return 0;
 	}
 
-	
+
 	SubscribeToEvent(eventName, URHO3D_HANDLER(Scene_HandleEvent, GenericEventHandler));
 
 	solvedFlag_ = 1;
@@ -83,13 +83,14 @@ int Scene_HandleEvent::LocalSolve()
 
 void Scene_HandleEvent::GenericEventHandler(StringHash eventType, VariantMap& eventData)
 {
-	IoDataTree* dataTree = (IoDataTree*)eventData["DataTree"].GetPtr();
+	//IoDataTree* dataTree = (IoDataTree*)eventData["DataTree"].GetPtr();
+	IoDataTree dataTree = IoDataTree(GetContext(), eventData);
 
-	if (dataTree)
-	{
-		outputSlots_[0]->SetIoDataTree(*dataTree);
-	}
+	outputSlots_[0]->SetIoDataTree(dataTree);
+
 
 	solvedFlag_ = 1;
+
+	GetSubsystem<IoGraph>()->QuickTopoSolveGraph();
 	return;
 }

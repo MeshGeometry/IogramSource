@@ -148,7 +148,7 @@ private:
 	///error message
 	Urho3D::String errorMessage_;
 	/// Pointers to supported inbuilt methods.
-	asIScriptFunction* methods_[MAX_SCRIPT_METHODS];
+	asIScriptFunction* methods_[7];
 	/// Subscribed to scene update events flag.
 	bool subscribed_;
 };

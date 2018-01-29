@@ -128,11 +128,10 @@ void ShapeOp_MeshTriangleStrain::SolveInstance(
 		Vector3 vB = verts[faces[3 * i + 1].GetInt()].GetVector3();
 		Vector3 vC = verts[faces[3 * i + 2].GetInt()].GetVector3();
 
-		VariantVector shapeop_vertices = {
-			ShapeOpVertex_Make(vA),
-			ShapeOpVertex_Make(vB),
-			ShapeOpVertex_Make(vC)
-		};
+		VariantVector shapeop_vertices;
+		shapeop_vertices.Push(ShapeOpVertex_Make(vA));
+		shapeop_vertices.Push(ShapeOpVertex_Make(vB));
+		shapeop_vertices.Push(ShapeOpVertex_Make(vC));
 
 		VariantMap var_map;
 		var_map["type"] = Variant("ShapeOpConstraint");

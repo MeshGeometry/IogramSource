@@ -98,6 +98,7 @@ void Scene_AddNode::SolveInstance(
 )
 {
 	Scene* scene = (Scene*)GetContext()->GetGlobalVar("Scene").GetPtr();
+	int flags = inSolveInstance[3].GetInt();
 
 	if (scene == NULL)
 	{
@@ -128,7 +129,8 @@ void Scene_AddNode::SolveInstance(
 	newNode->SetScale(xform.Scale());
 
 	//create transform edit
-	TransformEdit* te = newNode->CreateComponent<TransformEdit>();
+	if (flags != 0)
+		TransformEdit* te = newNode->CreateComponent<TransformEdit>();
 
 	//track
 	trackedNodes.Push(newNode->GetID());

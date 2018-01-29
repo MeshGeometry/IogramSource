@@ -149,14 +149,14 @@ void Sets_Freeze::HandleCustomInterface(Urho3D::UIElement* customElement)
 	Button* b = customElement->CreateChild<Button>();
 	b->SetSelected(true);
 	b->SetStyleAuto();
-	b->SetColor(LIGHT_GREEN);
+	freeze_ ? b->SetColor(LIGHT_GREEN) : b->SetColor(BRIGHT_ORANGE);
 	b->SetMinHeight(24);
 	
 	Text* t = b->CreateChild<Text>();
 	t->SetStyleAuto();
 	t->SetAlignment(HA_CENTER, VA_CENTER);
 	t->SetColor(Color::BLACK);
-	t->SetText("Writing...");
+	freeze_ ? t->SetText("Writing...") : t->SetText("Reading...");
 
 	SubscribeToEvent(b, E_PRESSED, URHO3D_HANDLER(Sets_Freeze, HandleModeChange));
 }

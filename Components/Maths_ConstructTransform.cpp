@@ -25,6 +25,7 @@
 #include <assert.h>
 
 #include <Urho3D/Core/Variant.h>
+#include "Geomlib_ConstructTransform.h"
 
 using namespace Urho3D;
 
@@ -132,7 +133,11 @@ void Maths_ConstructTransform::SolveInstance(
 	// COMPONENT'S WORK
 
 
-	Matrix3x4 xform(pos, rot, scale);
+	Matrix3x4 xform;
+	xform.SetRotation(rot.RotationMatrix());
+	xform.SetTranslation(pos);
+	xform.SetScale(scale);
+
 
 	outSolveInstance[0] = xform;
 }

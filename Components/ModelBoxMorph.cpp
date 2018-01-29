@@ -88,8 +88,34 @@ void ModelBoxMorph::CreateMeshEditor()
 {
 	//create billboard set
 
-	boundingBox_ = TriMesh_BoundingBox(baseGeometry_);
-	VariantVector verts = TriMesh_GetVertexList(boundingBox_);
+    //originalBoundingBox_= 
+    boundingBox_ = TriMesh_BoundingBox(baseGeometry_);
+    VariantVector verts = TriMesh_GetVertexList(boundingBox_);
+	VariantVector geom_verts = TriMesh_GetVertexList(baseGeometry_);
+    
+    // create transformation matrix
+    Vector3 v_0 = verts[0].GetVector3();
+    Vector3 v_1 = verts[1].GetVector3();
+    Vector3 v_2 = verts[2].GetVector3();
+    Vector3 v_4 = verts[4].GetVector3();
+	Vector3 b_0 = (v_1 - v_0);
+	Vector3 b_1 = v_2 - v_0;
+    Vector3 b_2 = v_4 - v_0;
+    
+    Matrix3 changeOfBasis_ = Matrix3(b_0.x_, b_1.x_, b_2.x_, b_0.y_, b_1.y_, b_2.y_, b_0.z_, b_1.z_, b_2.z_);
+	Vector3 originalBoxOrigin_ = v_0;
+
+	//sanity check: determinant of change of basis matrix is nonzero
+	if ((b_0.CrossProduct(b_1).DotProduct(b_2)) == 0)
+		changeOfBasis_ = Matrix3::IDENTITY;
+
+	// first get parametrization of original vertices WRT original bounding box
+	for (int i = 0; i < geom_verts.Size(); ++i) {
+		Vector3 cur_v = geom_verts[i].GetVector3();
+		Vector3 param_v = changeOfBasis_.Inverse()*(cur_v - originalBoxOrigin_);
+		originalVertParams_.Push(param_v);
+	}
+
 
 	ResourceCache* rc = GetSubsystem<ResourceCache>();
 
@@ -131,38 +157,14 @@ void ModelBoxMorph::CreateMeshEditor()
 	meshEditor_->Commit();
 }
 
-void ModelBoxMorph::PopulateDiagonals()
-{
-	// Make a list of vert_ID pairs representing the diagonals. 
-	if (boundingBox_ == VAR_NONE)
-		return;
-	VariantVector verts = TriMesh_GetVertexList(boundingBox_);
-	for (int i = 0; i < verts.Size(); ++i) {
-		Vector3 currVert = verts[i].GetVector3();
-		// find the farthest away vertex.
-		float dist = 0.0f;
-		int ID = -1;
-		for (int j = 0; j < verts.Size(); ++j) {
-			float test = (verts[j].GetVector3() - currVert).Length();
-			if (test > dist) {
-				dist = test;
-				ID = j;
-			}
-		}
-		Pair<int, int> diag = Pair<int, int>(i, ID);
-		diagonals_.Push(diag);
 
-	}
-
-
-}
 
 void ModelBoxMorph::SetBaseGeometry(const Urho3D::Variant geometry)
 {
 	baseGeometry_ = geometry;
 	//create the editor
 	CreateMeshEditor();
-	PopulateDiagonals();
+
 }
 
 void ModelBoxMorph::GetCurrentGeometry(Urho3D::Variant& geometryOut)
@@ -211,9 +213,6 @@ void ModelBoxMorph::HandleMouseMove(Urho3D::StringHash eventType, Urho3D::Varian
 
 	if (editing_) {
 
-		int x = eventData[P_X].GetInt();
-		int y = eventData[P_Y].GetInt();
-
 		//mpos
 		//UI* ui = GetSubsystem<UI>();
 		IntVector2 mPos = GetScaledMousePosition();
@@ -226,7 +225,6 @@ void ModelBoxMorph::HandleMouseMove(Urho3D::StringHash eventType, Urho3D::Varian
 			return;
 		}
 
-		IntVector2 screenDeltaVec = mPos - startScreenPos_;
 		Ray screenRay;
 		bool res = GetScreenRay(mPos, screenRay);
 
@@ -307,59 +305,32 @@ void ModelBoxMorph::HandleMouseUp(Urho3D::StringHash eventType, Urho3D::VariantM
 		Vector3 disp = primaryDelta_;
 		int bIndex = primaryVertexID_;
 
-		int oppIndex = -1;
-		for (int i = 0; i < diagonals_.Size(); ++i) {
-
-			int first = diagonals_[i].first_;
-			int second = diagonals_[i].second_;
-			if (diagonals_[i].first_ == bIndex)
-				oppIndex = diagonals_[i].second_;
-		}
-
-		if (oppIndex == -1)
-			return;
-
 		Vector3 movedCorner = boxVerts[bIndex].GetVector3();
-		Vector3 oppCorner = boxVerts[oppIndex].GetVector3();
-		Vector3 diagVec = movedCorner - oppCorner;
-		Vector3 newDiagVec = movedCorner + primaryDelta_ - oppCorner;
-
-		float diag_dist = (movedCorner - oppCorner).Length();
-		float deformed_dist = (movedCorner + primaryDelta_ - oppCorner).Length();
-
-		Variant geomOut;
-		Vector<Vector3> deltas;
-		Vector<int> ids;
-
-		//find deltas and ids
-		for (int i = 0; i < verts.Size(); i++)
-		{
-			Vector3 v = verts[i].GetVector3();
-			float dist_to_orig = (v - movedCorner).Length();
-			float dist_to_moved = (v - movedCorner + primaryDelta_).Length();
-
-			float multiplier = 1 - dist_to_orig / diag_dist;
-
-
-				deltas.Push(multiplier*primaryDelta_);
-				ids.Push(i);
-
-		}
-
-		//do deformation
-		DoBoxMorph(deltas, ids, geomOut);
 
 		//update base geometry
-		baseGeometry_ = geomOut;
 		boxVerts[bIndex] = movedCorner + primaryDelta_;
 		boundingBox_ = TriMesh_Make(boxVerts, TriMesh_GetFaceList(boundingBox_));
+
+		// do the box morph
+		Variant geomOut;
+		Vector<Vector3> morphed_verts;
+		DoBoxMorph(morphed_verts, geomOut);
+        
+        // preserve any other keys in baseGeometry by setting verts and faces
+        VariantMap baseMap = baseGeometry_.GetVariantMap();
+        VariantVector rev_verts = TriMesh_GetVertexList(geomOut);
+        VariantVector rev_faces = TriMesh_GetFaceList(geomOut);
+        baseMap["vertices"] = Variant(rev_verts);
+        baseMap["faces"] = Variant(rev_faces);
+        
+		baseGeometry_ = Variant(baseMap);
 
 		//update handles based on new geometry
 		UpdateHandles();
 
 		// this is roundabout
 		VariantMap data;
-		data["EditedMesh"] = geomOut;
+		data["EditedMesh"] = baseGeometry_;
 
 		//fill data 
 		SendEvent("ModelEditChangeBoxMorph", data);
@@ -386,6 +357,53 @@ void ModelBoxMorph::UpdateHandles()
 
 		meshEditor_->Commit();
 	}
+}
+
+void ModelBoxMorph::DoBoxMorph(Urho3D::Vector<Urho3D::Vector3>& morphed_verts, Variant& geomOut)
+{
+    VariantVector boxVerts = TriMesh_GetVertexList(boundingBox_);
+    VariantVector verts = TriMesh_GetVertexList(baseGeometry_);
+    VariantVector faces = TriMesh_GetFaceList(baseGeometry_);
+
+	// these should be the up to date positions of the box?
+	Vector3 v0 = boxVerts[0].GetVector3();
+	Vector3 v1 = boxVerts[1].GetVector3();
+	Vector3 v2 = boxVerts[2].GetVector3();
+	Vector3 v3 = boxVerts[3].GetVector3();
+	Vector3 v4 = boxVerts[4].GetVector3();
+	Vector3 v5 = boxVerts[5].GetVector3();
+	Vector3 v6 = boxVerts[6].GetVector3();
+	Vector3 v7 = boxVerts[7].GetVector3();
+     
+    for (int i = 0; i < verts.Size(); ++i)
+    {
+        //// first get parametrization of original vertices WRT original bounding box
+        //Vector3 cur_v = verts[i].GetVector3();
+        //Vector3 param_v = changeOfBasis_.Inverse()*(cur_v - originalBoxOrigin_);
+
+
+		// look up original parametrization of vertices
+		Vector3 param_v = originalVertParams_[i];
+		float a = param_v.x_;
+		float b = param_v.y_;
+		float c = param_v.z_;
+		        
+        // compute adjusted position of vertexrelative to new box corners
+		// find projection of cur_v in the YZ "planes" generated by 
+		// (v0, v1, v2, v3) and (v4, v5, v6, v7)
+		// then connect these projections by a line and find the appropriate x-value
+
+		Vector3 yz_a = v0 + a*(v1 - v0) + b*(v2 + a*(v3 - v2) - v0 - a*(v1 - v0));
+		Vector3 yz_b = v4 + a*(v5 - v4) + b*(v6 + a*(v7 - v6) - v4 - a*(v5 - v4));
+
+		Vector3 res = yz_a + c*(yz_b - yz_a);
+
+		morphed_verts.Push(res);
+		verts[i] = res;
+
+    }
+	geomOut = TriMesh_Make(verts, faces);
+
 }
 
 void ModelBoxMorph::DoHarmonicDeformation(Urho3D::Vector<Vector3> deltas, Urho3D::Vector<int> ids, Variant& geomOut)
@@ -447,22 +465,6 @@ void ModelBoxMorph::DoLinearDeformation(Urho3D::Vector<Urho3D::Vector3> deltas, 
 {
 }
 
-void ModelBoxMorph::DoBoxMorph(Urho3D::Vector<Urho3D::Vector3> deltas, Urho3D::Vector<int> ids, Urho3D::Variant & geomOut)
-{
-	// This will just add the deltas to the vertices specified by the vector of IDs. 
-
-	VariantVector verts = TriMesh_GetVertexList(baseGeometry_);
-	VariantVector faces = TriMesh_GetFaceList(baseGeometry_);
-
-	for (int i = 0; i < ids.Size(); ++i) {
-		if (ids[i] > verts.Size())
-			return;
-		Vector3 currVert = verts[ids[i]].GetVector3();
-		verts[ids[i]] = currVert + deltas[i];
-	}
-
-	geomOut = TriMesh_Make(verts, faces);
-}
 
 bool ModelBoxMorph::GetScreenRay(Urho3D::IntVector2 screenPos, Urho3D::Ray& ray)
 {

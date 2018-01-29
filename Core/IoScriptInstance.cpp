@@ -535,7 +535,6 @@ void IoScriptInstance::SetScriptFile(ScriptFile* scriptFile)
 	}
 
 	scriptFile_ = scriptFile;
-
 	CreateObject();
 
 }

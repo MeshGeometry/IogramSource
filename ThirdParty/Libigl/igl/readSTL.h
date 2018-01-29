@@ -49,6 +49,7 @@ namespace igl
   template <typename TypeV, typename TypeF, typename TypeN>
   IGL_INLINE bool readSTL(
     FILE * stl_file, 
+	const std::string & filename,
     std::vector<std::vector<TypeV> > & V,
     std::vector<std::vector<TypeF> > & F,
     std::vector<std::vector<TypeN> > & N);

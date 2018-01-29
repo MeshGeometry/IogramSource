@@ -108,8 +108,12 @@ void Mesh_CubeMesh::SolveInstance(
 	///////////////////
 	// COMPONENT'S WORK
 
-	Variant baseCubeMesh = MakeCubeMesh(s);
-	Variant cubeMesh = TriMesh_ApplyTransform(baseCubeMesh, tr);
+	//Variant baseCubeMesh = MakeCubeMesh(s);
+	//Variant cubeMesh = TriMesh_ApplyTransform(baseCubeMesh, tr);
+	Variant cubeMesh = MakeCubeMeshFromExtremeCorners(
+		0.5f * Vector3(-s, -s, -s),
+		0.5f * Vector3(s, s, s)
+	);
 
 	/////////////////
 	// ASSIGN OUTPUTS

@@ -41,4 +41,6 @@ public:
 		);
 
 	bool hasBloom = false;
+
+	Urho3D::Vector<Urho3D::Pair<int, Urho3D::String>> trackedItems;
 };

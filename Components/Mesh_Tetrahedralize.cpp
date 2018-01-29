@@ -52,6 +52,14 @@ Mesh_Tetrahedralize::Mesh_Tetrahedralize(Context* context) : IoComponentBase(con
 		ITEM,
 		-1.0f
 		);
+    
+    AddInputSlot(
+         "ExtraPoints",
+         "P",
+         "Optional additional input points",
+         VAR_VECTOR3,
+         LIST
+         );
 
 	AddOutputSlot(
 		"MeshOut",
@@ -60,6 +68,15 @@ Mesh_Tetrahedralize::Mesh_Tetrahedralize(Context* context) : IoComponentBase(con
 		VAR_VARIANTMAP,
 		ITEM
 		);
+
+	AddOutputSlot(
+		"TetsOut",
+		"T",
+		"Tetrahedra out",
+		VAR_VARIANTMAP,
+		LIST
+	);
+
 
 }
 
@@ -90,21 +107,41 @@ void Mesh_Tetrahedralize::SolveInstance(
 	}
 
 	float volume = inSolveInstance[1].GetFloat();
-
+	//float inset = inSolveInstance[3].GetFloat();
+    
+    Variant pts_var = inSolveInstance[2];
+    VariantVector pts_in;
+    bool extra_pts = false;
+    if (pts_var.GetType() == VAR_VARIANTVECTOR){
+        pts_in = pts_var.GetVariantVector();
+        if (pts_in.Size() > 0 && pts_in[0].GetType() == VAR_VECTOR3)
+            extra_pts = true;
+    }
 
 	///////////////////
 	// COMPONENT'S WORK
 
 	Variant outMesh;
-	bool success = Geomlib::MeshTetrahedralize(inMesh, volume, outMesh);
+    bool success = false;
+    if (!extra_pts)
+        success = Geomlib::MeshTetrahedralize(inMesh, volume, outMesh);
+    else
+        success = Geomlib::MeshTetrahedralizeFromPoints(inMesh, pts_in, volume, outMesh);
 	if (!success) {
 		URHO3D_LOGWARNING("Tetrahedralize operation failed.");
 		SetAllOutputsNull(outSolveInstance);
 		return;
 	}
 
+	// convert the tets to meshes
+	VariantMap outMap = outMesh.GetVariantMap();
+	VariantVector tets = outMap["tet_meshes"].GetVariantVector();
+
+
 	/////////////////
 	// ASSIGN OUTPUTS
 
 	outSolveInstance[0] = outMesh;
+	outSolveInstance[1] = tets;
+
 }

@@ -317,6 +317,14 @@ void Graphics_CreateMaterial::SolveInstance(
 	ResourceCache* rc = GetSubsystem<ResourceCache>();
 	Time* time = GetSubsystem<Time>();
 	StringHash id(time->GetSystemTime());
+	String name = "/tmp/materials/" + id.ToString();
+	int counter = 0;
+	while (rc->GetResource<Material>(name))
+	{
+		id = StringHash(time->GetSystemTime() + counter);
+		name = "/tmp/materials/" + id.ToString();
+		counter++;
+	}
 	mat->SetName("/tmp/materials/" + id.ToString());
 	bool res = rc->AddManualResource(mat.Get());
 	trackedItems.Push(mat->GetName());

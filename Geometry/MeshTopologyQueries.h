@@ -26,6 +26,8 @@
 #include <Urho3D/Container/Vector.h>
 #include <Urho3D/AngelScript/APITemplates.h>
 
+
+
 // TriMeshWithData is a variant map:
 /*
  ["type"] = TriMeshWithData
@@ -39,7 +41,6 @@
 // Leaving out edges and labels for now
 // ASSUMES MANIFOLD
 
- 
 
 
 // this computes all the various adjacency data and stores it as an enhanced triMesh

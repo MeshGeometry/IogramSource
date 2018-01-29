@@ -31,4 +31,8 @@ Urho3D::Variant JoinMeshes(
 	const Urho3D::Vector<Urho3D::Variant>& mesh_list
 );
 
+Urho3D::Variant JoinNMeshes(
+	const Urho3D::Vector<Urho3D::Variant>& mesh_list
+);
+
 }

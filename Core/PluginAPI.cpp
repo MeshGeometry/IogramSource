@@ -95,7 +95,13 @@ const String pluginSuffix = "_d.dll";
 const String pluginSuffix = ".dll";
 #endif
 #elif defined(__APPLE__)
-	const String pluginSuffix = ".dylib";
+
+    #ifdef _DEBUG
+        const String pluginSuffix = "_d.dylib";
+    #else
+        const String pluginSuffix = ".dylib";
+    #endif
+
 #else
 	const String pluginSuffix = ".so";
 #endif
@@ -133,13 +139,16 @@ const String pluginSuffix = ".dll";
 #else
 	const char *dlerrstr;
 	dlerror();
-	void *module = dlopen(path.CString(), RTLD_GLOBAL | RTLD_LAZY);
+
+	void *module = dlopen(path.CString(), RTLD_GLOBAL | RTLD_LAZY | RTLD_LOCAL);
+
 	if ((dlerrstr = dlerror()) != 0)
 	{
 		URHO3D_LOGERROR("Failed to load plugin from file \"" + path + "\": Error " + String(dlerrstr) + "!");
 		return;
 	}
 	dlerror();
+    void* symbol = dlsym(module, "GetMeshFromVoronoiCell");
 	PluginMainSignature mainEntryPoint = (PluginMainSignature)dlsym(module, "IogramPluginMain");
 	if ((dlerrstr = dlerror()) != 0)
 	{

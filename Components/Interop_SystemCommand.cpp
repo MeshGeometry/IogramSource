@@ -52,6 +52,15 @@ Interop_SystemCommand::Interop_SystemCommand(Context* context) :IoComponentBase(
 		DataAccess::LIST
 	);
 
+	AddInputSlot(
+		"Command",
+		"C",
+		"Command",
+		VAR_BOOL,
+		ITEM,
+		true
+	);
+
 	AddOutputSlot(
 		"ExitCode",
 		"R",
@@ -75,6 +84,7 @@ void Interop_SystemCommand::SolveInstance(
 
 	String command = inSolveInstance[0].GetString();
 	VariantVector args = inSolveInstance[1].GetVariantVector();
+	bool systemCommand = inSolveInstance[2].GetBool();
 
 	if (command.Empty())
 	{
@@ -83,7 +93,7 @@ void Interop_SystemCommand::SolveInstance(
 		return;
 	}
 
-	if (fs->FileExists(command))
+	if (!systemCommand)
 	{		
 		StringVector argList;
 		for (int i = 0; i < args.Size(); i++)
@@ -110,7 +120,7 @@ void Interop_SystemCommand::SolveInstance(
 		std::cout << "calling: fs->SystemCommand(command);\n";
 		std::cout << "command = " << command.CString() << "\n";
 
-		int res = fs->SystemCommand(command);
+		int res = fs->SystemCommand(command, false);
 		outSolveInstance[0] = res;
 		return;
 	}

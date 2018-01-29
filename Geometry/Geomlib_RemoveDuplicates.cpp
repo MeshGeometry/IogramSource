@@ -30,6 +30,8 @@
 using Urho3D::Variant;
 using Urho3D::Vector;
 using Urho3D::Vector3;
+using Urho3D::VariantMap;
+using Urho3D::VariantVector;
 
 namespace {
 bool Vector3Equals(const Urho3D::Vector3& lhs, const Urho3D::Vector3& rhs)
@@ -150,5 +152,195 @@ void Geomlib::RemoveDuplicates(
 		int uniq_j = find(vertexUniques_.begin(), vertexUniques_.end(), orig_j) - vertexUniques_.begin();
 		faceList.Push(Variant(uniq_j));
 	}
+
+	//// weld the faces
+	//VariantVector weldedFaceList;
+	//TriMesh_WeldFaces(faceList, weldedFaceList);
+
+	//faces = Variant(weldedFaceList);
+
 	faces = Variant(faceList);
+}
+
+void Geomlib::NMesh_RemoveDuplicates(
+	const Urho3D::Vector<Urho3D::Vector3>& vertexListIn,
+	const Urho3D::VariantVector& structuredFaceList,
+	Urho3D::Variant& vertices,
+	Urho3D::Variant& faces)
+{
+	// use the same idea as trimesh version with the vertexlistin, but use the structured face list for info about the faces
+
+	int numVerts = (int)vertexListIn.Size();
+	std::vector<int> vertexDuplicates_(numVerts);
+
+	for (int i = 0; i < numVerts; ++i) {
+		vertexDuplicates_[i] = i; // Assume not a duplicate
+		for (int j = 0; j < i; ++j) {
+			if (Vector3Equals(vertexListIn[j], vertexListIn[i])) {
+				vertexDuplicates_[i] = j;
+				break;
+			}
+		}
+	}
+
+	std::vector<int> vertexUniques_ = vertexDuplicates_;
+	std::sort(vertexUniques_.begin(), vertexUniques_.end());
+	vertexUniques_.erase(std::unique(vertexUniques_.begin(), vertexUniques_.end()), vertexUniques_.end());
+
+	Vector<Variant> newVertexList;
+	for (int i = 0; i < vertexUniques_.size(); ++i) {
+		int k = vertexUniques_[i];
+		newVertexList.Push(Variant(vertexListIn[k]));
+	}
+	vertices = Variant(newVertexList);
+
+	// now update the nmesh face list
+	Vector<Variant> faceList_raw;
+	Vector<Variant> faceList;
+	for (int j = 0; j < numVerts; ++j) {
+		int orig_j = vertexDuplicates_[j];
+		int uniq_j = find(vertexUniques_.begin(), vertexUniques_.end(), orig_j) - vertexUniques_.begin();
+		faceList_raw.Push(Variant(uniq_j));
+	}
+
+	VariantVector revised_sfl;
+	int counter = 0;
+	for (int i = 0; i < structuredFaceList.Size(); ++i) {
+		VariantMap face = structuredFaceList[i].GetVariantMap();
+		VariantMap rev_face = face;
+		VariantVector face_verts = face["face_vertices"].GetVariantVector();
+		VariantVector rev_face_verts;
+		int sz = face_verts.Size();
+		faceList.Push(Variant(sz));
+
+		for (int j = 0; j < sz; ++j) {
+			int id = faceList_raw[counter + j].GetInt();
+			faceList.Push(Variant(id));
+			rev_face_verts.Push(Variant(id));
+		}
+		rev_face["face_vertices"] = rev_face_verts;
+		revised_sfl.Push(Variant(rev_face));
+		counter += sz;
+	}
+
+	//// weld the faces
+	//VariantVector final_sfl;
+	//Vector<Variant> final_faceList;
+	//NMesh_WeldFaces(revised_sfl, final_sfl);
+
+	//// now convert to the Nmesh make format
+	//for (int i = 0; i < final_sfl.Size(); ++i) {
+	//	VariantMap face = final_sfl[0].GetVariantMap();
+	//	VariantVector face_verts = face["face_vertices"].GetVariantVector();
+	//	int sz = face_verts.Size();
+	//	final_faceList.Push(Variant(sz));
+	//	for (int j = 0; j < sz; ++j) {
+	//		int id = face_verts[j].GetInt();
+	//		final_faceList.Push(Variant(id));
+	//	}
+	//	counter += sz;
+	//}
+
+
+	//faces = Variant(final_faceList);
+	faces = Variant(faceList);
+
+
+}
+
+void Geomlib::NMesh_WeldFaces(const Urho3D::VariantVector & structuredFaceList, Urho3D::VariantVector & weldedFaceList)
+{
+	// first face is fine. 
+	if (structuredFaceList.Size() == 0)
+		return;
+
+	VariantMap first = structuredFaceList[0].GetVariantMap();
+	weldedFaceList.Push(Variant(first));
+
+	for (int i = 1; i < structuredFaceList.Size(); ++i) {
+		VariantMap F = structuredFaceList[i].GetVariantMap();
+		VariantVector V = F["face_vertices"].GetVariantVector();
+		bool unique = true;
+		for (int j = 0; j < weldedFaceList.Size(); ++j) {
+			VariantMap F_0 = weldedFaceList[j].GetVariantMap();
+			VariantVector V_0 = F_0["face_vertices"].GetVariantVector();
+
+			if (V_0.Size() != V.Size())
+				continue;
+			else {
+				// check if the vert ids are the same
+				int start = V[0].GetInt();
+				int match = -1;
+				for (int h = 0; h < V_0.Size(); ++h) {
+					if (V_0[h].GetInt() == start)
+						match = h;
+				}
+				if (match > -1) {
+					int CW_counter = 1;
+					int CCW_counter = 1;
+					//clockwise winding
+					for (int k = 1; k < V.Size(); ++k) {
+						int CW = (match - k + V.Size()) % V.Size();
+						if (V[k].GetInt() != V_0[CW].GetInt())
+							break;
+						else
+							++CW_counter;
+					 }
+					if (CW_counter == V.Size()) {
+						unique = false;
+						break;
+					}
+					// counterclockwise winding
+					for (int k = 1; k < V.Size(); ++k) {
+						int CCW = (match + k) % V.Size();
+ 						if (V[k].GetInt() != V_0[CCW].GetInt())
+							break;
+						else
+							++CCW_counter;
+					}
+					if (CCW_counter == V.Size()) {
+						unique = false;
+						break;
+					}
+				}	
+			}
+			if (unique == false)
+				break;
+		}
+		if (unique == false)
+			continue;
+		else if (unique == true)
+			weldedFaceList.Push(Variant(F));
+	}
+
+}
+
+void Geomlib::TriMesh_WeldFaces(const Urho3D::VariantVector & faceList, Urho3D::VariantVector & weldedFaceList)
+{
+	//convert to nmesh format.
+	VariantVector structuredFaceList;
+	VariantVector weldedNFaceList;
+
+	for (int i = 0; i < faceList.Size()/3; ++i) {
+		int id = 3 * i;
+		VariantVector face_ids;
+		face_ids.Push(Variant(faceList[id]));
+		face_ids.Push(Variant(faceList[id+1]));
+		face_ids.Push(Variant(faceList[id+2]));
+		VariantMap face;
+		face["face_vertices"] = face_ids;
+		structuredFaceList.Push(Variant(face));
+	}
+
+	NMesh_WeldFaces(structuredFaceList, weldedNFaceList);
+
+	//convert back to trimesh
+	for (int i = 0; i < weldedNFaceList.Size(); ++i) {
+		VariantMap face = weldedNFaceList[i].GetVariantMap();
+		VariantVector face_ids = face["face_vertices"].GetVariantVector();
+		for (int j = 0; j < 3; ++j) {
+			weldedFaceList.Push(face_ids[j]);
+		}
+	}
+
 }

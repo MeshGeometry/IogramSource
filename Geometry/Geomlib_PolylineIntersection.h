@@ -27,41 +27,69 @@
 
 namespace Geomlib {
 
-	//// From Mesh Repair:
+	// [t1, t2] interval of real number line; no promise that t1 <= t2
+	// [s1, s2] interval of real number line; no promise that s1 <= s2
+	// Returns:
+	//   1 if [t1, t2] and [s1, s2] have non-empty intersection
+	//   0 otherwise
+	int IntervalIntervalIntersection(
+		double t1,
+		double t2,
+		double s1,
+		double s2);
 
-	//// [t1, t2] interval of real number line; no promise that t1 <= t2
-	//// [s1, s2] interval of real number line; no promise that s1 <= s2
-	//// Returns:
-	////   1 if [t1, t2] and [s1, s2] have non-empty intersection
-	////   0 otherwise
-	//int IntervalIntervalIntersection(
-	//	double t1,
-	//	double t2,
-	//	double s1,
-	//	double s2);
+	//   1 if (A,B) and (C,D) have non-empty intersection
+	//   0 otherwise
+	int SegmentSegmentIntersection2D(
+		Urho3D::Vector2& A,
+		Urho3D::Vector2& B,
+		Urho3D::Vector2& C,
+		Urho3D::Vector2& D);
 
-	//// returns	1 for intersection (including intersection at endpoints)
-	////			0 for no intersection
-	//int SegmentSegmentIntersection2D(
-	//	const Eigen::RowVector2d& A,
-	//	const Eigen::RowVector2d& B,
-	//	const Eigen::RowVector2d& C,
-	//	const Eigen::RowVector2d& D);
+	int SegmentSegmentIntersection3D(
+		Urho3D::Vector3& A,
+		Urho3D::Vector3& B,
+		Urho3D::Vector3& C,
+		Urho3D::Vector3& D,
+		Urho3D::Vector3& normal);
 
-	//// returns	1 for intersection (including intersection at endpoints)
-	////			0 for no intersection
-	//int SegmentSegmentIntersection3D(
-	//	const Eigen::RowVector3d& A,
-	//	const Eigen::RowVector3d& B,
-	//	const Eigen::RowVector3d& C,
-	//	const Eigen::RowVector3d& D,
-	//	NgonPlane facePlane);
+	// ONLY FOR PLANAR POLYLINES
 
+	// returns true if the polyline has a self-intersection
+	// does not count a closed polyline as self-intersecting
+	bool HasSelfIntersection(const Urho3D::Variant polyline);
 
+	// returns a list of self intersections of the polyline
+	int GetSelfIntersections(
+		const Urho3D::Variant polyline,
+		Urho3D::Vector<Urho3D::Vector3>& intersections, 
+		Urho3D::Variant& revised_polyline
+	);
 
-	//// Computes the list of edges to check in IsFacePolySelfIntersecting, N = # of edges
-	//// Note for edge 0, we only check it with edges 2, 3, 4, ..., N-2
-	//// And we only check pairs of the form (A, B) where B>A (removes duplicate checks)
-	//std::vector<std::vector<int>> GetEdgesToIntersect(int N);
+	// inserts the point into the vertex list between A, B and C, D 
+	int InsertSelfIntersectionsAsPoint(
+		const Urho3D::Vector3& A,
+		const Urho3D::Vector3& B,
+		const Urho3D::Vector3& C,
+		const Urho3D::Vector3& D,
+		const Urho3D::Vector3& point,
+		Urho3D::Vector<Urho3D::Vector3>& verts);
+
+	int GetPointOfIntersection(
+		const Urho3D::Vector3& A,
+		const Urho3D::Vector3& B,
+		const Urho3D::Vector3& C,
+		const Urho3D::Vector3& D, 
+		Urho3D::Vector3& point);
+
+	bool ShortestDistance(
+		const Urho3D::Vector3& A,
+		const Urho3D::Vector3& B,
+		const Urho3D::Vector3& C,
+		const Urho3D::Vector3& D,
+		double& ta, double& tb);
+
+	Urho3D::Variant Polyline_Make_With_Intersections(const Urho3D::Vector<Urho3D::Vector3>& vertexList);
+
 
 }

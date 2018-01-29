@@ -188,10 +188,11 @@ public:
 	static Urho3D::String tags;
 
 
-protected: // protected so derived objects can access
+//protected: // protected so derived objects can access
 	Urho3D::Vector<Urho3D::SharedPtr<IoInputSlot> > inputSlots_;
 	Urho3D::Vector<Urho3D::SharedPtr<IoOutputSlot> > outputSlots_;
 
+protected: // protected so derived objects can access
 	// checks for valid input
 	Urho3D::String VariantTypeToString(Urho3D::VariantType variantType) const;
 	bool IsInputValid(unsigned inputIndex, const Urho3D::Variant& inputValue) const;

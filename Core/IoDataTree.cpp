@@ -192,7 +192,10 @@ unsigned IoDataTree::GetNumItemsAtBranch(Vector<int> path, DataAccess accessType
 	*/
 
 	if (accessType == DataAccess::ITEM) {
-		return (*(branches_[PathToUniqueString(path)]))->data.Size();
+		if (branches_[PathToUniqueString(path)])
+			return (*(branches_[PathToUniqueString(path)]))->data.Size();
+		else
+			return 1;
 		//return branch->data.Size();
 	}
 	else {

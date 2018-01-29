@@ -25,6 +25,7 @@
 #include <iostream>
 
 #include "TriMesh.h"
+#include "NMesh.h"
 #include "Geomlib_RemoveDuplicates.h"
 
 using Urho3D::Variant;
@@ -74,3 +75,56 @@ Urho3D::Variant Geomlib::JoinMeshes(
 
 	return TriMesh_Make(master_vertex_list, master_face_list);
 }
+
+Urho3D::Variant Geomlib::JoinNMeshes(
+	const Urho3D::Vector<Urho3D::Variant>& mesh_list
+)
+{
+	VariantVector actual_mesh_list;
+	for (unsigned i = 0; i < mesh_list.Size(); ++i) {
+		if (NMesh_Verify(mesh_list[i])) {
+			actual_mesh_list.Push(mesh_list[i]);
+		}
+	}
+
+	if (actual_mesh_list.Size() == 0) {
+		return Variant();
+	}
+
+	VariantVector master_vertex_list;
+	VariantVector master_face_list;
+	int running_vertex_count = 0;
+
+	for (unsigned i = 0; i < actual_mesh_list.Size(); ++i) {
+
+		Variant cur_mesh = actual_mesh_list[i];
+
+		VariantVector vertex_list = NMesh_GetVertexList(cur_mesh);
+		for (unsigned j = 0; j < vertex_list.Size(); ++j) {
+
+			Vector3 vertex = vertex_list[j].GetVector3();
+			master_vertex_list.Push(Variant(vertex));
+		}
+
+		//faces, carefully now
+		VariantVector face_list = NMesh_GetFaceList(cur_mesh);
+		for (unsigned j = 0; j < face_list.Size(); ++j) {
+
+			Urho3D::VariantMap face = face_list[j].GetVariantMap();
+			Urho3D::VariantVector face_verts = face["face_vertices"].GetVariantVector();
+			int sz = face_verts.Size();
+			master_face_list.Push(Variant(sz));
+
+			for (int k = 0; k < sz; ++k) {
+				int face_index = face_verts[k].GetInt() + running_vertex_count;
+				master_face_list.Push(Variant(face_index));
+			}
+		
+		}
+
+		running_vertex_count += vertex_list.Size();
+	}
+
+	return NMesh_Make(master_vertex_list, master_face_list);
+}
+
