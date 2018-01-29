@@ -50,6 +50,10 @@ target_link_libraries(Player Components)
 target_link_libraries(Player Core)
 target_link_libraries(Player Geometry)
 
+if (APPLE)
+target_link_libraries(${TARGET_NAME} "-framework SystemConfiguration")
+endif()
+
 
 if(WIN32)
     install(FILES ${CMAKE_BINARY_DIR}/bin/Player.exe DESTINATION ${CMAKE_SOURCE_DIR}/bin/Runtime/win)
