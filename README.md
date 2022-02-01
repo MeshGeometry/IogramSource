@@ -4,7 +4,7 @@
 Pull the repo with:
 
 ```
-git clone --recursive git@github.com:MeshGeometry/IogramSource.git
+git clone --recursive https://github.com/MeshGeometry/IogramSource.git
 ```
 
 or if you already have the repo:
